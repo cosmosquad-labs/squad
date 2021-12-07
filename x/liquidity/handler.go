@@ -10,7 +10,7 @@ import (
 	"github.com/tendermint/farming/x/liquidity/types"
 )
 
-// NewHandler ...
+// NewHandler returns a new msg handler.
 func NewHandler(k keeper.Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
