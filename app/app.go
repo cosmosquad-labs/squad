@@ -87,9 +87,6 @@ import (
 	ibchost "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v2/modules/core/keeper"
 	"github.com/gorilla/mux"
-	"github.com/gravity-devs/liquidity/x/liquidity"
-	liquiditykeeper "github.com/gravity-devs/liquidity/x/liquidity/keeper"
-	liquiditytypes "github.com/gravity-devs/liquidity/x/liquidity/types"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
 	"github.com/strangelove-ventures/packet-forward-middleware/router"
@@ -108,6 +105,9 @@ import (
 	farmingclient "github.com/tendermint/farming/x/farming/client"
 	farmingkeeper "github.com/tendermint/farming/x/farming/keeper"
 	farmingtypes "github.com/tendermint/farming/x/farming/types"
+	"github.com/tendermint/farming/x/liquidity"
+	liquiditykeeper "github.com/tendermint/farming/x/liquidity/keeper"
+	liquiditytypes "github.com/tendermint/farming/x/liquidity/types"
 
 	// unnamed import of statik for swagger UI support
 	_ "github.com/tendermint/farming/client/docs/statik"
@@ -416,9 +416,6 @@ func NewFarmingApp(
 		appCodec,
 		keys[liquiditytypes.StoreKey],
 		app.GetSubspace(liquiditytypes.ModuleName),
-		app.BankKeeper,
-		app.AccountKeeper,
-		app.DistrKeeper,
 	)
 
 	// register the proposal types
@@ -505,7 +502,7 @@ func NewFarmingApp(
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
-		liquidity.NewAppModule(appCodec, app.LiquidityKeeper, app.AccountKeeper, app.BankKeeper, app.DistrKeeper),
+		liquidity.NewAppModule(appCodec, app.LiquidityKeeper),
 		farming.NewAppModule(appCodec, app.FarmingKeeper, app.AccountKeeper, app.BankKeeper),
 		transferModule,
 		routerModule,
@@ -590,7 +587,7 @@ func NewFarmingApp(
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
-		liquidity.NewAppModule(appCodec, app.LiquidityKeeper, app.AccountKeeper, app.BankKeeper, app.DistrKeeper),
+		liquidity.NewAppModule(appCodec, app.LiquidityKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		transferModule,
 	)

@@ -1,11 +1,8 @@
 syntax = "proto3";
 package tendermint.farming.liquidity;
 
-// this line is used by starport scaffolding # genesis/proto/import
-
 option go_package = "github.com/tendermint/farming/x/liquidity/types";
 
 // GenesisState defines the liquidity module's genesis state.
 message GenesisState {
-    // this line is used by starport scaffolding # genesis/proto/state
 }

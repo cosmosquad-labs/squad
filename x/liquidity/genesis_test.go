@@ -4,20 +4,21 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	keepertest "github.com/tendermint/farming/testutil/keeper"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	"github.com/tendermint/farming/app"
+
 	"github.com/tendermint/farming/x/liquidity"
 	"github.com/tendermint/farming/x/liquidity/types"
 )
 
 func TestGenesis(t *testing.T) {
-	genesisState := types.GenesisState{
-		// this line is used by starport scaffolding # genesis/test/state
-	}
+	genesisState := types.GenesisState{}
 
-	k, ctx := keepertest.LiquidityKeeper(t)
-	liquidity.InitGenesis(ctx, *k, genesisState)
-	got := liquidity.ExportGenesis(ctx, *k)
+	app := app.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+
+	liquidity.InitGenesis(ctx, app.LiquidityKeeper, genesisState)
+	got := liquidity.ExportGenesis(ctx, app.LiquidityKeeper)
 	require.NotNil(t, got)
-
-	// this line is used by starport scaffolding # genesis/test/assert
 }

@@ -29,7 +29,6 @@ import (
 	"github.com/cosmos/ibc-go/v2/modules/apps/transfer"
 	ibc "github.com/cosmos/ibc-go/v2/modules/core"
 	"github.com/golang/mock/gomock"
-	"github.com/gravity-devs/liquidity/x/liquidity"
 	"github.com/strangelove-ventures/packet-forward-middleware/router"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/budget/x/budget"
@@ -191,7 +190,6 @@ func TestRunMigrations(t *testing.T) {
 					"crisis":                 crisis.AppModule{}.ConsensusVersion(),
 					"genutil":                genutil.AppModule{}.ConsensusVersion(),
 					"capability":             capability.AppModule{}.ConsensusVersion(),
-					"liquidity":              liquidity.AppModule{}.ConsensusVersion(),
 					"budget":                 budget.AppModule{}.ConsensusVersion(),
 					"farming":                farming.AppModule{}.ConsensusVersion(),
 					"ibc":                    ibc.AppModule{}.ConsensusVersion(),
