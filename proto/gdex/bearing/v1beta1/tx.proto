@@ -1,7 +1,0 @@
-syntax = "proto3";
-package gdex.bearing.v1beta1;
-
-option go_package = "github.com/tendermint/farming/x/bearing/types";
-
-// Msg defines the Msg service.
-service Msg {}
