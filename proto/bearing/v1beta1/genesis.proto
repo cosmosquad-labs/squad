@@ -1,0 +1,8 @@
+syntax = "proto3";
+package tendermint.farming.v1beta1;
+
+option go_package = "github.com/tendermint/farming/x/bearing/types";
+
+// GenesisState defines the liquidity module's genesis state.
+message GenesisState {
+}

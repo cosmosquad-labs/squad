@@ -110,6 +110,10 @@ import (
 	liquiditykeeper "github.com/tendermint/farming/x/liquidity/keeper"
 	liquiditytypes "github.com/tendermint/farming/x/liquidity/types"
 
+	"github.com/tendermint/farming/x/bearing"
+	bearingkeeper "github.com/tendermint/farming/x/bearing/keeper"
+	bearingtypes "github.com/tendermint/farming/x/bearing/types"
+
 	// unnamed import of statik for swagger UI support
 	_ "github.com/tendermint/farming/client/docs/statik"
 )
@@ -154,6 +158,7 @@ var (
 		budget.AppModuleBasic{},
 		farming.AppModuleBasic{},
 		liquidity.AppModuleBasic{},
+		bearing.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -167,7 +172,9 @@ var (
 		budgettypes.ModuleName:         nil,
 		farmingtypes.ModuleName:        nil,
 		liquiditytypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
-		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
+		// TODO: set perms to bearing
+		bearingtypes.ModuleName:     nil,
+		ibctransfertypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 	}
 )
 
@@ -214,6 +221,7 @@ type FarmingApp struct {
 	BudgetKeeper     budgetkeeper.Keeper
 	FarmingKeeper    farmingkeeper.Keeper
 	LiquidityKeeper  liquiditykeeper.Keeper
+	BearingKeeper    bearingkeeper.Keeper
 
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
@@ -279,6 +287,7 @@ func NewFarmingApp(
 		budgettypes.StoreKey,
 		farmingtypes.StoreKey,
 		liquiditytypes.StoreKey,
+		bearingtypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -419,6 +428,16 @@ func NewFarmingApp(
 		app.GetSubspace(liquiditytypes.ModuleName),
 	)
 
+	// TODO: fix bearing keeper deps
+	app.BearingKeeper = bearingkeeper.NewKeeper(
+		appCodec,
+		keys[budgettypes.StoreKey],
+		app.GetSubspace(budgettypes.ModuleName),
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.ModuleAccountAddrs(),
+	)
+
 	// register the proposal types
 	govRouter := govtypes.NewRouter()
 	govRouter.
@@ -505,6 +524,8 @@ func NewFarmingApp(
 		params.NewAppModule(app.ParamsKeeper),
 		liquidity.NewAppModule(appCodec, app.LiquidityKeeper),
 		farming.NewAppModule(appCodec, app.FarmingKeeper, app.AccountKeeper, app.BankKeeper),
+		// TODO: fix bearing module deps
+		bearing.NewAppModule(appCodec, app.BearingKeeper, app.AccountKeeper, app.BankKeeper),
 		transferModule,
 		routerModule,
 	)
@@ -522,6 +543,7 @@ func NewFarmingApp(
 		slashingtypes.ModuleName,
 		evidencetypes.ModuleName,
 		stakingtypes.ModuleName,
+		bearingtypes.ModuleName,
 		liquiditytypes.ModuleName,
 		ibchost.ModuleName,
 		routertypes.ModuleName,
@@ -531,6 +553,8 @@ func NewFarmingApp(
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
 		liquiditytypes.ModuleName,
+		// TODO: fix ordering of bearing module
+		bearingtypes.ModuleName,
 		farmingtypes.ModuleName,
 		feegrant.ModuleName,
 		authz.ModuleName,
@@ -560,6 +584,7 @@ func NewFarmingApp(
 		budgettypes.ModuleName,
 		farmingtypes.ModuleName,
 		liquiditytypes.ModuleName,
+		bearingtypes.ModuleName,
 		routertypes.ModuleName,
 	)
 
@@ -589,6 +614,8 @@ func NewFarmingApp(
 		params.NewAppModule(app.ParamsKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		liquidity.NewAppModule(appCodec, app.LiquidityKeeper),
+		// TODO: add simulations for bearing module
+		//bearing.NewAppModule(appCodec, app.BearingKeeper, app.AccountKeeper, app.BankKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		transferModule,
 	)
@@ -796,6 +823,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(budgettypes.ModuleName)
 	paramsKeeper.Subspace(farmingtypes.ModuleName)
 	paramsKeeper.Subspace(liquiditytypes.ModuleName)
+	paramsKeeper.Subspace(bearingtypes.ModuleName)
 
 	return paramsKeeper
 }
