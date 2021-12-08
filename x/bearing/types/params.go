@@ -6,21 +6,24 @@ import (
 	"gopkg.in/yaml.v2"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
-const (
-	// MaxBearingNameLength is the maximum length of the name of each bearing.
-	MaxBearingNameLength int = 50
-	// DefaultEpochBlocks is the default epoch blocks.
-	DefaultEpochBlocks uint32 = 1
-)
+// temporary bearing bond denom
+const BearingDenom = "bgdex"
 
 // Parameter store keys
 var (
-	KeyBearings    = []byte("Bearings")
-	KeyEpochBlocks = []byte("EpochBlocks")
+	KeyBearingValidators    = []byte("BearingValidators")
+	KeyUnstakeFeeRate = []byte("UnstakeFeeRate")
+
+	// DefaultUnstakeFeeRate is the default Unstake Fee Rate.
+	DefaultUnstakeFeeRate = sdk.NewDecWithPrec(1, 3) // "0.001000000000000000"
+
+
+	// Const variables
+
+	MinimumStakingAmount = sdk.NewInt(1000000)
 )
 
 var _ paramstypes.ParamSet = (*Params)(nil)
@@ -33,16 +36,16 @@ func ParamKeyTable() paramstypes.KeyTable {
 // DefaultParams returns the default bearing module parameters.
 func DefaultParams() Params {
 	return Params{
-		Bearings:    []Bearing{},
-		EpochBlocks: DefaultEpochBlocks,
+		BearingValidators:    []BearingValidator{},
+		UnstakeFeeRate:       DefaultUnstakeFeeRate,
 	}
 }
 
 // ParamSetPairs implements paramstypes.ParamSet.
 func (p *Params) ParamSetPairs() paramstypes.ParamSetPairs {
 	return paramstypes.ParamSetPairs{
-		paramstypes.NewParamSetPair(KeyBearings, &p.Bearings, ValidateBearings),
-		paramstypes.NewParamSetPair(KeyEpochBlocks, &p.EpochBlocks, ValidateEpochBlocks),
+		paramstypes.NewParamSetPair(KeyBearingValidators, &p.BearingValidators, ValidateBearingValidators),
+		paramstypes.NewParamSetPair(KeyUnstakeFeeRate, &p.UnstakeFeeRate, validateUnstakeFeeRate),
 	}
 }
 
@@ -58,7 +61,8 @@ func (p Params) Validate() error {
 		value     interface{}
 		validator func(interface{}) error
 	}{
-		{p.Bearings, ValidateBearings},
+		{p.BearingValidators, ValidateBearingValidators},
+		{p.UnstakeFeeRate, validateUnstakeFeeRate},
 	} {
 		if err := v.validator(v.value); err != nil {
 			return err
@@ -67,53 +71,47 @@ func (p Params) Validate() error {
 	return nil
 }
 
-// ValidateBearings validates bearing name and total rate.
-// The total rate of bearings with the same source address must not exceed 1.
-func ValidateBearings(i interface{}) error {
-	bearings, ok := i.([]Bearing)
+// ValidateBearingValidators validates bearing validator and total weight.
+func ValidateBearingValidators(i interface{}) error {
+	bvs, ok := i.([]BearingValidator)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
-	names := make(map[string]bool)
-	for _, bearing := range bearings {
-		err := bearing.Validate()
-		if err != nil {
-			return err
+	for _, bv := range bvs {
+		_, valErr := sdk.ValAddressFromBech32(bv.ValidatorAddress)
+		if valErr != nil {
+			return valErr
 		}
-		if _, ok := names[bearing.Name]; ok {
-			return sdkerrors.Wrap(ErrDuplicateBearingName, bearing.Name)
-		}
-		names[bearing.Name] = true
-	}
-	bearingsBySourceMap := GetBearingsBySourceMap(bearings)
-	for addr, bearingsBySource := range bearingsBySourceMap {
-		if bearingsBySource.TotalRate.GT(sdk.OneDec()) {
-			// If the TotalRate of Bearings with the same source address exceeds 1,
-			// recalculate and verify the TotalRate of Bearings with overlapping time ranges.
-			for _, bearing := range bearingsBySource.Bearings {
-				totalRate := sdk.ZeroDec()
-				for _, bearingToCheck := range bearingsBySource.Bearings {
-					if DateRangesOverlap(bearing.StartTime, bearing.EndTime, bearingToCheck.StartTime, bearingToCheck.EndTime) {
-						totalRate = totalRate.Add(bearingToCheck.Rate)
-					}
-				}
-				if totalRate.GT(sdk.OneDec()) {
-					return sdkerrors.Wrapf(
-						ErrInvalidTotalBearingRate,
-						"total rate for source address %s must not exceed 1: %v", addr, totalRate)
-				}
-			}
 
+		if bv.Weight.IsNil() {
+			return fmt.Errorf("bearing validator weight must not be nil")
+		}
+
+		if bv.Weight.IsNegative() {
+			return fmt.Errorf("bearing validator weight must not be negative: %s", bv.Weight)
 		}
 	}
+	// TODO: TBD total weight should be 1 or not
 	return nil
 }
 
-// ValidateEpochBlocks validates epoch blocks.
-func ValidateEpochBlocks(i interface{}) error {
-	_, ok := i.(uint32)
+func validateUnstakeFeeRate(i interface{}) error {
+	v, ok := i.(sdk.Dec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
+
+	if v.IsNil() {
+		return fmt.Errorf("unstake fee rate must not be nil")
+	}
+
+	if v.IsNegative() {
+		return fmt.Errorf("unstake fee rate must not be negative: %s", v)
+	}
+
+	if v.GT(sdk.OneDec()) {
+		return fmt.Errorf("unstake fee rate too large: %s", v)
+	}
+
 	return nil
 }

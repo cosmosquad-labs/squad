@@ -1,7 +1,17 @@
 syntax = "proto3";
 package gdex.bearing.v1beta1;
 
-option go_package = "github.com/tendermint/farming/x/bearing/types";
+import "gogoproto/gogo.proto";
+import "gdex/bearing/v1beta1/bearing.proto";
+
+option go_package            = "github.com/tendermint/farming/x/bearing/types";
+option (gogoproto.equal_all) = true;
 
 // GenesisState defines the liquidity module's genesis state.
-message GenesisState {}
+message GenesisState {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // params defines all the parameters for the farming module
+  Params params = 1 [(gogoproto.nullable) = false];
+}
