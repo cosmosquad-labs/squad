@@ -87,12 +87,13 @@ import (
 	ibcclient "github.com/cosmos/ibc-go/v2/modules/core/02-client"
 	ibcclientclient "github.com/cosmos/ibc-go/v2/modules/core/02-client/client"
 	ibcclienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
-	porttypes "github.com/cosmos/ibc-go/v2/modules/core/05-port/types"
 	ibchost "github.com/cosmos/ibc-go/v2/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v2/modules/core/keeper"
-	"github.com/strangelove-ventures/packet-forward-middleware/router"
-	routerkeeper "github.com/strangelove-ventures/packet-forward-middleware/router/keeper"
-	routertypes "github.com/strangelove-ventures/packet-forward-middleware/router/types"
+
+	"github.com/tendermint/farming/x/liquidity"
+	liquiditykeeper "github.com/tendermint/farming/x/liquidity/keeper"
+	liquiditytypes "github.com/tendermint/farming/x/liquidity/types"
+
 	"github.com/tendermint/budget/x/budget"
 	budgetkeeper "github.com/tendermint/budget/x/budget/keeper"
 	budgettypes "github.com/tendermint/budget/x/budget/types"
@@ -106,9 +107,6 @@ import (
 	farmingclient "github.com/tendermint/farming/x/farming/client"
 	farmingkeeper "github.com/tendermint/farming/x/farming/keeper"
 	farmingtypes "github.com/tendermint/farming/x/farming/types"
-	"github.com/tendermint/farming/x/liquidity"
-	liquiditykeeper "github.com/tendermint/farming/x/liquidity/keeper"
-	liquiditytypes "github.com/tendermint/farming/x/liquidity/types"
 
 	"github.com/tendermint/farming/x/liquidstaking"
 	liquidstakingkeeper "github.com/tendermint/farming/x/liquidstaking/keeper"
@@ -154,7 +152,6 @@ var (
 		evidence.AppModuleBasic{},
 		transfer.AppModuleBasic{},
 		vesting.AppModuleBasic{},
-		router.AppModuleBasic{},
 		budget.AppModuleBasic{},
 		farming.AppModuleBasic{},
 		liquidity.AppModuleBasic{},
@@ -217,7 +214,6 @@ type FarmingApp struct {
 	TransferKeeper      ibctransferkeeper.Keeper
 	FeeGrantKeeper      feegrantkeeper.Keeper
 	AuthzKeeper         authzkeeper.Keeper
-	RouterKeeper        routerkeeper.Keeper
 	BudgetKeeper        budgetkeeper.Keeper
 	FarmingKeeper       farmingkeeper.Keeper
 	LiquidityKeeper     liquiditykeeper.Keeper
@@ -283,7 +279,6 @@ func NewFarmingApp(
 		capabilitytypes.StoreKey,
 		feegrant.StoreKey,
 		authzkeeper.StoreKey,
-		routertypes.StoreKey,
 		budgettypes.StoreKey,
 		farmingtypes.StoreKey,
 		liquiditytypes.StoreKey,
@@ -470,20 +465,6 @@ func NewFarmingApp(
 	)
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
 
-	app.RouterKeeper = routerkeeper.NewKeeper(
-		appCodec,
-		keys[routertypes.StoreKey],
-		app.GetSubspace(routertypes.ModuleName),
-		app.TransferKeeper,
-		app.DistrKeeper,
-	)
-
-	routerModule := router.NewAppModule(app.RouterKeeper, transferModule)
-	// create static IBC router, add transfer route, then set and seal it
-	ibcRouter := porttypes.NewRouter()
-	ibcRouter.AddRoute(ibctransfertypes.ModuleName, routerModule)
-	app.IBCKeeper.SetRouter(ibcRouter)
-
 	// create evidence keeper with router
 	evidenceKeeper := evidencekeeper.NewKeeper(
 		appCodec,
@@ -527,7 +508,6 @@ func NewFarmingApp(
 		// TODO: fix liquidstaking module deps
 		liquidstaking.NewAppModule(appCodec, app.LiquidStakingKeeper, app.AccountKeeper, app.BankKeeper),
 		transferModule,
-		routerModule,
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -546,7 +526,6 @@ func NewFarmingApp(
 		liquidstakingtypes.ModuleName,
 		liquiditytypes.ModuleName,
 		ibchost.ModuleName,
-		routertypes.ModuleName,
 	)
 	app.mm.SetOrderEndBlockers(
 		crisistypes.ModuleName,
@@ -585,7 +564,6 @@ func NewFarmingApp(
 		farmingtypes.ModuleName,
 		liquiditytypes.ModuleName,
 		liquidstakingtypes.ModuleName,
-		routertypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -627,25 +605,24 @@ func NewFarmingApp(
 	app.MountTransientStores(tkeys)
 	app.MountMemoryStores(memKeys)
 
-	anteHandler, err := NewAnteHandler(
-		HandlerOptions{
-			HandlerOptions: ante.HandlerOptions{
-				AccountKeeper:   app.AccountKeeper,
-				BankKeeper:      app.BankKeeper,
-				SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
-				FeegrantKeeper:  app.FeeGrantKeeper,
-				SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
-			},
-			IBCChannelKeeper: app.IBCKeeper.ChannelKeeper,
+	app.SetInitChainer(app.InitChainer)
+	app.SetBeginBlocker(app.BeginBlocker)
+
+	anteHandler, err := ante.NewAnteHandler(
+		ante.HandlerOptions{
+			AccountKeeper:   app.AccountKeeper,
+			BankKeeper:      app.BankKeeper,
+			SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
+			FeegrantKeeper:  app.FeeGrantKeeper,
+			SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
 		},
 	)
+
 	if err != nil {
-		panic(fmt.Errorf("failed to create AnteHandler: %w", err))
+		panic(err)
 	}
 
 	app.SetAnteHandler(anteHandler)
-	app.SetInitChainer(app.InitChainer)
-	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 
 	if loadLatest {
@@ -819,7 +796,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(crisistypes.ModuleName)
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)
-	paramsKeeper.Subspace(routertypes.ModuleName).WithKeyTable(routertypes.ParamKeyTable())
 	paramsKeeper.Subspace(budgettypes.ModuleName)
 	paramsKeeper.Subspace(farmingtypes.ModuleName)
 	paramsKeeper.Subspace(liquiditytypes.ModuleName)
