@@ -28,12 +28,12 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {
 // ExportGenesis returns the liquidstaking module's genesis state.
 func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	params := k.GetParams(ctx)
-	//var bearingRecords []types.BearingRecord
+	var liquidValidators []types.LiquidValidator
 
 	//k.IterateAllTotalCollectedCoins(ctx, func(record types.BearingRecord) (stop bool) {
 	//	bearingRecords = append(bearingRecords, record)
 	//	return false
 	//})
 
-	return types.NewGenesisState(params, bearingRecords)
+	return types.NewGenesisState(params, liquidValidators)
 }

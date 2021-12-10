@@ -13,8 +13,8 @@ import (
 // BeginBlocker collects bearings for the current block
 func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyBeginBlocker)
-	err := k.CollectBearings(ctx)
-	if err != nil {
-		panic(err)
-	}
+	// TODO: Unimplemented beginblock logic
+	//if err != nil {
+	//	panic(err)
+	//}
 }

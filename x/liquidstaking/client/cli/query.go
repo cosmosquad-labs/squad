@@ -3,12 +3,10 @@ package cli
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 
@@ -17,7 +15,7 @@ import (
 
 // GetQueryCmd returns a root CLI command handler for all x/liquidstaking query commands.
 func GetQueryCmd() *cobra.Command {
-	bearingQueryCmd := &cobra.Command{
+	liquidValidatorQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      "Querying commands for the liquidstaking module",
 		DisableFlagParsing:         true,
@@ -25,13 +23,12 @@ func GetQueryCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	bearingQueryCmd.AddCommand(
+	liquidValidatorQueryCmd.AddCommand(
 		GetCmdQueryParams(),
-		GetCmdQueryBearings(),
-		GetCmdQueryAddress(),
+		GetCmdQueryLiquidValidators(),
 	)
 
-	return bearingQueryCmd
+	return liquidValidatorQueryCmd
 }
 
 // GetCmdQueryParams implements the params query command.
@@ -73,25 +70,19 @@ $ %s query %s params
 	return cmd
 }
 
-// GetCmdQueryBearings implements the query bearings command.
-func GetCmdQueryBearings() *cobra.Command {
+// GetCmdQueryLiquidValidators implements the query liquidValidators command.
+func GetCmdQueryLiquidValidators() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "bearings",
+		Use:   "liquidValidators",
 		Args:  cobra.NoArgs,
-		Short: "Query all bearings",
+		Short: "Query all liquidValidators",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Queries all bearings along with their metadata.
+			fmt.Sprintf(`Queries all liquid validators.
 
 Example:
-$ %s query %s bearings
-$ %s query %s bearings --name ...
-$ %s query %s bearings --source-address %s1zaavvzxez0elundtn32qnk9lkm8kmcszzsv80v
-$ %s query %s bearings --destination-address %s1zaavvzxez0elundtn32qnk9lkm8kmcszzsv80v
+$ %s query %s liquidValidators
 `,
 				version.AppName, types.ModuleName,
-				version.AppName, types.ModuleName,
-				version.AppName, types.ModuleName, sdk.Bech32MainPrefix,
-				version.AppName, types.ModuleName, sdk.Bech32MainPrefix,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -100,17 +91,24 @@ $ %s query %s bearings --destination-address %s1zaavvzxez0elundtn32qnk9lkm8kmcsz
 				return err
 			}
 
-			name, _ := cmd.Flags().GetString(FlagName)
-			sourceAddr, _ := cmd.Flags().GetString(FlagSourceAddress)
-			destinationAddr, _ := cmd.Flags().GetString(FlagDestinationAddress)
+			//name, _ := cmd.Flags().GetString(FlagName)
+			//sourceAddr, _ := cmd.Flags().GetString(FlagSourceAddress)
+			//destinationAddr, _ := cmd.Flags().GetString(FlagDestinationAddress)
 
 			queryClient := types.NewQueryClient(clientCtx)
-			res, err := queryClient.Bearings(
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.LiquidValidators(
 				context.Background(),
-				&types.QueryBearingsRequest{
-					Name:               name,
-					SourceAddress:      sourceAddr,
-					DestinationAddress: destinationAddr,
+				&types.QueryLiquidValidatorsRequest{
+					// TODO: add status
+					//Name:               name,
+					//SourceAddress:      sourceAddr,
+					//DestinationAddress: destinationAddr,
+					Pagination: pageReq,
 				},
 			)
 			if err != nil {
@@ -121,67 +119,7 @@ $ %s query %s bearings --destination-address %s1zaavvzxez0elundtn32qnk9lkm8kmcsz
 		},
 	}
 
-	cmd.Flags().AddFlagSet(flagSetBearings())
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
-}
-
-// GetCmdQueryAddress implements the query an address that can be used as source and destination is derived according to the given type, module name, and name command.
-func GetCmdQueryAddress() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "address [name]",
-		Args:  cobra.ExactArgs(1),
-		Short: "Query an address that can be used as source or destination address",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query an address that can be used as source or destination address. It is derived with address derivation name, module name, and address type.
-
-Example:
-$ %s query %s address testSourceAddr
-$ %s query %s address fee_collector --type 1
-$ %s query %s address GravityDEXFarmingBearing --module-name farming
-
-Default flag:
-$ [--type 0] - ADDRESS_TYPE_32_BYTES of ADR 028
-$ [--module-name %s] - When type is 0, the default module name is %s
-`,
-				version.AppName, types.ModuleName,
-				version.AppName, types.ModuleName,
-				version.AppName, types.ModuleName,
-				types.ModuleName, types.ModuleName,
-			),
-		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			moduleName, _ := cmd.Flags().GetString(FlagModuleName)
-			addressTypeStr, _ := cmd.Flags().GetString(FlagType)
-			addressType, err := strconv.Atoi(addressTypeStr)
-			if err != nil {
-				addressType = 0
-			}
-
-			queryClient := types.NewQueryClient(clientCtx)
-			res, err := queryClient.Addresses(
-				context.Background(),
-				&types.QueryAddressesRequest{
-					Type:       types.AddressType(addressType),
-					ModuleName: moduleName,
-					Name:       args[0],
-				},
-			)
-			if err != nil {
-				return err
-			}
-
-			return clientCtx.PrintProto(res)
-		},
-	}
-
-	cmd.Flags().AddFlagSet(flagSetAddress())
+	//cmd.Flags().AddFlagSet(flagSetLiquidValidators())
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd

@@ -26,64 +26,18 @@ func (k Querier) Params(c context.Context, _ *types.QueryParamsRequest) (*types.
 	return &types.QueryParamsResponse{Params: params}, nil
 }
 
-//// Bearings queries all bearings.
-//func (k Querier) Bearings(c context.Context, req *types.QueryBearingsRequest) (*types.QueryBearingsResponse, error) {
-//	if req == nil {
-//		return nil, status.Error(codes.InvalidArgument, "invalid request")
-//	}
-//
-//	if req.SourceAddress != "" {
-//		if _, err := sdk.AccAddressFromBech32(req.SourceAddress); err != nil {
-//			return nil, err
-//		}
-//	}
-//
-//	if req.DestinationAddress != "" {
-//		if _, err := sdk.AccAddressFromBech32(req.DestinationAddress); err != nil {
-//			return nil, err
-//		}
-//	}
-//
-//	ctx := sdk.UnwrapSDKContext(c)
-//	var params types.Params
-//	k.paramSpace.GetParamSet(ctx, &params)
-//
-//	var bearings []types.BearingResponse
-//	for _, b := range params.Bearings {
-//		if req.Name != "" && b.Name != req.Name ||
-//			req.SourceAddress != "" && b.SourceAddress != req.SourceAddress ||
-//			req.DestinationAddress != "" && b.DestinationAddress != req.DestinationAddress {
-//			continue
-//		}
-//
-//		collectedCoins := k.GetTotalCollectedCoins(ctx, b.Name)
-//		bearings = append(bearings, types.BearingResponse{
-//			Bearing:             b,
-//			TotalCollectedCoins: collectedCoins,
-//		})
-//	}
-//
-//	return &types.QueryBearingsResponse{Bearings: bearings}, nil
-//}
-//
-//// Addresses queries an address that can be used as source and destination is derived according to the given name, module name and address type.
-//func (k Querier) Addresses(_ context.Context, req *types.QueryAddressesRequest) (*types.QueryAddressesResponse, error) {
-//	if req == nil {
-//		return nil, status.Error(codes.InvalidArgument, "invalid request")
-//	}
-//
-//	if req.Name == "" && req.ModuleName == "" {
-//		return nil, status.Error(codes.InvalidArgument, "at least one input of name or module name is required")
-//	}
-//
-//	if req.ModuleName == "" && req.Type == types.AddressType32Bytes {
-//		req.ModuleName = types.ModuleName
-//	}
-//
-//	addr := types.DeriveAddress(req.Type, req.ModuleName, req.Name)
-//	if addr.Empty() {
-//		return nil, status.Error(codes.InvalidArgument, "invalid names with address type")
-//	}
-//
-//	return &types.QueryAddressesResponse{Address: addr.String()}, nil
-//}
+// LiquidValidators queries all liquid validators.
+func (k Querier) LiquidValidators(c context.Context, req *types.QueryLiquidValidatorsRequest) (*types.QueryLiquidValidatorsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	var params types.Params
+	k.paramSpace.GetParamSet(ctx, &params)
+
+	var validators []types.LiquidValidator
+	// TODO: add get all liquid validators or iteration
+
+	return &types.QueryLiquidValidatorsResponse{LiquidValidators: validators}, nil
+}

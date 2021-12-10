@@ -5,20 +5,21 @@ import (
 )
 
 const (
-	FlagName               = "name"
-	FlagSourceAddress      = "source-address"
-	FlagDestinationAddress = "destination-address"
-	FlagType               = "type"
-	FlagModuleName         = "module-name"
+	// TODO: add status flag
+	//FlagName               = "name"
+	//FlagSourceAddress      = "source-address"
+	//FlagDestinationAddress = "destination-address"
+	FlagType       = "type"
+	FlagModuleName = "module-name"
 )
 
-// flagSetBearings returns the FlagSet used for bearings.
-func flagSetBearings() *flag.FlagSet {
+// flagSetLiquidValidators returns the FlagSet used for bearings.
+func flagSetLiquidValidators() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
-	fs.String(FlagName, "", "The liquidstaking name")
-	fs.String(FlagSourceAddress, "", "The bech32 address of the source account")
-	fs.String(FlagDestinationAddress, "", "The bech32 address of the destination account")
+	//fs.String(FlagName, "", "The liquidstaking name")
+	//fs.String(FlagSourceAddress, "", "The bech32 address of the source account")
+	//fs.String(FlagDestinationAddress, "", "The bech32 address of the destination account")
 
 	return fs
 }

@@ -27,7 +27,7 @@ func ValidateGenesis(data GenesisState) error {
 		if err := lv.Validate(); err != nil {
 			return sdkerrors.Wrapf(
 				sdkerrors.ErrInvalidCoins,
-				"invalid total collected coins %s: %v", record.TotalCollectedCoins, err)
+				"invalid liquid validator %s: %v", lv, err)
 		}
 	}
 	return nil

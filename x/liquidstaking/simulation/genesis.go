@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"math/rand"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/address"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
@@ -17,56 +15,46 @@ import (
 
 // Simulation parameter constants
 const (
-	EpochBlocks = "epoch_blocks"
-	Bearings    = "bearings"
+	EpochBlocks      = "epoch_blocks"
+	LiquidValidators = "liquidValidators"
 )
 
-// GenEpochBlocks returns randomized epoch blocks.
-func GenEpochBlocks(r *rand.Rand) uint32 {
-	return uint32(simtypes.RandIntBetween(r, int(types.DefaultEpochBlocks), 10))
-}
+//// GenEpochBlocks returns randomized epoch blocks.
+//func GenEpochBlocks(r *rand.Rand) uint32 {
+//	return uint32(simtypes.RandIntBetween(r, int(types.DefaultEpochBlocks), 10))
+//}
 
-// GenBearings returns randomized bearings.
-func GenBearings(r *rand.Rand) []types.Bearing {
-	ranBearings := make([]types.Bearing, 0)
+// GenLiquidValidators returns randomized liquidValidators.
+func GenLiquidValidators(r *rand.Rand) []types.LiquidValidator {
+	ranLiquidValidators := make([]types.LiquidValidator, 0)
 
 	for i := 0; i < simtypes.RandIntBetween(r, 1, 3); i++ {
-		bearing := types.Bearing{
-			Name:               "simulation-test-" + simtypes.RandStringOfLength(r, 5),
-			Rate:               sdk.NewDecFromIntWithPrec(sdk.NewInt(int64(simtypes.RandIntBetween(r, 1, 4))), 1), // 10~30%
-			SourceAddress:      "cosmos17xpfvakm2amg962yls6f84z3kell8c5lserqta",                                   // Cosmos Hub's FeeCollector module account
-			DestinationAddress: sdk.AccAddress(address.Module(types.ModuleName, []byte("GravityDEXFarmingBearing"))).String(),
-			StartTime:          types.MustParseRFC3339("2000-01-01T00:00:00Z"),
-			EndTime:            types.MustParseRFC3339("9999-12-31T00:00:00Z"),
-		}
-		ranBearings = append(ranBearings, bearing)
+		liquidValidator := types.LiquidValidator{}
+		ranLiquidValidators = append(ranLiquidValidators, liquidValidator)
 	}
 
-	return ranBearings
+	return ranLiquidValidators
 }
 
 // RandomizedGenState generates a random GenesisState for liquidstaking.
 func RandomizedGenState(simState *module.SimulationState) {
-	var epochBlocks uint32
-	var bearings []types.Bearing
-	simState.AppParams.GetOrGenerate(
-		simState.Cdc, EpochBlocks, &epochBlocks, simState.Rand,
-		func(r *rand.Rand) { epochBlocks = GenEpochBlocks(r) },
-	)
+	//var epochBlocks uint32
+	var liquidValidators []types.LiquidValidator
+	//simState.AppParams.GetOrGenerate(
+	//	simState.Cdc, EpochBlocks, &epochBlocks, simState.Rand,
+	//	//func(r *rand.Rand) { epochBlocks = GenEpochBlocks(r) },
+	//)
 
 	simState.AppParams.GetOrGenerate(
-		simState.Cdc, Bearings, &bearings, simState.Rand,
-		func(r *rand.Rand) { bearings = GenBearings(r) },
+		simState.Cdc, LiquidValidators, &liquidValidators, simState.Rand,
+		func(r *rand.Rand) { liquidValidators = GenLiquidValidators(r) },
 	)
 
-	bearingGenesis := types.GenesisState{
-		Params: types.Params{
-			EpochBlocks: epochBlocks,
-			Bearings:    bearings,
-		},
+	liquidValidatorGenesis := types.GenesisState{
+		Params: types.Params{},
 	}
 
-	bz, _ := json.MarshalIndent(&bearingGenesis, "", " ")
+	bz, _ := json.MarshalIndent(&liquidValidatorGenesis, "", " ")
 	fmt.Printf("Selected randomly generated liquidstaking parameters:\n%s\n", bz)
-	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(&bearingGenesis)
+	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(&liquidValidatorGenesis)
 }

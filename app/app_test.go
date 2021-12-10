@@ -31,7 +31,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/budget/x/budget"
-	"github.com/tendermint/farming/x/liquidity"
 	"github.com/tendermint/farming/x/liquidstaking"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -191,11 +190,12 @@ func TestRunMigrations(t *testing.T) {
 					"crisis":       crisis.AppModule{}.ConsensusVersion(),
 					"genutil":      genutil.AppModule{}.ConsensusVersion(),
 					"capability":   capability.AppModule{}.ConsensusVersion(),
-					"liquidity":    liquidity.AppModule{}.ConsensusVersion(),
-					"budget":       budget.AppModule{}.ConsensusVersion(),
-					"farming":      farming.AppModule{}.ConsensusVersion(),
-					"ibc":          ibc.AppModule{}.ConsensusVersion(),
-					"transfer":     transfer.AppModule{}.ConsensusVersion(),
+					//"liquidity":     liquidity.AppModule{}.ConsensusVersion(),
+					"budget":        budget.AppModule{}.ConsensusVersion(),
+					"farming":       farming.AppModule{}.ConsensusVersion(),
+					"liquidstaking": liquidstaking.AppModule{}.ConsensusVersion(),
+					"ibc":           ibc.AppModule{}.ConsensusVersion(),
+					"transfer":      transfer.AppModule{}.ConsensusVersion(),
 				},
 			)
 			if tc.expRunErr {
@@ -232,25 +232,27 @@ func TestInitGenesisOnMigration(t *testing.T) {
 	// the VersionMap to simulate upgrading with a new module.
 	_, err := app.mm.RunMigrations(ctx, app.configurator,
 		module.VersionMap{
-			"bank":          bank.AppModule{}.ConsensusVersion(),
-			"auth":          auth.AppModule{}.ConsensusVersion(),
-			"authz":         authzmodule.AppModule{}.ConsensusVersion(),
-			"staking":       staking.AppModule{}.ConsensusVersion(),
-			"mint":          mint.AppModule{}.ConsensusVersion(),
-			"distribution":  distribution.AppModule{}.ConsensusVersion(),
-			"slashing":      slashing.AppModule{}.ConsensusVersion(),
-			"gov":           gov.AppModule{}.ConsensusVersion(),
-			"params":        params.AppModule{}.ConsensusVersion(),
-			"upgrade":       upgrade.AppModule{}.ConsensusVersion(),
-			"vesting":       vesting.AppModule{}.ConsensusVersion(),
-			"feegrant":      feegrantmodule.AppModule{}.ConsensusVersion(),
-			"evidence":      evidence.AppModule{}.ConsensusVersion(),
-			"crisis":        crisis.AppModule{}.ConsensusVersion(),
-			"genutil":       genutil.AppModule{}.ConsensusVersion(),
-			"capability":    capability.AppModule{}.ConsensusVersion(),
-			"budget":        budget.AppModule{}.ConsensusVersion(),
-			"farming":       farming.AppModule{}.ConsensusVersion(),
-			"liquidstaking": liquidstaking.AppModule{}.ConsensusVersion(),
+			"bank":         bank.AppModule{}.ConsensusVersion(),
+			"auth":         auth.AppModule{}.ConsensusVersion(),
+			"authz":        authzmodule.AppModule{}.ConsensusVersion(),
+			"staking":      staking.AppModule{}.ConsensusVersion(),
+			"mint":         mint.AppModule{}.ConsensusVersion(),
+			"distribution": distribution.AppModule{}.ConsensusVersion(),
+			"slashing":     slashing.AppModule{}.ConsensusVersion(),
+			"gov":          gov.AppModule{}.ConsensusVersion(),
+			"params":       params.AppModule{}.ConsensusVersion(),
+			"upgrade":      upgrade.AppModule{}.ConsensusVersion(),
+			"vesting":      vesting.AppModule{}.ConsensusVersion(),
+			"feegrant":     feegrantmodule.AppModule{}.ConsensusVersion(),
+			"evidence":     evidence.AppModule{}.ConsensusVersion(),
+			"crisis":       crisis.AppModule{}.ConsensusVersion(),
+			"genutil":      genutil.AppModule{}.ConsensusVersion(),
+			"capability":   capability.AppModule{}.ConsensusVersion(),
+			"budget":       budget.AppModule{}.ConsensusVersion(),
+			"farming":      farming.AppModule{}.ConsensusVersion(),
+			//"liquidstaking": liquidstaking.AppModule{}.ConsensusVersion(),
+			"ibc":      ibc.AppModule{}.ConsensusVersion(),
+			"transfer": transfer.AppModule{}.ConsensusVersion(),
 		},
 	)
 	require.NoError(t, err)

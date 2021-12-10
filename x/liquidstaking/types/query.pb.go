@@ -6,7 +6,7 @@ package types
 import (
 	context "context"
 	fmt "fmt"
-	_ "github.com/cosmos/cosmos-sdk/types/query"
+	query "github.com/cosmos/cosmos-sdk/types/query"
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
@@ -113,9 +113,111 @@ func (m *QueryParamsResponse) GetParams() Params {
 	return Params{}
 }
 
+// QueryLiquidValidatorsRequest is the request type for the Query/LiquidValidators RPC method.
+type QueryLiquidValidatorsRequest struct {
+	// TODO: status, etc query strings
+	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+}
+
+func (m *QueryLiquidValidatorsRequest) Reset()         { *m = QueryLiquidValidatorsRequest{} }
+func (m *QueryLiquidValidatorsRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryLiquidValidatorsRequest) ProtoMessage()    {}
+func (*QueryLiquidValidatorsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7420bf97bd7f11ae, []int{2}
+}
+func (m *QueryLiquidValidatorsRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryLiquidValidatorsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryLiquidValidatorsRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryLiquidValidatorsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryLiquidValidatorsRequest.Merge(m, src)
+}
+func (m *QueryLiquidValidatorsRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryLiquidValidatorsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryLiquidValidatorsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryLiquidValidatorsRequest proto.InternalMessageInfo
+
+func (m *QueryLiquidValidatorsRequest) GetPagination() *query.PageRequest {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
+// QueryLiquidValidatorsResponse is the response type for the Query/LiquidValidators RPC method.
+type QueryLiquidValidatorsResponse struct {
+	LiquidValidators []LiquidValidator `protobuf:"bytes,1,rep,name=liquid_validators,json=liquidValidators,proto3" json:"liquid_validators"`
+	// pagination defines the pagination in the response.
+	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+}
+
+func (m *QueryLiquidValidatorsResponse) Reset()         { *m = QueryLiquidValidatorsResponse{} }
+func (m *QueryLiquidValidatorsResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryLiquidValidatorsResponse) ProtoMessage()    {}
+func (*QueryLiquidValidatorsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7420bf97bd7f11ae, []int{3}
+}
+func (m *QueryLiquidValidatorsResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryLiquidValidatorsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryLiquidValidatorsResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryLiquidValidatorsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryLiquidValidatorsResponse.Merge(m, src)
+}
+func (m *QueryLiquidValidatorsResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryLiquidValidatorsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryLiquidValidatorsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryLiquidValidatorsResponse proto.InternalMessageInfo
+
+func (m *QueryLiquidValidatorsResponse) GetLiquidValidators() []LiquidValidator {
+	if m != nil {
+		return m.LiquidValidators
+	}
+	return nil
+}
+
+func (m *QueryLiquidValidatorsResponse) GetPagination() *query.PageResponse {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "gdex.liquidstaking.v1beta1.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "gdex.liquidstaking.v1beta1.QueryParamsResponse")
+	proto.RegisterType((*QueryLiquidValidatorsRequest)(nil), "gdex.liquidstaking.v1beta1.QueryLiquidValidatorsRequest")
+	proto.RegisterType((*QueryLiquidValidatorsResponse)(nil), "gdex.liquidstaking.v1beta1.QueryLiquidValidatorsResponse")
 }
 
 func init() {
@@ -123,35 +225,45 @@ func init() {
 }
 
 var fileDescriptor_7420bf97bd7f11ae = []byte{
-	// 442 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x92, 0xc1, 0x8a, 0xd4, 0x40,
-	0x10, 0x86, 0x27, 0x8b, 0xce, 0x21, 0xde, 0xe2, 0x1e, 0x24, 0x48, 0x6c, 0x82, 0x88, 0x08, 0xe9,
-	0x76, 0x67, 0x05, 0xc1, 0x93, 0xee, 0xc1, 0x9b, 0xa8, 0x73, 0x11, 0xbc, 0x48, 0x67, 0x52, 0xdb,
-	0xd3, 0x98, 0x74, 0xf5, 0x74, 0x57, 0x86, 0x1d, 0x8f, 0x3e, 0x81, 0xe8, 0x53, 0xf8, 0x1c, 0x5e,
-	0xf6, 0x22, 0x2c, 0x78, 0xd0, 0x93, 0xc8, 0x8c, 0x0f, 0x22, 0x49, 0x07, 0x71, 0x1c, 0x1c, 0x3c,
-	0x75, 0x51, 0x7c, 0xf5, 0xd7, 0x97, 0x50, 0xf1, 0x2d, 0x55, 0xc1, 0x99, 0xa8, 0xf5, 0xa2, 0xd5,
-	0x95, 0x27, 0xf9, 0x5a, 0x1b, 0x25, 0x96, 0x47, 0x25, 0x90, 0x3c, 0x12, 0x8b, 0x16, 0xdc, 0x8a,
-	0x5b, 0x87, 0x84, 0x49, 0xda, 0x71, 0x7c, 0x8b, 0xe3, 0x03, 0x97, 0x5e, 0x57, 0x88, 0xaa, 0x06,
-	0x21, 0xad, 0x16, 0xd2, 0x18, 0x24, 0x49, 0x1a, 0x8d, 0x0f, 0x93, 0xe9, 0x9d, 0x19, 0xfa, 0x06,
-	0xbd, 0x28, 0xa5, 0x87, 0x10, 0xf9, 0x7b, 0x81, 0x95, 0x4a, 0x9b, 0x1e, 0x1e, 0x58, 0xbe, 0xc7,
-	0x66, 0x7b, 0x77, 0xe0, 0x0f, 0x15, 0x2a, 0xec, 0x4b, 0xd1, 0x55, 0x43, 0x77, 0xbf, 0x4f, 0x78,
-	0x66, 0x85, 0x02, 0x53, 0xa0, 0x05, 0x23, 0xad, 0x5e, 0x4e, 0x04, 0xda, 0x9e, 0xd9, 0xe5, 0xf3,
-	0xc3, 0x38, 0x79, 0xde, 0x59, 0x3f, 0x93, 0x4e, 0x36, 0x7e, 0x0a, 0x8b, 0x16, 0x3c, 0xe5, 0x2f,
-	0xe2, 0xab, 0x5b, 0x5d, 0x6f, 0xd1, 0x78, 0x48, 0x1e, 0xc6, 0x63, 0xdb, 0x77, 0xae, 0x45, 0x2c,
-	0xba, 0x7d, 0x65, 0x92, 0xf3, 0x7f, 0xff, 0x37, 0x1e, 0x66, 0x4f, 0x2e, 0x9d, 0x7f, 0xbf, 0x31,
-	0x9a, 0x0e, 0x73, 0x93, 0xcf, 0x07, 0xf1, 0xe5, 0x3e, 0x39, 0xf9, 0x74, 0x10, 0x8f, 0x03, 0x92,
-	0xf0, 0x7d, 0x31, 0xbb, 0x76, 0xa9, 0xf8, 0x6f, 0x3e, 0x78, 0xe7, 0x5f, 0xa3, 0xf7, 0x8f, 0x3e,
-	0x46, 0xe9, 0xbd, 0x29, 0x50, 0xeb, 0x8c, 0x67, 0xb2, 0xae, 0x59, 0x2f, 0x04, 0x04, 0xce, 0x33,
-	0x3c, 0x65, 0x34, 0x07, 0x16, 0xf2, 0xd8, 0x10, 0xc8, 0x1a, 0xac, 0xda, 0x1a, 0x78, 0xbe, 0x88,
-	0xb3, 0xc7, 0xda, 0x54, 0x0c, 0x5b, 0x62, 0x0d, 0x3a, 0x60, 0xb2, 0xec, 0xca, 0x6e, 0x22, 0x7c,
-	0x54, 0xf2, 0x74, 0x4e, 0x64, 0xfd, 0x03, 0x21, 0x94, 0xa6, 0x79, 0x5b, 0xf2, 0x19, 0x36, 0xa2,
-	0x2c, 0xe6, 0xd2, 0x2d, 0xc1, 0x93, 0x50, 0x4e, 0x2e, 0x35, 0xad, 0x8a, 0x0a, 0xce, 0x8a, 0x37,
-	0x68, 0x40, 0xfc, 0x7d, 0x02, 0xde, 0xc2, 0x4c, 0xdc, 0xbd, 0xff, 0x2a, 0xa4, 0xf1, 0xa6, 0x7a,
-	0xfb, 0xe5, 0xe7, 0x87, 0x83, 0x9b, 0x49, 0x2e, 0xf6, 0xdc, 0x4b, 0x80, 0x4f, 0x9e, 0x9c, 0xaf,
-	0xb3, 0xe8, 0x62, 0x9d, 0x45, 0x3f, 0xd6, 0x59, 0xf4, 0x6e, 0x93, 0x8d, 0x2e, 0x36, 0xd9, 0xe8,
-	0xdb, 0x26, 0x1b, 0xbd, 0x3c, 0xfe, 0x43, 0x86, 0xc0, 0x54, 0xe0, 0x1a, 0x6d, 0x48, 0x9c, 0xca,
-	0xee, 0x55, 0x3b, 0x12, 0xb4, 0xb2, 0xe0, 0xcb, 0x71, 0x7f, 0x14, 0xc7, 0xbf, 0x02, 0x00, 0x00,
-	0xff, 0xff, 0x04, 0x48, 0xaa, 0xf2, 0x38, 0x03, 0x00, 0x00,
+	// 604 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x54, 0x3d, 0x6f, 0x13, 0x3f,
+	0x1c, 0xce, 0xe5, 0xff, 0x6f, 0x07, 0x77, 0x29, 0x47, 0x87, 0xea, 0x54, 0x0e, 0xeb, 0x84, 0x4a,
+	0x01, 0xc5, 0xa6, 0x29, 0x12, 0x6f, 0x0b, 0xed, 0x50, 0x16, 0x10, 0x90, 0x01, 0x24, 0x06, 0x2a,
+	0x27, 0xf7, 0xab, 0x63, 0x71, 0x67, 0x5f, 0xce, 0xbe, 0xa8, 0x65, 0xe4, 0x13, 0xa0, 0xf2, 0x29,
+	0x58, 0xf8, 0x00, 0xac, 0x2c, 0x1d, 0x2b, 0x31, 0xc0, 0x84, 0xaa, 0x96, 0x89, 0x4f, 0x81, 0xee,
+	0x6c, 0x9a, 0x37, 0x25, 0x45, 0x30, 0x9d, 0xe5, 0x3c, 0xcf, 0xef, 0x79, 0xb1, 0x1d, 0xb4, 0xca,
+	0x63, 0xd8, 0xa3, 0x89, 0xe8, 0x15, 0x22, 0xd6, 0x86, 0xbd, 0x16, 0x92, 0xd3, 0xfe, 0x7a, 0x1b,
+	0x0c, 0x5b, 0xa7, 0xbd, 0x02, 0xf2, 0x7d, 0x92, 0xe5, 0xca, 0x28, 0x3f, 0x28, 0x71, 0x64, 0x04,
+	0x47, 0x1c, 0x2e, 0x58, 0xe1, 0x4a, 0xf1, 0x04, 0x28, 0xcb, 0x04, 0x65, 0x52, 0x2a, 0xc3, 0x8c,
+	0x50, 0x52, 0x5b, 0x66, 0x70, 0xbd, 0xa3, 0x74, 0xaa, 0x34, 0x6d, 0x33, 0x0d, 0x76, 0xe4, 0x99,
+	0x40, 0xc6, 0xb8, 0x90, 0x15, 0xd8, 0x61, 0xc9, 0x0c, 0x37, 0xa3, 0xda, 0x16, 0xbf, 0xc4, 0x15,
+	0x57, 0xd5, 0x92, 0x96, 0x2b, 0xb7, 0x3b, 0xdb, 0x8f, 0xfd, 0x74, 0x1a, 0x1c, 0x64, 0x43, 0x65,
+	0x20, 0x59, 0x26, 0xfa, 0x4d, 0xaa, 0xb2, 0x0a, 0x33, 0x89, 0x8f, 0x96, 0x90, 0xff, 0xac, 0x74,
+	0xfd, 0x94, 0xe5, 0x2c, 0xd5, 0x2d, 0xe8, 0x15, 0xa0, 0x4d, 0xf4, 0x02, 0x5d, 0x1c, 0xd9, 0xd5,
+	0x99, 0x92, 0x1a, 0xfc, 0x07, 0x68, 0x3e, 0xab, 0x76, 0x96, 0x3d, 0xec, 0xad, 0x2d, 0x34, 0x23,
+	0x32, 0xbd, 0x37, 0x62, 0xb9, 0x5b, 0xff, 0x1f, 0x7e, 0xbf, 0x5c, 0x6b, 0x39, 0x5e, 0xb4, 0x8b,
+	0x56, 0xaa, 0xc1, 0x8f, 0x2a, 0xca, 0x73, 0x96, 0x88, 0x98, 0x19, 0x95, 0xff, 0x16, 0xf6, 0xb7,
+	0x11, 0x1a, 0xd4, 0xe6, 0x54, 0x56, 0x89, 0xed, 0x98, 0x94, 0x1d, 0x13, 0x7b, 0x6c, 0x03, 0x11,
+	0x0e, 0x8e, 0xdb, 0x1a, 0x62, 0x46, 0x87, 0x1e, 0xba, 0x34, 0x45, 0xc8, 0x65, 0x79, 0x85, 0x2e,
+	0x58, 0xdf, 0x3b, 0xfd, 0xb3, 0x1f, 0x97, 0x3d, 0xfc, 0xdf, 0xda, 0x42, 0xf3, 0xc6, 0xac, 0x58,
+	0x63, 0x03, 0x5d, 0xbe, 0xc5, 0x64, 0x4c, 0xc7, 0x7f, 0x38, 0x92, 0xa4, 0x5e, 0x25, 0xb9, 0x7a,
+	0x6e, 0x12, 0x6b, 0x6e, 0x38, 0x4a, 0xf3, 0xd3, 0x1c, 0x9a, 0xab, 0xa2, 0xf8, 0x9f, 0xeb, 0x68,
+	0xde, 0xb6, 0xea, 0x93, 0x59, 0x16, 0x27, 0x0f, 0x34, 0xa0, 0x7f, 0x8c, 0xb7, 0x0e, 0xa2, 0xaf,
+	0xde, 0xc1, 0xe6, 0x07, 0x2f, 0xb8, 0xd5, 0x02, 0x53, 0xe4, 0x52, 0x63, 0x96, 0x24, 0xb8, 0x3a,
+	0x43, 0x30, 0x90, 0x6b, 0xac, 0x76, 0xb1, 0xe9, 0x02, 0xb6, 0xf3, 0xb0, 0x1b, 0x88, 0x53, 0x15,
+	0x17, 0x09, 0x90, 0xa8, 0x87, 0xc2, 0x6d, 0x21, 0x63, 0xac, 0x0a, 0x83, 0x53, 0x95, 0x03, 0x66,
+	0xed, 0x72, 0x59, 0x32, 0xec, 0x3d, 0xf0, 0x9f, 0x74, 0x8d, 0xc9, 0xf4, 0x3d, 0x4a, 0xb9, 0x30,
+	0xdd, 0xa2, 0x4d, 0x3a, 0x2a, 0xa5, 0xed, 0x46, 0x97, 0xe5, 0x7d, 0xd0, 0x86, 0xf2, 0x9c, 0xf5,
+	0x85, 0xd9, 0x6f, 0xc4, 0xb0, 0xd7, 0x78, 0xa3, 0x24, 0xd0, 0xf1, 0x57, 0xa3, 0x33, 0xe8, 0xd0,
+	0x9b, 0xb7, 0x77, 0xec, 0x34, 0x92, 0xc6, 0x6f, 0xbf, 0xfc, 0x78, 0x5f, 0xbf, 0xe2, 0x47, 0x74,
+	0xc6, 0x13, 0x73, 0xd2, 0x3f, 0xeb, 0x68, 0x71, 0xfc, 0x56, 0xf8, 0x77, 0xce, 0xed, 0x67, 0xca,
+	0x8d, 0x0d, 0xee, 0xfe, 0x05, 0xd3, 0x75, 0x7c, 0xec, 0x1d, 0x6c, 0x7e, 0xf4, 0x82, 0xfb, 0xc3,
+	0x1d, 0xbb, 0x46, 0x07, 0x77, 0xf2, 0x9c, 0xaa, 0x15, 0xba, 0x36, 0xad, 0xea, 0x89, 0x51, 0xfe,
+	0xd6, 0xbf, 0xb7, 0x5e, 0x15, 0xbd, 0xe6, 0xaf, 0xce, 0x2a, 0x7a, 0xa0, 0xb8, 0xf5, 0xf8, 0xf0,
+	0x24, 0xf4, 0x8e, 0x4e, 0x42, 0xef, 0xf8, 0x24, 0xf4, 0xde, 0x9d, 0x86, 0xb5, 0xa3, 0xd3, 0xb0,
+	0xf6, 0xed, 0x34, 0xac, 0xbd, 0xdc, 0x18, 0xf2, 0x60, 0x40, 0xc6, 0x90, 0xa7, 0x42, 0x1a, 0xba,
+	0xcb, 0xca, 0x2f, 0x9f, 0xd0, 0x36, 0xfb, 0x19, 0xe8, 0xf6, 0x7c, 0xf5, 0xa7, 0xb5, 0xf1, 0x2b,
+	0x00, 0x00, 0xff, 0xff, 0x79, 0x1a, 0x95, 0x44, 0xd8, 0x05, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -166,8 +278,10 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type QueryClient interface {
-	// Params returns parameters of the farming module.
+	// Params returns parameters of the liquidstaking module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
+	// LiquidValidators returns liquid validators of the liquidstaking module.
+	LiquidValidators(ctx context.Context, in *QueryLiquidValidatorsRequest, opts ...grpc.CallOption) (*QueryLiquidValidatorsResponse, error)
 }
 
 type queryClient struct {
@@ -187,10 +301,21 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 	return out, nil
 }
 
+func (c *queryClient) LiquidValidators(ctx context.Context, in *QueryLiquidValidatorsRequest, opts ...grpc.CallOption) (*QueryLiquidValidatorsResponse, error) {
+	out := new(QueryLiquidValidatorsResponse)
+	err := c.cc.Invoke(ctx, "/gdex.liquidstaking.v1beta1.Query/LiquidValidators", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 type QueryServer interface {
-	// Params returns parameters of the farming module.
+	// Params returns parameters of the liquidstaking module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
+	// LiquidValidators returns liquid validators of the liquidstaking module.
+	LiquidValidators(context.Context, *QueryLiquidValidatorsRequest) (*QueryLiquidValidatorsResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -199,6 +324,9 @@ type UnimplementedQueryServer struct {
 
 func (*UnimplementedQueryServer) Params(ctx context.Context, req *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
+}
+func (*UnimplementedQueryServer) LiquidValidators(ctx context.Context, req *QueryLiquidValidatorsRequest) (*QueryLiquidValidatorsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LiquidValidators not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -223,6 +351,24 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_LiquidValidators_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryLiquidValidatorsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).LiquidValidators(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gdex.liquidstaking.v1beta1.Query/LiquidValidators",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).LiquidValidators(ctx, req.(*QueryLiquidValidatorsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "gdex.liquidstaking.v1beta1.Query",
 	HandlerType: (*QueryServer)(nil),
@@ -230,6 +376,10 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Params",
 			Handler:    _Query_Params_Handler,
+		},
+		{
+			MethodName: "LiquidValidators",
+			Handler:    _Query_LiquidValidators_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -292,6 +442,90 @@ func (m *QueryParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *QueryLiquidValidatorsRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryLiquidValidatorsRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryLiquidValidatorsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryLiquidValidatorsResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryLiquidValidatorsResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryLiquidValidatorsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.LiquidValidators) > 0 {
+		for iNdEx := len(m.LiquidValidators) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.LiquidValidators[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintQuery(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	offset -= sovQuery(v)
 	base := offset
@@ -320,6 +554,38 @@ func (m *QueryParamsResponse) Size() (n int) {
 	_ = l
 	l = m.Params.Size()
 	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryLiquidValidatorsRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryLiquidValidatorsResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.LiquidValidators) > 0 {
+		for _, e := range m.LiquidValidators {
+			l = e.Size()
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
 	return n
 }
 
@@ -438,6 +704,212 @@ func (m *QueryParamsResponse) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if err := m.Params.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryLiquidValidatorsRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryLiquidValidatorsRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryLiquidValidatorsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageRequest{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryLiquidValidatorsResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryLiquidValidatorsResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryLiquidValidatorsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LiquidValidators", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.LiquidValidators = append(m.LiquidValidators, LiquidValidator{})
+			if err := m.LiquidValidators[len(m.LiquidValidators)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageResponse{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
