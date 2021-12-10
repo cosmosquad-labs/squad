@@ -170,7 +170,7 @@ var (
 		farmingtypes.ModuleName:        nil,
 		liquiditytypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
 		// TODO: set perms to liquidstaking
-		liquidstakingtypes.ModuleName: nil,
+		liquidstakingtypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 		ibctransfertypes.ModuleName:   {authtypes.Minter, authtypes.Burner},
 	}
 )
@@ -430,6 +430,7 @@ func NewFarmingApp(
 		app.GetSubspace(budgettypes.ModuleName),
 		app.AccountKeeper,
 		app.BankKeeper,
+		app.StakingKeeper,
 		app.ModuleAccountAddrs(),
 	)
 

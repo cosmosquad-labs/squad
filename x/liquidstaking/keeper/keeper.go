@@ -20,6 +20,7 @@ type Keeper struct {
 
 	bankKeeper    types.BankKeeper
 	accountKeeper types.AccountKeeper
+	stakingKeeper types.StakingKeeper
 
 	blockedAddrs map[string]bool
 }
@@ -29,7 +30,7 @@ type Keeper struct {
 // - sending to and from ModuleAccounts
 // - minting, burning PoolCoins
 func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
-	accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
+	accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper, stakingKeeper types.StakingKeeper,
 	blockedAddrs map[string]bool,
 ) Keeper {
 	// ensure liquidstaking module account is set
@@ -48,6 +49,7 @@ func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Su
 		paramSpace:    paramSpace,
 		accountKeeper: accountKeeper,
 		bankKeeper:    bankKeeper,
+		stakingKeeper: stakingKeeper,
 		blockedAddrs:  blockedAddrs,
 	}
 }
