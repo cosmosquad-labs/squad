@@ -38,7 +38,6 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/tendermint/farming/x/farming"
-	"github.com/tendermint/farming/x/liquidity"
 )
 
 func TestSimAppExportAndBlockedAddrs(t *testing.T) {
@@ -191,9 +190,9 @@ func TestRunMigrations(t *testing.T) {
 					"crisis":       crisis.AppModule{}.ConsensusVersion(),
 					"genutil":      genutil.AppModule{}.ConsensusVersion(),
 					"capability":   capability.AppModule{}.ConsensusVersion(),
+					"budget":       budget.AppModule{}.ConsensusVersion(),
+					"farming":      farming.AppModule{}.ConsensusVersion(),
 					//"liquidity":     liquidity.AppModule{}.ConsensusVersion(),
-					"budget":        budget.AppModule{}.ConsensusVersion(),
-					"farming":       farming.AppModule{}.ConsensusVersion(),
 					"liquidstaking": liquidstaking.AppModule{}.ConsensusVersion(),
 					"ibc":           ibc.AppModule{}.ConsensusVersion(),
 					"transfer":      transfer.AppModule{}.ConsensusVersion(),
