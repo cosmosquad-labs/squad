@@ -23,9 +23,9 @@ package simulation_test
 //	var genState types.GenesisState
 //	simState.Cdc.MustUnmarshalJSON(simState.GenState[types.ModuleName], &genState)
 //
-//	require.Equal(t, sdk.MustNewDecFromStr("0.3"), genState.Params.Bearings[0].Rate)
-//	require.Equal(t, "cosmos17xpfvakm2amg962yls6f84z3kell8c5lserqta", genState.Params.Bearings[0].SourceAddress)
-//	require.Equal(t, "cosmos1ke7rn6vl3vmeasmcrxdm3pfrt37fsg5jfrex80pp3hvhwgu4h4usxgvk3e", genState.Params.Bearings[0].DestinationAddress)
+//	require.Equal(t, sdk.MustNewDecFromStr("0.3"), genState.Params.BiquidStakings[0].Rate)
+//	require.Equal(t, "cosmos17xpfvakm2amg962yls6f84z3kell8c5lserqta", genState.Params.BiquidStakings[0].SourceAddress)
+//	require.Equal(t, "cosmos1ke7rn6vl3vmeasmcrxdm3pfrt37fsg5jfrex80pp3hvhwgu4h4usxgvk3e", genState.Params.BiquidStakings[0].DestinationAddress)
 //	require.Equal(t, uint32(9), genState.Params.EpochBlocks)
 //}
 //

@@ -1,17 +1,17 @@
 package keeper_test
 
-//func (suite *KeeperTestSuite) TestCollectBearings() {
+//func (suite *KeeperTestSuite) TestCollectBiquidStakings() {
 //	for _, tc := range []struct {
 //		name           string
-//		bearings       []types.Bearing
+//		liquidStakings       []types.BiquidStaking
 //		epochBlocks    uint32
 //		accAsserts     []sdk.AccAddress
 //		balanceAsserts []sdk.Coins
 //		expectErr      bool
 //	}{
 //		{
-//			"basic bearings case",
-//			suite.bearings[:4],
+//			"basic liquidStakings case",
+//			suite.liquidStakings[:4],
 //			types.DefaultEpochBlocks,
 //			[]sdk.AccAddress{
 //				suite.destinationAddrs[0],
@@ -35,7 +35,7 @@ package keeper_test
 //		},
 //		{
 //			"only expired liquidstaking case",
-//			[]types.Bearing{suite.bearings[3]},
+//			[]types.BiquidStaking{suite.liquidStakings[3]},
 //			types.DefaultEpochBlocks,
 //			[]sdk.AccAddress{
 //				suite.destinationAddrs[3],
@@ -49,7 +49,7 @@ package keeper_test
 //		},
 //		{
 //			"source has small balances case",
-//			suite.bearings[4:6],
+//			suite.liquidStakings[4:6],
 //			types.DefaultEpochBlocks,
 //			[]sdk.AccAddress{
 //				suite.destinationAddrs[0],
@@ -64,7 +64,7 @@ package keeper_test
 //			false,
 //		},
 //		{
-//			"none bearings case",
+//			"none liquidStakings case",
 //			nil,
 //			types.DefaultEpochBlocks,
 //			[]sdk.AccAddress{
@@ -116,8 +116,8 @@ package keeper_test
 //			false,
 //		},
 //		{
-//			"disabled liquidstaking epoch with bearings",
-//			suite.bearings[:4],
+//			"disabled liquidstaking epoch with liquidStakings",
+//			suite.liquidStakings[:4],
 //			0,
 //			[]sdk.AccAddress{
 //				suite.destinationAddrs[0],
@@ -145,11 +145,11 @@ package keeper_test
 //		suite.Run(tc.name, func() {
 //			suite.SetupTest()
 //			params := suite.keeper.GetParams(suite.ctx)
-//			params.Bearings = tc.bearings
+//			params.BiquidStakings = tc.liquidStakings
 //			params.EpochBlocks = tc.epochBlocks
 //			suite.keeper.SetParams(suite.ctx, params)
 //
-//			err := suite.keeper.CollectBearings(suite.ctx)
+//			err := suite.keeper.CollectBiquidStakings(suite.ctx)
 //			if tc.expectErr {
 //				suite.Error(err)
 //			} else {
@@ -163,7 +163,7 @@ package keeper_test
 //	}
 //}
 //
-//func (suite *KeeperTestSuite) TestBearingChangeSituation() {
+//func (suite *KeeperTestSuite) TestBiquidStakingChangeSituation() {
 //	encCfg := app.MakeTestEncodingConfig()
 //	params := suite.keeper.GetParams(suite.ctx)
 //	suite.keeper.SetParams(suite.ctx, params)
@@ -173,13 +173,13 @@ package keeper_test
 //
 //	// cosmos10wy60v3zuks7rkwnqxs3e878zqfhus6m98l77q6rppz40kxwgllsruc0az
 //	// inflation occurs by 1000000000denom1,1000000000denom2,1000000000denom3,1000000000stake every blocks
-//	bearingSource := types.DeriveAddress(types.AddressType32Bytes, types.ModuleName, "InflationPool")
+//	liquidStakingSource := types.DeriveAddress(types.AddressType32Bytes, types.ModuleName, "InflationPool")
 //
 //	for _, tc := range []struct {
 //		name                    string
 //		proposal                *proposal.ParameterChangeProposal
-//		bearingCount            int
-//		collectibleBearingCount int
+//		liquidStakingCount            int
+//		collectibleBiquidStakingCount int
 //		govTime                 time.Time
 //		nextBlockTime           time.Time
 //		expErr                  error
@@ -190,7 +190,7 @@ package keeper_test
 //			"add liquidstaking 1",
 //			testProposal(proposal.ParamChange{
 //				Subspace: types.ModuleName,
-//				Key:      string(types.KeyBearings),
+//				Key:      string(types.KeyBiquidStakings),
 //				Value: `[
 //					{
 //					"name": "gravity-dex-farming-1",
@@ -207,7 +207,7 @@ package keeper_test
 //			types.MustParseRFC3339("2021-08-01T00:00:00Z"),
 //			types.MustParseRFC3339("2021-08-01T00:00:00Z"),
 //			nil,
-//			[]sdk.AccAddress{bearingSource, suite.destinationAddrs[0], suite.destinationAddrs[1], suite.destinationAddrs[2]},
+//			[]sdk.AccAddress{liquidStakingSource, suite.destinationAddrs[0], suite.destinationAddrs[1], suite.destinationAddrs[2]},
 //			[]sdk.Coins{
 //				mustParseCoinsNormalized("1000000000denom1,1000000000denom2,1000000000denom3,1000000000stake"),
 //				{},
@@ -219,7 +219,7 @@ package keeper_test
 //			"add liquidstaking 2",
 //			testProposal(proposal.ParamChange{
 //				Subspace: types.ModuleName,
-//				Key:      string(types.KeyBearings),
+//				Key:      string(types.KeyBiquidStakings),
 //				Value: `[
 //					{
 //					"name": "gravity-dex-farming-1",
@@ -244,7 +244,7 @@ package keeper_test
 //			types.MustParseRFC3339("2021-09-03T00:00:00Z"),
 //			types.MustParseRFC3339("2021-09-03T00:00:00Z"),
 //			nil,
-//			[]sdk.AccAddress{bearingSource, suite.destinationAddrs[0], suite.destinationAddrs[1], suite.destinationAddrs[2]},
+//			[]sdk.AccAddress{liquidStakingSource, suite.destinationAddrs[0], suite.destinationAddrs[1], suite.destinationAddrs[2]},
 //			[]sdk.Coins{
 //				{},
 //				mustParseCoinsNormalized("1000000000denom1,1000000000denom2,1000000000denom3,1000000000stake"),
@@ -256,7 +256,7 @@ package keeper_test
 //			"add liquidstaking 3 with invalid total rate case 1",
 //			testProposal(proposal.ParamChange{
 //				Subspace: types.ModuleName,
-//				Key:      string(types.KeyBearings),
+//				Key:      string(types.KeyBiquidStakings),
 //				Value: `[
 //					{
 //					"name": "gravity-dex-farming-1",
@@ -284,12 +284,12 @@ package keeper_test
 //					}
 //				]`,
 //			}),
-//			2, // left last bearings of 2nd tc
-//			1, // left last bearings of 2nd tc
+//			2, // left last liquidStakings of 2nd tc
+//			1, // left last liquidStakings of 2nd tc
 //			types.MustParseRFC3339("2021-09-29T00:00:00Z"),
 //			types.MustParseRFC3339("2021-09-30T00:00:00Z"),
-//			types.ErrInvalidTotalBearingRate,
-//			[]sdk.AccAddress{bearingSource, suite.destinationAddrs[0], suite.destinationAddrs[1], suite.destinationAddrs[2]},
+//			types.ErrInvalidTotalBiquidStakingRate,
+//			[]sdk.AccAddress{liquidStakingSource, suite.destinationAddrs[0], suite.destinationAddrs[1], suite.destinationAddrs[2]},
 //			[]sdk.Coins{
 //				mustParseCoinsNormalized("500000000denom1,500000000denom2,500000000denom3,500000000stake"),
 //				mustParseCoinsNormalized("1500000000denom1,1500000000denom2,1500000000denom3,1500000000stake"),
@@ -301,7 +301,7 @@ package keeper_test
 //			"add liquidstaking 3 with invalid total rate case 2",
 //			testProposal(proposal.ParamChange{
 //				Subspace: types.ModuleName,
-//				Key:      string(types.KeyBearings),
+//				Key:      string(types.KeyBiquidStakings),
 //				Value: `[
 //					{
 //					"name": "gravity-dex-farming-1",
@@ -329,12 +329,12 @@ package keeper_test
 //					}
 //				]`,
 //			}),
-//			2, // left last bearings of 2nd tc
-//			1, // left last bearings of 2nd tc
+//			2, // left last liquidStakings of 2nd tc
+//			1, // left last liquidStakings of 2nd tc
 //			types.MustParseRFC3339("2021-10-01T00:00:00Z"),
 //			types.MustParseRFC3339("2021-10-01T00:00:00Z"),
-//			types.ErrInvalidTotalBearingRate,
-//			[]sdk.AccAddress{bearingSource, suite.destinationAddrs[0], suite.destinationAddrs[1], suite.destinationAddrs[2]},
+//			types.ErrInvalidTotalBiquidStakingRate,
+//			[]sdk.AccAddress{liquidStakingSource, suite.destinationAddrs[0], suite.destinationAddrs[1], suite.destinationAddrs[2]},
 //			[]sdk.Coins{
 //				mustParseCoinsNormalized("750000000denom1,750000000denom2,750000000denom3,750000000stake"),
 //				mustParseCoinsNormalized("2250000000denom1,2250000000denom2,2250000000denom3,2250000000stake"),
@@ -346,7 +346,7 @@ package keeper_test
 //			"add liquidstaking 3",
 //			testProposal(proposal.ParamChange{
 //				Subspace: types.ModuleName,
-//				Key:      string(types.KeyBearings),
+//				Key:      string(types.KeyBiquidStakings),
 //				Value: `[
 //					{
 //					"name": "gravity-dex-farming-1",
@@ -371,7 +371,7 @@ package keeper_test
 //			types.MustParseRFC3339("2021-10-01T00:00:00Z"),
 //			types.MustParseRFC3339("2021-10-01T00:00:00Z"),
 //			nil,
-//			[]sdk.AccAddress{bearingSource, suite.destinationAddrs[0], suite.destinationAddrs[1], suite.destinationAddrs[2]},
+//			[]sdk.AccAddress{liquidStakingSource, suite.destinationAddrs[0], suite.destinationAddrs[1], suite.destinationAddrs[2]},
 //			[]sdk.Coins{
 //				{},
 //				mustParseCoinsNormalized("3125000000denom1,3125000000denom2,3125000000denom3,3125000000stake"),
@@ -383,7 +383,7 @@ package keeper_test
 //			"add liquidstaking 4 without date range overlap",
 //			testProposal(proposal.ParamChange{
 //				Subspace: types.ModuleName,
-//				Key:      string(types.KeyBearings),
+//				Key:      string(types.KeyBiquidStakings),
 //				Value: `[
 //					{
 //					"name": "gravity-dex-farming-1",
@@ -408,7 +408,7 @@ package keeper_test
 //			types.MustParseRFC3339("2021-09-29T00:00:00Z"),
 //			types.MustParseRFC3339("2021-09-30T00:00:00Z"),
 //			nil,
-//			[]sdk.AccAddress{bearingSource, suite.destinationAddrs[0], suite.destinationAddrs[1], suite.destinationAddrs[2]},
+//			[]sdk.AccAddress{liquidStakingSource, suite.destinationAddrs[0], suite.destinationAddrs[1], suite.destinationAddrs[2]},
 //			[]sdk.Coins{
 //				mustParseCoinsNormalized("500000000denom1,500000000denom2,500000000denom3,500000000stake"),
 //				mustParseCoinsNormalized("3625000000denom1,3625000000denom2,3625000000denom3,3625000000stake"),
@@ -417,10 +417,10 @@ package keeper_test
 //			},
 //		},
 //		{
-//			"remove all bearings",
+//			"remove all liquidStakings",
 //			testProposal(proposal.ParamChange{
 //				Subspace: types.ModuleName,
-//				Key:      string(types.KeyBearings),
+//				Key:      string(types.KeyBiquidStakings),
 //				Value:    `[]`,
 //			}),
 //			0,
@@ -428,7 +428,7 @@ package keeper_test
 //			types.MustParseRFC3339("2021-10-25T00:00:00Z"),
 //			types.MustParseRFC3339("2021-10-26T00:00:00Z"),
 //			nil,
-//			[]sdk.AccAddress{bearingSource, suite.destinationAddrs[0], suite.destinationAddrs[1], suite.destinationAddrs[2]},
+//			[]sdk.AccAddress{liquidStakingSource, suite.destinationAddrs[0], suite.destinationAddrs[1], suite.destinationAddrs[2]},
 //			[]sdk.Coins{
 //				mustParseCoinsNormalized("1500000000denom1,1500000000denom2,1500000000denom3,1500000000stake"),
 //				mustParseCoinsNormalized("3625000000denom1,3625000000denom2,3625000000denom3,3625000000stake"),
@@ -463,22 +463,22 @@ package keeper_test
 //			suite.ctx = suite.ctx.WithBlockTime(tc.nextBlockTime)
 //
 //			params := suite.keeper.GetParams(suite.ctx)
-//			suite.Require().Len(params.Bearings, tc.bearingCount)
-//			for _, bearing := range params.Bearings {
-//				err := bearing.Validate()
+//			suite.Require().Len(params.BiquidStakings, tc.liquidStakingCount)
+//			for _, liquidStaking := range params.BiquidStakings {
+//				err := liquidStaking.Validate()
 //				suite.Require().NoError(err)
 //			}
 //
-//			bearings := types.CollectibleBearings(params.Bearings, suite.ctx.BlockTime())
-//			suite.Require().Len(bearings, tc.collectibleBearingCount)
+//			liquidStakings := types.CollectibleBiquidStakings(params.BiquidStakings, suite.ctx.BlockTime())
+//			suite.Require().Len(liquidStakings, tc.collectibleBiquidStakingCount)
 //
-//			// BeginBlocker - inflation or mint on bearingSource
+//			// BeginBlocker - inflation or mint on liquidStakingSource
 //			// inflation occurs by 1000000000denom1,1000000000denom2,1000000000denom3,1000000000stake every blocks
-//			err = simapp.FundAccount(suite.app.BankKeeper, suite.ctx, bearingSource, initialBalances)
+//			err = simapp.FundAccount(suite.app.BankKeeper, suite.ctx, liquidStakingSource, initialBalances)
 //			suite.Require().NoError(err)
 //
-//			// BeginBlocker - Collect bearings
-//			err = suite.keeper.CollectBearings(suite.ctx)
+//			// BeginBlocker - Collect liquidStakings
+//			err = suite.keeper.CollectBiquidStakings(suite.ctx)
 //			suite.Require().NoError(err)
 //
 //			// Assert liquidstaking collections
@@ -491,25 +491,25 @@ package keeper_test
 //}
 //
 //func (suite *KeeperTestSuite) TestGetSetTotalCollectedCoins() {
-//	collectedCoins := suite.keeper.GetTotalCollectedCoins(suite.ctx, "bearing1")
+//	collectedCoins := suite.keeper.GetTotalCollectedCoins(suite.ctx, "liquidStaking1")
 //	suite.Require().Nil(collectedCoins)
 //
-//	suite.keeper.SetTotalCollectedCoins(suite.ctx, "bearing1", sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)))
-//	collectedCoins = suite.keeper.GetTotalCollectedCoins(suite.ctx, "bearing1")
+//	suite.keeper.SetTotalCollectedCoins(suite.ctx, "liquidStaking1", sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)))
+//	collectedCoins = suite.keeper.GetTotalCollectedCoins(suite.ctx, "liquidStaking1")
 //	suite.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)), collectedCoins))
 //
-//	suite.keeper.AddTotalCollectedCoins(suite.ctx, "bearing1", sdk.NewCoins(sdk.NewInt64Coin(denom2, 1000000)))
-//	collectedCoins = suite.keeper.GetTotalCollectedCoins(suite.ctx, "bearing1")
+//	suite.keeper.AddTotalCollectedCoins(suite.ctx, "liquidStaking1", sdk.NewCoins(sdk.NewInt64Coin(denom2, 1000000)))
+//	collectedCoins = suite.keeper.GetTotalCollectedCoins(suite.ctx, "liquidStaking1")
 //	suite.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000), sdk.NewInt64Coin(denom2, 1000000)), collectedCoins))
 //
-//	suite.keeper.AddTotalCollectedCoins(suite.ctx, "bearing2", sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)))
-//	collectedCoins = suite.keeper.GetTotalCollectedCoins(suite.ctx, "bearing2")
+//	suite.keeper.AddTotalCollectedCoins(suite.ctx, "liquidStaking2", sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)))
+//	collectedCoins = suite.keeper.GetTotalCollectedCoins(suite.ctx, "liquidStaking2")
 //	suite.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)), collectedCoins))
 //}
 //
 //func (suite *KeeperTestSuite) TestTotalCollectedCoins() {
-//	bearing := types.Bearing{
-//		Name:               "bearing1",
+//	liquidStaking := types.BiquidStaking{
+//		Name:               "liquidStaking1",
 //		Rate:               sdk.NewDecWithPrec(5, 2), // 5%
 //		SourceAddress:      suite.sourceAddrs[0].String(),
 //		DestinationAddress: suite.destinationAddrs[0].String(),
@@ -518,19 +518,19 @@ package keeper_test
 //	}
 //
 //	params := suite.keeper.GetParams(suite.ctx)
-//	params.Bearings = []types.Bearing{bearing}
+//	params.BiquidStakings = []types.BiquidStaking{liquidStaking}
 //	suite.keeper.SetParams(suite.ctx, params)
 //
 //	balance := suite.app.BankKeeper.GetAllBalances(suite.ctx, suite.sourceAddrs[0])
 //	expectedCoins, _ := sdk.NewDecCoinsFromCoins(balance...).MulDec(sdk.NewDecWithPrec(5, 2)).TruncateDecimal()
 //
-//	collectedCoins := suite.keeper.GetTotalCollectedCoins(suite.ctx, "bearing1")
+//	collectedCoins := suite.keeper.GetTotalCollectedCoins(suite.ctx, "liquidStaking1")
 //	suite.Require().Equal(sdk.Coins(nil), collectedCoins)
 //
 //	suite.ctx = suite.ctx.WithBlockTime(types.MustParseRFC3339("2021-08-31T00:00:00Z"))
-//	err := suite.keeper.CollectBearings(suite.ctx)
+//	err := suite.keeper.CollectBiquidStakings(suite.ctx)
 //	suite.Require().NoError(err)
 //
-//	collectedCoins = suite.keeper.GetTotalCollectedCoins(suite.ctx, "bearing1")
+//	collectedCoins = suite.keeper.GetTotalCollectedCoins(suite.ctx, "liquidStaking1")
 //	suite.Require().True(coinsEq(expectedCoins, collectedCoins))
 //}

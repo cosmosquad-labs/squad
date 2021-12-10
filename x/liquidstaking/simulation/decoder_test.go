@@ -1,6 +1,6 @@
 package simulation_test
 
-//func TestDecodeBearingStore(t *testing.T) {
+//func TestDecodeBiquidStakingStore(t *testing.T) {
 //
 //	cdc := simapp.MakeTestEncodingConfig()
 //	dec := simulation.NewDecodeStore(cdc.Marshaler)

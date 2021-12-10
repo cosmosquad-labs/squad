@@ -17,9 +17,9 @@ func ParamChanges(r *rand.Rand) []simtypes.ParamChange {
 		//		return fmt.Sprintf("%d", GenEpochBlocks(r))
 		//	},
 		//),
-		//simulation.NewSimParamChange(types.ModuleName, string(types.KeyBearings),
+		//simulation.NewSimParamChange(types.ModuleName, string(types.KeyBiquidStakings),
 		//	func(r *rand.Rand) string {
-		//		bz, err := json.Marshal(GenBearings(r))
+		//		bz, err := json.Marshal(GenBiquidStakings(r))
 		//		if err != nil {
 		//			panic(err)
 		//		}

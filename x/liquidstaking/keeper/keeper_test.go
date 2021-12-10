@@ -5,7 +5,6 @@ import (
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -23,31 +22,31 @@ const (
 )
 
 var (
-	initialBalances = sdk.NewCoins(
-		sdk.NewInt64Coin(sdk.DefaultBondDenom, 1_000_000_000),
-		sdk.NewInt64Coin(denom1, 1_000_000_000),
-		sdk.NewInt64Coin(denom2, 1_000_000_000),
-		sdk.NewInt64Coin(denom3, 1_000_000_000))
-	smallBalances = mustParseCoinsNormalized("1denom1,2denom2,3denom3,1000000000stake")
+//initialBalances = sdk.NewCoins(
+//	sdk.NewInt64Coin(sdk.DefaultBondDenom, 1_000_000_000),
+//	sdk.NewInt64Coin(denom1, 1_000_000_000),
+//	sdk.NewInt64Coin(denom2, 1_000_000_000),
+//	sdk.NewInt64Coin(denom3, 1_000_000_000))
+//smallBalances = mustParseCoinsNormalized("1denom1,2denom2,3denom3,1000000000stake")
 )
 
 type KeeperTestSuite struct {
 	suite.Suite
 
-	app                   *simapp.FarmingApp
-	ctx                   sdk.Context
-	keeper                keeper.Keeper
-	querier               keeper.Querier
-	govHandler            govtypes.Handler
-	addrs                 []sdk.AccAddress
-	sourceAddrs           []sdk.AccAddress
-	destinationAddrs      []sdk.AccAddress
+	app        *simapp.FarmingApp
+	ctx        sdk.Context
+	keeper     keeper.Keeper
+	querier    keeper.Querier
+	govHandler govtypes.Handler
+	addrs      []sdk.AccAddress
+	//sourceAddrs           []sdk.AccAddress
+	//destinationAddrs      []sdk.AccAddress
 	whitelistedValidators []types.WhitelistedValidator
 }
 
-func testProposal(changes ...proposal.ParamChange) *proposal.ParameterChangeProposal {
-	return proposal.NewParameterChangeProposal("title", "description", changes)
-}
+//func testProposal(changes ...proposal.ParamChange) *proposal.ParameterChangeProposal {
+//	return proposal.NewParameterChangeProposal("title", "description", changes)
+//}
 
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
@@ -90,14 +89,14 @@ func (suite *KeeperTestSuite) SetupTest() {
 	}
 }
 
-func coinsEq(exp, got sdk.Coins) (bool, string, string, string) {
-	return exp.IsEqual(got), "expected:\t%v\ngot:\t\t%v", exp.String(), got.String()
-}
-
-func mustParseCoinsNormalized(coinStr string) (coins sdk.Coins) {
-	coins, err := sdk.ParseCoinsNormalized(coinStr)
-	if err != nil {
-		panic(err)
-	}
-	return coins
-}
+//func coinsEq(exp, got sdk.Coins) (bool, string, string, string) {
+//	return exp.IsEqual(got), "expected:\t%v\ngot:\t\t%v", exp.String(), got.String()
+//}
+//
+//func mustParseCoinsNormalized(coinStr string) (coins sdk.Coins) {
+//	coins, err := sdk.ParseCoinsNormalized(coinStr)
+//	if err != nil {
+//		panic(err)
+//	}
+//	return coins
+//}

@@ -10,7 +10,7 @@ import (
 	"github.com/tendermint/farming/x/liquidstaking/types"
 )
 
-// BeginBlocker collects bearings for the current block
+// BeginBlocker collects liquidStakings for the current block
 func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyBeginBlocker)
 	// TODO: Unimplemented beginblock logic

@@ -1,21 +1,21 @@
 package keeper
 
-//// CollectBearings collects all the valid bearings registered in params.Bearings and
+//// CollectBiquidStakings collects all the valid liquidStakings registered in params.BiquidStakings and
 //// distributes the total collected coins to destination address.
-//func (k Keeper) CollectBearings(ctx sdk.Context) error {
+//func (k Keeper) CollectBiquidStakings(ctx sdk.Context) error {
 //	params := k.GetParams(ctx)
-//	var bearings []types.Bearing
+//	var liquidStakings []types.BiquidStaking
 //	if params.EpochBlocks > 0 && ctx.BlockHeight()%int64(params.EpochBlocks) == 0 {
-//		bearings = types.CollectibleBearings(params.Bearings, ctx.BlockTime())
+//		liquidStakings = types.CollectibleBiquidStakings(params.BiquidStakings, ctx.BlockTime())
 //	}
-//	if len(bearings) == 0 {
+//	if len(liquidStakings) == 0 {
 //		return nil
 //	}
 //
-//	// Get a map GetBearingsBySourceMap that has a list of bearings and their total rate, which
+//	// Get a map GetBiquidStakingsBySourceMap that has a list of liquidStakings and their total rate, which
 //	// contain the same SourceAddress
-//	bearingsBySourceMap := types.GetBearingsBySourceMap(bearings)
-//	for source, bearingsBySource := range bearingsBySourceMap {
+//	liquidStakingsBySourceMap := types.GetBiquidStakingsBySourceMap(liquidStakings)
+//	for source, liquidStakingsBySource := range liquidStakingsBySourceMap {
 //		sourceAcc, err := sdk.AccAddressFromBech32(source)
 //		if err != nil {
 //			return err
@@ -27,37 +27,37 @@ package keeper
 //
 //		var inputs []banktypes.Input
 //		var outputs []banktypes.Output
-//		bearingsBySource.CollectionCoins = make([]sdk.Coins, len(bearingsBySource.Bearings))
-//		for i, bearing := range bearingsBySource.Bearings {
-//			destinationAcc, err := sdk.AccAddressFromBech32(bearing.DestinationAddress)
+//		liquidStakingsBySource.CollectionCoins = make([]sdk.Coins, len(liquidStakingsBySource.BiquidStakings))
+//		for i, liquidStaking := range liquidStakingsBySource.BiquidStakings {
+//			destinationAcc, err := sdk.AccAddressFromBech32(liquidStaking.DestinationAddress)
 //			if err != nil {
 //				return err
 //			}
 //
-//			collectionCoins, _ := sourceBalances.MulDecTruncate(bearing.Rate).TruncateDecimal()
+//			collectionCoins, _ := sourceBalances.MulDecTruncate(liquidStaking.Rate).TruncateDecimal()
 //			if collectionCoins.Empty() || !collectionCoins.IsValid() {
 //				continue
 //			}
 //
 //			inputs = append(inputs, banktypes.NewInput(sourceAcc, collectionCoins))
 //			outputs = append(outputs, banktypes.NewOutput(destinationAcc, collectionCoins))
-//			bearingsBySource.CollectionCoins[i] = collectionCoins
+//			liquidStakingsBySource.CollectionCoins[i] = collectionCoins
 //		}
 //
 //		if err := k.bankKeeper.InputOutputCoins(ctx, inputs, outputs); err != nil {
 //			return err
 //		}
 //
-//		for i, bearing := range bearingsBySource.Bearings {
-//			k.AddTotalCollectedCoins(ctx, bearing.Name, bearingsBySource.CollectionCoins[i])
+//		for i, liquidStaking := range liquidStakingsBySource.BiquidStakings {
+//			k.AddTotalCollectedCoins(ctx, liquidStaking.Name, liquidStakingsBySource.CollectionCoins[i])
 //			ctx.EventManager().EmitEvents(sdk.Events{
 //				sdk.NewEvent(
-//					types.EventTypeBearingCollected,
-//					sdk.NewAttribute(types.AttributeValueName, bearing.Name),
-//					sdk.NewAttribute(types.AttributeValueDestinationAddress, bearing.DestinationAddress),
-//					sdk.NewAttribute(types.AttributeValueSourceAddress, bearing.SourceAddress),
-//					sdk.NewAttribute(types.AttributeValueRate, bearing.Rate.String()),
-//					sdk.NewAttribute(types.AttributeValueAmount, bearingsBySource.CollectionCoins[i].String()),
+//					types.EventTypeBiquidStakingCollected,
+//					sdk.NewAttribute(types.AttributeValueName, liquidStaking.Name),
+//					sdk.NewAttribute(types.AttributeValueDestinationAddress, liquidStaking.DestinationAddress),
+//					sdk.NewAttribute(types.AttributeValueSourceAddress, liquidStaking.SourceAddress),
+//					sdk.NewAttribute(types.AttributeValueRate, liquidStaking.Rate.String()),
+//					sdk.NewAttribute(types.AttributeValueAmount, liquidStakingsBySource.CollectionCoins[i].String()),
 //				),
 //			})
 //		}
@@ -66,9 +66,9 @@ package keeper
 //}
 //
 //// GetTotalCollectedCoins returns total collected coins for a liquidstaking.
-//func (k Keeper) GetTotalCollectedCoins(ctx sdk.Context, bearingName string) sdk.Coins {
+//func (k Keeper) GetTotalCollectedCoins(ctx sdk.Context, liquidStakingName string) sdk.Coins {
 //	store := ctx.KVStore(k.storeKey)
-//	bz := store.Get(types.GetTotalCollectedCoinsKey(bearingName))
+//	bz := store.Get(types.GetTotalCollectedCoinsKey(liquidStakingName))
 //	if bz == nil {
 //		return nil
 //	}
@@ -79,13 +79,13 @@ package keeper
 //
 //// IterateAllTotalCollectedCoins iterates over all the stored TotalCollectedCoins and performs a callback function.
 //// Stops iteration when callback returns true.
-//func (k Keeper) IterateAllTotalCollectedCoins(ctx sdk.Context, cb func(record types.BearingRecord) (stop bool)) {
+//func (k Keeper) IterateAllTotalCollectedCoins(ctx sdk.Context, cb func(record types.BiquidStakingRecord) (stop bool)) {
 //	store := ctx.KVStore(k.storeKey)
 //	iterator := sdk.KVStorePrefixIterator(store, types.TotalCollectedCoinsKeyPrefix)
 //
 //	defer iterator.Close()
 //	for ; iterator.Valid(); iterator.Next() {
-//		var record types.BearingRecord
+//		var record types.BiquidStakingRecord
 //		var collectedCoins types.TotalCollectedCoins
 //		k.cdc.MustUnmarshal(iterator.Value(), &collectedCoins)
 //		record.Name = types.ParseTotalCollectedCoinsKey(iterator.Key())
@@ -97,16 +97,16 @@ package keeper
 //}
 //
 //// SetTotalCollectedCoins sets total collected coins for a liquidstaking.
-//func (k Keeper) SetTotalCollectedCoins(ctx sdk.Context, bearingName string, amount sdk.Coins) {
+//func (k Keeper) SetTotalCollectedCoins(ctx sdk.Context, liquidStakingName string, amount sdk.Coins) {
 //	store := ctx.KVStore(k.storeKey)
 //	collectedCoins := types.TotalCollectedCoins{TotalCollectedCoins: amount}
 //	bz := k.cdc.MustMarshal(&collectedCoins)
-//	store.Set(types.GetTotalCollectedCoinsKey(bearingName), bz)
+//	store.Set(types.GetTotalCollectedCoinsKey(liquidStakingName), bz)
 //}
 //
 //// AddTotalCollectedCoins increases total collected coins for a liquidstaking.
-//func (k Keeper) AddTotalCollectedCoins(ctx sdk.Context, bearingName string, amount sdk.Coins) {
-//	collectedCoins := k.GetTotalCollectedCoins(ctx, bearingName)
+//func (k Keeper) AddTotalCollectedCoins(ctx sdk.Context, liquidStakingName string, amount sdk.Coins) {
+//	collectedCoins := k.GetTotalCollectedCoins(ctx, liquidStakingName)
 //	collectedCoins = collectedCoins.Add(amount...)
-//	k.SetTotalCollectedCoins(ctx, bearingName, collectedCoins)
+//	k.SetTotalCollectedCoins(ctx, liquidStakingName, collectedCoins)
 //}

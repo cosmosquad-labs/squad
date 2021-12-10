@@ -117,7 +117,7 @@ func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // Route returns the message routing key for the liquidstaking module.
 func (am AppModule) Route() sdk.Route {
-	// Modification of Bearings of Params proceeds to governance proposition, not to Tx.
+	// Modification of BiquidStakings of Params proceeds to governance proposition, not to Tx.
 	return sdk.NewRoute(types.RouterKey, nil)
 }
 

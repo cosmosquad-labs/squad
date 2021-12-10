@@ -1,9 +1,5 @@
 package types
 
-import (
-	"bytes"
-)
-
 const (
 	// ModuleName is the name of the liquidstaking module
 	ModuleName = "liquidstaking"
@@ -19,19 +15,19 @@ const (
 )
 
 var (
-	// Keys for store prefixes
-	TotalCollectedCoinsKeyPrefix = []byte{0x11}
+//// Keys for store prefixes
+//TotalCollectedCoinsKeyPrefix = []byte{0x11}
 )
 
-// GetTotalCollectedCoinsKey creates the key for the total collected coins for a liquidstaking.
-func GetTotalCollectedCoinsKey(bearingName string) []byte {
-	return append(TotalCollectedCoinsKeyPrefix, []byte(bearingName)...)
-}
-
-// ParseTotalCollectedCoinsKey parses the total collected coins key and returns the liquidstaking name.
-func ParseTotalCollectedCoinsKey(key []byte) (bearingName string) {
-	if !bytes.HasPrefix(key, TotalCollectedCoinsKeyPrefix) {
-		panic("key does not have proper prefix")
-	}
-	return string(key[1:])
-}
+//// GetTotalCollectedCoinsKey creates the key for the total collected coins for a liquidstaking.
+//func GetTotalCollectedCoinsKey(liquidStakingName string) []byte {
+//	return append(TotalCollectedCoinsKeyPrefix, []byte(liquidStakingName)...)
+//}
+//
+//// ParseTotalCollectedCoinsKey parses the total collected coins key and returns the liquidstaking name.
+//func ParseTotalCollectedCoinsKey(key []byte) (liquidStakingName string) {
+//	if !bytes.HasPrefix(key, TotalCollectedCoinsKeyPrefix) {
+//		panic("key does not have proper prefix")
+//	}
+//	return string(key[1:])
+//}

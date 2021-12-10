@@ -1,10 +1,10 @@
-<!-- order: 0 title: Bearing Overview parent: title: "liquidstaking" -->
+<!-- order: 0 title: Liquid Staking Overview parent: title: "liquidstaking" -->
 
-# `bearing`
+# `liquidstaking`
 
 ## Abstract
 
-This document specifies the bearing module of the Cosmos SDK that serves bearing feature
+This document specifies the liquid staking module of the Cosmos SDK that serves liquid staking feature
 
 ## Contents
 

@@ -20,7 +20,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
 	}
 
-	//for _, record := range genState.BearingRecords {
+	//for _, record := range genState.BiquidStakingRecords {
 	//	k.SetTotalCollectedCoins(ctx, record.Name, record.TotalCollectedCoins)
 	//}
 }
@@ -30,8 +30,8 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	params := k.GetParams(ctx)
 	var liquidValidators []types.LiquidValidator
 
-	//k.IterateAllTotalCollectedCoins(ctx, func(record types.BearingRecord) (stop bool) {
-	//	bearingRecords = append(bearingRecords, record)
+	//k.IterateAllTotalCollectedCoins(ctx, func(record types.BiquidStakingRecord) (stop bool) {
+	//	liquidStakingRecords = append(liquidStakingRecords, record)
 	//	return false
 	//})
 

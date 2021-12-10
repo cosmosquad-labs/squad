@@ -2,7 +2,7 @@
 
 # Parameters
 
-The bearing module contains the following parameters:
+The liquid staking module contains the following parameters:
 
 | Key | Type | Example |
 | --- | --- | --- |

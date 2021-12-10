@@ -19,9 +19,9 @@ package types_test
 //			"normal liquidstaking case",
 //			func(genState *types.GenesisState) {
 //				genState.Params = types.DefaultParams()
-//				genState.Params.Bearings = []types.Bearing{
+//				genState.Params.BiquidStakings = []types.BiquidStaking{
 //					{
-//						Name:               "bearing1",
+//						Name:               "liquidStaking1",
 //						Rate:               sdk.NewDecWithPrec(5, 2), // 5%
 //						SourceAddress:      sdk.AccAddress(crypto.AddressHash([]byte("SourceAddress"))).String(),
 //						DestinationAddress: sdk.AccAddress(crypto.AddressHash([]byte("DestinationAddress"))).String(),
@@ -36,9 +36,9 @@ package types_test
 //			"invalid liquidstaking case",
 //			func(genState *types.GenesisState) {
 //				genState.Params = types.DefaultParams()
-//				genState.Params.Bearings = []types.Bearing{
+//				genState.Params.BiquidStakings = []types.BiquidStaking{
 //					{
-//						Name:               "bearing1",
+//						Name:               "liquidStaking1",
 //						Rate:               sdk.NewDecWithPrec(5, 2), // 5%
 //						SourceAddress:      "cosmos1invalidaddress",
 //						DestinationAddress: sdk.AccAddress(crypto.AddressHash([]byte("DestinationAddress"))).String(),
@@ -53,9 +53,9 @@ package types_test
 //			"duplicate liquidstaking name",
 //			func(genState *types.GenesisState) {
 //				genState.Params = types.DefaultParams()
-//				genState.Params.Bearings = []types.Bearing{
+//				genState.Params.BiquidStakings = []types.BiquidStaking{
 //					{
-//						Name:               "bearing1",
+//						Name:               "liquidStaking1",
 //						Rate:               sdk.NewDecWithPrec(5, 2), // 5%
 //						SourceAddress:      sdk.AccAddress(crypto.AddressHash([]byte("SourceAddress"))).String(),
 //						DestinationAddress: sdk.AccAddress(crypto.AddressHash([]byte("DestinationAddress"))).String(),
@@ -63,7 +63,7 @@ package types_test
 //						EndTime:            endTime,
 //					},
 //					{
-//						Name:               "bearing1",
+//						Name:               "liquidStaking1",
 //						Rate:               sdk.NewDecWithPrec(5, 2), // 5%
 //						SourceAddress:      sdk.AccAddress(crypto.AddressHash([]byte("SourceAddress"))).String(),
 //						DestinationAddress: sdk.AccAddress(crypto.AddressHash([]byte("DestinationAddress"))).String(),
@@ -72,13 +72,13 @@ package types_test
 //					},
 //				}
 //			},
-//			"bearing1: duplicate liquidstaking name",
+//			"liquidStaking1: duplicate liquidstaking name",
 //		},
 //		{
 //			"invalid liquidstaking name case",
 //			func(genState *types.GenesisState) {
 //				genState.Params = types.DefaultParams()
-//				genState.BearingRecords = []types.BearingRecord{
+//				genState.BiquidStakingRecords = []types.BiquidStakingRecord{
 //					{
 //						Name:                "invalid name",
 //						TotalCollectedCoins: nil,
@@ -91,9 +91,9 @@ package types_test
 //			"invalid total_collected_coin case",
 //			func(genState *types.GenesisState) {
 //				genState.Params = types.DefaultParams()
-//				genState.BearingRecords = []types.BearingRecord{
+//				genState.BiquidStakingRecords = []types.BiquidStakingRecord{
 //					{
-//						Name:                "bearing1",
+//						Name:                "liquidStaking1",
 //						TotalCollectedCoins: sdk.Coins{sdk.NewCoin("stake", sdk.ZeroInt())},
 //					},
 //				}

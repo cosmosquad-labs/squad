@@ -2,4 +2,4 @@
 
 # Concepts
 
-## Bearing Module
+## Liquid Staking Module
