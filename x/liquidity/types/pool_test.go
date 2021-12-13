@@ -37,58 +37,52 @@ func (pool *staticPool) SwapRequests() []types.SwapRequest {
 func TestPoolOperations_IsDepleted(t *testing.T) {
 	for _, tc := range []struct {
 		name       string
-		pool       types.PoolI
+		ps         sdk.Int // pool coin supply
+		rx, ry     sdk.Int // reserve balance
 		isDepleted bool
 	}{
 		{
-			"empty pool",
-			&staticPool{
-				poolCoinSupply: sdk.ZeroInt(),
-				rx:             sdk.ZeroInt(),
-				ry:             sdk.ZeroInt(),
-			},
-			true,
+			name:       "empty pool",
+			ps:         sdk.ZeroInt(),
+			rx:         sdk.ZeroInt(),
+			ry:         sdk.ZeroInt(),
+			isDepleted: true,
 		},
 		{
-			"depleted, with some coins from outside",
-			&staticPool{
-				poolCoinSupply: sdk.ZeroInt(),
-				rx:             sdk.NewInt(100),
-				ry:             sdk.ZeroInt(),
-			},
-			true,
+			name:       "depleted, with some coins from outside",
+			ps:         sdk.ZeroInt(),
+			rx:         sdk.NewInt(100),
+			ry:         sdk.ZeroInt(),
+			isDepleted: true,
 		},
 		{
-			"depleted, with some coins from outside #2",
-			&staticPool{
-				poolCoinSupply: sdk.ZeroInt(),
-				rx:             sdk.NewInt(100),
-				ry:             sdk.NewInt(100),
-			},
-			true,
+			name:       "depleted, with some coins from outside #2",
+			ps:         sdk.ZeroInt(),
+			rx:         sdk.NewInt(100),
+			ry:         sdk.NewInt(100),
+			isDepleted: true,
 		},
 		{
-			"normal pool",
-			&staticPool{
-				poolCoinSupply: types.DefaultInitialPoolCoinSupply,
-				rx:             sdk.NewInt(1000000),
-				ry:             sdk.NewInt(1000000),
-			},
-			false,
+			name:       "normal pool",
+			ps:         types.DefaultInitialPoolCoinSupply,
+			rx:         sdk.NewInt(1000000),
+			ry:         sdk.NewInt(1000000),
+			isDepleted: false,
 		},
 		{
-			"not depleted, but reserve coins are gone",
-			&staticPool{
-				initialPoolCoinSupply: types.DefaultInitialPoolCoinSupply,
-				poolCoinSupply:        types.DefaultInitialPoolCoinSupply,
-				rx:                    sdk.ZeroInt(),
-				ry:                    sdk.NewInt(1000000),
-			},
-			true,
+			name:       "not depleted, but reserve coins are gone",
+			ps:         types.DefaultInitialPoolCoinSupply,
+			rx:         sdk.ZeroInt(),
+			ry:         sdk.NewInt(1000000),
+			isDepleted: true,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			ops := types.NewPoolOperations(tc.pool)
+			ops := types.NewPoolOperations(&staticPool{
+				poolCoinSupply: tc.ps,
+				rx:             tc.rx,
+				ry:             tc.ry,
+			})
 			require.Equal(t, tc.isDepleted, ops.IsDepleted())
 		})
 	}
@@ -96,40 +90,39 @@ func TestPoolOperations_IsDepleted(t *testing.T) {
 
 func TestPoolOperations_PoolPrice(t *testing.T) {
 	for _, tc := range []struct {
-		name string
-		pool types.PoolI
-		p    sdk.Dec
+		name   string
+		ps     sdk.Int // pool coin supply
+		rx, ry sdk.Int // reserve balance
+		p      sdk.Dec // expected pool price
 	}{
 		{
-			"depleted pool",
-			&staticPool{
-				poolCoinSupply: sdk.ZeroInt(),
-				rx:             sdk.NewInt(100),
-				ry:             sdk.NewInt(100),
-			},
-			sdk.ZeroDec(),
+			name: "depleted pool",
+			ps:   sdk.ZeroInt(),
+			rx:   sdk.NewInt(100),
+			ry:   sdk.NewInt(100),
+			p:    sdk.ZeroDec(),
 		},
 		{
-			"normal pool",
-			&staticPool{
-				poolCoinSupply: types.DefaultInitialPoolCoinSupply,
-				rx:             sdk.NewInt(200000000),
-				ry:             sdk.NewInt(1000000),
-			},
-			sdk.NewDec(200),
+			name: "normal pool",
+			ps:   types.DefaultInitialPoolCoinSupply,
+			rx:   sdk.NewInt(200000000),
+			ry:   sdk.NewInt(1000000),
+			p:    sdk.NewDec(200),
 		},
 		{
-			"decimal rounding",
-			&staticPool{
-				poolCoinSupply: types.DefaultInitialPoolCoinSupply,
-				rx:             sdk.NewInt(200),
-				ry:             sdk.NewInt(300),
-			},
-			sdk.MustNewDecFromStr("0.666666666666666667"),
+			name: "decimal rounding",
+			ps:   types.DefaultInitialPoolCoinSupply,
+			rx:   sdk.NewInt(200),
+			ry:   sdk.NewInt(300),
+			p:    sdk.MustNewDecFromStr("0.666666666666666667"),
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			ops := types.NewPoolOperations(tc.pool)
+			ops := types.NewPoolOperations(&staticPool{
+				poolCoinSupply: tc.ps,
+				rx:             tc.rx,
+				ry:             tc.ry,
+			})
 			require.True(sdk.DecEq(t, tc.p, ops.PoolPrice()))
 		})
 	}
