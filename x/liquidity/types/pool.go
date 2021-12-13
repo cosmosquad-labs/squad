@@ -44,7 +44,7 @@ func (ops PoolOperations) PoolPrice() sdk.Dec {
 		return sdk.ZeroDec()
 	}
 	rx, ry := ops.Pool.ReserveBalance()
-	return rx.ToDec().QuoInt(ry)
+	return rx.ToDec().Quo(ry.ToDec())
 }
 
 // Deposit returns accepted x amount, accepted y amount and
@@ -66,8 +66,8 @@ func (ops PoolOperations) Deposit(x, y sdk.Int) (ax, ay, pc sdk.Int) {
 	ay = y
 
 	rx, ry := ops.Pool.ReserveBalance()
-	cp := rx.ToDec().QuoInt(ry) // current pool price
-	dp := x.ToDec().QuoInt(y)   // price of coins that are being deposited
+	cp := rx.ToDec().Quo(ry.ToDec()) // current pool price
+	dp := x.ToDec().Quo(y.ToDec())   // price of coins that are being deposited
 
 	switch {
 	case cp.LT(dp):

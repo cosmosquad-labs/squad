@@ -43,40 +43,36 @@ func TestPoolOperations_IsDepleted(t *testing.T) {
 		{
 			"empty pool",
 			&staticPool{
-				initialPoolCoinSupply: types.DefaultInitialPoolCoinSupply,
-				poolCoinSupply:        sdk.ZeroInt(),
-				rx:                    sdk.ZeroInt(),
-				ry:                    sdk.ZeroInt(),
+				poolCoinSupply: sdk.ZeroInt(),
+				rx:             sdk.ZeroInt(),
+				ry:             sdk.ZeroInt(),
 			},
 			true,
 		},
 		{
 			"depleted, with some coins from outside",
 			&staticPool{
-				initialPoolCoinSupply: types.DefaultInitialPoolCoinSupply,
-				poolCoinSupply:        sdk.ZeroInt(),
-				rx:                    sdk.NewInt(100),
-				ry:                    sdk.ZeroInt(),
+				poolCoinSupply: sdk.ZeroInt(),
+				rx:             sdk.NewInt(100),
+				ry:             sdk.ZeroInt(),
 			},
 			true,
 		},
 		{
 			"depleted, with some coins from outside #2",
 			&staticPool{
-				initialPoolCoinSupply: types.DefaultInitialPoolCoinSupply,
-				poolCoinSupply:        sdk.ZeroInt(),
-				rx:                    sdk.NewInt(100),
-				ry:                    sdk.NewInt(100),
+				poolCoinSupply: sdk.ZeroInt(),
+				rx:             sdk.NewInt(100),
+				ry:             sdk.NewInt(100),
 			},
 			true,
 		},
 		{
 			"normal pool",
 			&staticPool{
-				initialPoolCoinSupply: types.DefaultInitialPoolCoinSupply,
-				poolCoinSupply:        types.DefaultInitialPoolCoinSupply,
-				rx:                    sdk.NewInt(1000000),
-				ry:                    sdk.NewInt(1000000),
+				poolCoinSupply: types.DefaultInitialPoolCoinSupply,
+				rx:             sdk.NewInt(1000000),
+				ry:             sdk.NewInt(1000000),
 			},
 			false,
 		},
@@ -94,6 +90,47 @@ func TestPoolOperations_IsDepleted(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ops := types.NewPoolOperations(tc.pool)
 			require.Equal(t, tc.isDepleted, ops.IsDepleted())
+		})
+	}
+}
+
+func TestPoolOperations_PoolPrice(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		pool types.PoolI
+		p    sdk.Dec
+	}{
+		{
+			"depleted pool",
+			&staticPool{
+				poolCoinSupply: sdk.ZeroInt(),
+				rx:             sdk.NewInt(100),
+				ry:             sdk.NewInt(100),
+			},
+			sdk.ZeroDec(),
+		},
+		{
+			"normal pool",
+			&staticPool{
+				poolCoinSupply: types.DefaultInitialPoolCoinSupply,
+				rx:             sdk.NewInt(200000000),
+				ry:             sdk.NewInt(1000000),
+			},
+			sdk.NewDec(200),
+		},
+		{
+			"decimal rounding",
+			&staticPool{
+				poolCoinSupply: types.DefaultInitialPoolCoinSupply,
+				rx:             sdk.NewInt(200),
+				ry:             sdk.NewInt(300),
+			},
+			sdk.MustNewDecFromStr("0.666666666666666667"),
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ops := types.NewPoolOperations(tc.pool)
+			require.True(sdk.DecEq(t, tc.p, ops.PoolPrice()))
 		})
 	}
 }
