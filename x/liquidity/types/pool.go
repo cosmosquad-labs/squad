@@ -46,6 +46,8 @@ func (ops PoolOperations) PoolPrice() sdk.Dec {
 // Deposit returns accepted x amount, accepted y amount and
 // minted pool coin amount.
 func (ops PoolOperations) Deposit(x, y sdk.Int) (ax, ay, pc sdk.Int) {
+	// If the pool is depleted, accept all coins and mint
+	// pool coins as much as the initial pool coin supply.
 	if ops.IsDepleted() {
 		ax = x
 		ay = y
@@ -53,22 +55,23 @@ func (ops PoolOperations) Deposit(x, y sdk.Int) (ax, ay, pc sdk.Int) {
 		return
 	}
 
-	p := ops.PoolPrice()
-	dp := x.ToDec().QuoInt(y) // price of coins that are being deposited
-
 	// Calculate accepted amount and minting amount.
 	// Note that we take as many coins as possible(by ceiling numbers)
 	// from depositor and mint as little coins as possible.
 	ax = x
 	ay = y
-	switch {
-	case p.LT(dp):
-		ax = y.ToDec().Mul(p).Ceil().TruncateInt()
-	case p.GT(dp):
-		ay = x.ToDec().Quo(p).Ceil().TruncateInt()
-	}
 
 	rx, ry := ops.Pool.ReserveBalance()
+	cp := rx.ToDec().QuoInt(ry) // current pool price
+	dp := x.ToDec().QuoInt(y)   // price of coins that are being deposited
+
+	switch {
+	case cp.LT(dp):
+		ax = y.ToDec().Mul(cp).Ceil().TruncateInt()
+	case cp.GT(dp):
+		ay = x.ToDec().Quo(cp).Ceil().TruncateInt()
+	}
+
 	ps := ops.Pool.PoolCoinSupply().ToDec()
 	pc = sdk.MinInt(
 		ps.Mul(ax.ToDec()).QuoTruncate(rx.ToDec()).RoundInt(),
