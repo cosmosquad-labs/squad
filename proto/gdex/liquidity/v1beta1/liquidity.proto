@@ -1,0 +1,47 @@
+syntax = "proto3";
+package gdex.liquidity.v1beta1;
+
+import "gogoproto/gogo.proto";
+
+option go_package                      = "github.com/tendermint/farming/x/liquidity/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// Params defines the parameters for the liquidity module.
+message Params {
+  string initial_pool_coin_supply = 1
+      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+}
+
+// Pool defines a liquidity pool.
+message Pool {
+  uint64 id = 1;
+
+  repeated string reserve_coin_denoms = 2;
+
+  string reserve_address = 3;
+
+  string pool_coin_denom = 4;
+}
+
+// SwapRequest defines a swap request.
+message SwapRequest {
+  string requester = 1;
+
+  SwapDirection direction = 2;
+
+  string price = 3 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+
+  string amount = 4 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+}
+
+// SwapDirection enumerates swap directions.
+enum SwapDirection {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  // SWAP_DIRECTION_UNSPECIFIED specifies unknown swap direction.
+  SWAP_DIRECTION_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "SwapDirectionUnspecified"];
+  // SWAP_DIRECTION_X_TO_Y specifies x to y swap direction.
+  SWAP_DIRECTION_X_TO_Y = 1 [(gogoproto.enumvalue_customname) = "SwapDirectionXToY"];
+  // SWAP_DIRECTION_Y_TO_X specifies y to x swap direction.
+  SWAP_DIRECTION_Y_TO_X = 2 [(gogoproto.enumvalue_customname) = "SwapDirectionYToX"];
+}

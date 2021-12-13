@@ -56,7 +56,7 @@ message WhitelistedValidator {
 
 // LiquidValidator defines a ... TBD
 message LiquidValidator {
-  option (gogoproto.equal) = false;
+  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   // operator_address defines the address of the validator's operator; bech encoded in JSON.
