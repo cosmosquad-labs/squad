@@ -60,7 +60,7 @@ func (ops PoolOperations) OrderBook() OrderBook {
 		orderBook.Add(Order{
 			Orderer:   req.Requester,
 			Direction: req.Direction,
-			Amount:    req.Amount,
+			Amount:    req.RemainingAmount,
 			Price:     req.Price,
 		})
 	}
