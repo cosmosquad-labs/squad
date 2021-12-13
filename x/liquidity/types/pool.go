@@ -66,17 +66,18 @@ func (ops PoolOperations) Deposit(x, y sdk.Int) (ax, ay, pc sdk.Int) {
 	ay = y
 
 	rx, ry := ops.Pool.ReserveBalance()
-	cp := rx.ToDec().Quo(ry.ToDec()) // current pool price
-	dp := x.ToDec().Quo(y.ToDec())   // price of coins that are being deposited
+	cp := rx.ToDec().Quo(ry.ToDec()) // current pool price (rx / ry)
+	dp := x.ToDec().Quo(y.ToDec())   // price of coins that are being deposited (x / y)
 
 	switch {
 	case cp.LT(dp):
-		ax = y.ToDec().Mul(cp).Ceil().TruncateInt()
+		ax = y.ToDec().Mul(cp).Ceil().TruncateInt() // ax = y * cp
 	case cp.GT(dp):
-		ay = x.ToDec().Quo(cp).Ceil().TruncateInt()
+		ay = x.ToDec().Quo(cp).Ceil().TruncateInt() // ay = x / cp
 	}
 
 	ps := ops.Pool.PoolCoinSupply().ToDec()
+	// pc = min(ps * (ax / rx), ps * (ay / ry))
 	pc = sdk.MinInt(
 		ps.Mul(ax.ToDec()).QuoTruncate(rx.ToDec()).RoundInt(),
 		ps.Mul(ay.ToDec()).QuoTruncate(ry.ToDec()).RoundInt(),
