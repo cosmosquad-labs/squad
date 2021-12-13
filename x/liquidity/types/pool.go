@@ -23,6 +23,10 @@ type PoolOperations struct {
 	Pool PoolI
 }
 
+func NewPoolOperations(pool PoolI) PoolOperations {
+	return PoolOperations{pool}
+}
+
 func (ops PoolOperations) IsDepleted() bool {
 	pc := ops.Pool.PoolCoinSupply()
 	if pc.IsZero() {
