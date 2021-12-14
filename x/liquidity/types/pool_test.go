@@ -194,9 +194,53 @@ func TestPoolOperations_Deposit(t *testing.T) {
 			ry:   333,
 			x:    100,
 			y:    100,
-			ax:   67,
+			ax:   66,
+			ay:   99,
+			pc:   99,
+		},
+		{
+			name: "decimal truncation #2",
+			ps:   333,
+			rx:   200,
+			ry:   300,
+			x:    80,
+			y:    80,
+			ax:   53,
+			ay:   80,
+			pc:   88,
+		},
+		{
+			name: "zero minting amount",
+			ps:   100,
+			rx:   10000,
+			ry:   10000,
+			x:    99,
+			y:    99,
+			ax:   0,
+			ay:   0,
+			pc:   0,
+		},
+		{
+			name: "tiny minting amount",
+			ps:   100,
+			rx:   10000,
+			ry:   10000,
+			x:    100,
+			y:    100,
+			ax:   100,
 			ay:   100,
-			pc:   100,
+			pc:   1,
+		},
+		{
+			name: "tiny minting amount #2",
+			ps:   100,
+			rx:   10000,
+			ry:   10000,
+			x:    199,
+			y:    199,
+			ax:   100,
+			ay:   100,
+			pc:   1,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -210,6 +254,11 @@ func TestPoolOperations_Deposit(t *testing.T) {
 			require.True(sdk.IntEq(t, sdk.NewInt(tc.ax), ax))
 			require.True(sdk.IntEq(t, sdk.NewInt(tc.ay), ay))
 			require.True(sdk.IntEq(t, sdk.NewInt(tc.pc), pc))
+			// Additional assertions
+			if !ops.IsDepleted() {
+				require.True(t, ax.MulRaw(tc.ps).GTE(pc.MulRaw(tc.rx)))
+				require.True(t, ay.MulRaw(tc.ps).GTE(pc.MulRaw(tc.ry)))
+			}
 		})
 	}
 }
