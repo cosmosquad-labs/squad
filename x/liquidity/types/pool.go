@@ -97,13 +97,13 @@ func (ops PoolOperations) Withdraw(pc sdk.Int, feeRate sdk.Dec) (x, y sdk.Int) {
 }
 
 func (ops PoolOperations) OrderBook() OrderBook {
-	var orderBook OrderBook
+	var ob OrderBook
 
 	for _, req := range ops.Pool.SwapRequests() {
-		orderBook.Add(NewOrder(req.Requester, req.Direction, req.Price, req.RemainingAmount))
+		ob.Add(NewOrder(req.Requester, req.Direction, req.Price, req.RemainingAmount))
 	}
 
-	return orderBook
+	return ob
 }
 
 func (ops PoolOperations) Match(orderBook OrderBook) {

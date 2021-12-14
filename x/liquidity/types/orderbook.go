@@ -1,22 +1,24 @@
 package types
 
 import (
+	"fmt"
 	"sort"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type OrderBook []OrderGroup
 
-func (orderBook OrderBook) Add(order Order) OrderBook {
+func (ob OrderBook) Add(order Order) OrderBook {
 	var prices []string
-	for _, g := range orderBook {
-		prices = append(prices, g.Price.String())
+	for _, og := range ob {
+		prices = append(prices, og.Price.String())
 	}
 	i := sort.Search(len(prices), func(i int) bool {
 		return prices[i] <= order.Price.String()
 	})
-	newOrderBook := orderBook
+	newOrderBook := ob
 	if i < len(prices) {
 		if prices[i] == order.Price.String() {
 			switch order.Direction {
@@ -34,6 +36,24 @@ func (orderBook OrderBook) Add(order Order) OrderBook {
 		newOrderBook = append(newOrderBook, NewOrderGroup(order))
 	}
 	return newOrderBook
+}
+
+func (ob OrderBook) String() string {
+	lines := []string{
+		"+-----buy------+----------price-----------+-----sell-----+",
+	}
+	for _, og := range ob {
+		xToYAmt, yToXAmt := sdk.ZeroInt(), sdk.ZeroInt()
+		for _, order := range og.XToYOrders {
+			xToYAmt = xToYAmt.Add(order.Amount)
+		}
+		for _, order := range og.YToXOrders {
+			yToXAmt = yToXAmt.Add(order.Amount)
+		}
+		lines = append(lines, fmt.Sprintf("| %12s | %24s | %-12s |", xToYAmt, og.Price.String(), yToXAmt))
+	}
+	lines = append(lines, "+--------------+--------------------------+--------------+")
+	return strings.Join(lines, "\n")
 }
 
 type OrderGroup struct {
