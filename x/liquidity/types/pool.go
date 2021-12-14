@@ -62,26 +62,17 @@ func (ops PoolOperations) Deposit(x, y sdk.Int) (ax, ay, pc sdk.Int) {
 	// Calculate accepted amount and minting amount.
 	// Note that we take as many coins as possible(by ceiling numbers)
 	// from depositor and mint as little coins as possible.
-	ax = x
-	ay = y
-
 	rx, ry := ops.Pool.ReserveBalance()
-	cp := rx.ToDec().Quo(ry.ToDec()) // current pool price (rx / ry)
-	dp := x.ToDec().Quo(y.ToDec())   // price of coins that are being deposited (x / y)
-
-	switch {
-	case cp.LT(dp):
-		ax = y.ToDec().Mul(cp).Ceil().TruncateInt() // ax = y * cp
-	case cp.GT(dp):
-		ay = x.ToDec().Quo(cp).Ceil().TruncateInt() // ay = x / cp
-	}
-
 	ps := ops.Pool.PoolCoinSupply().ToDec()
-	// pc = min(ps * (ax / rx), ps * (ay / ry))
-	pc = sdk.MinInt(
-		ps.Mul(ax.ToDec()).QuoTruncate(rx.ToDec()).RoundInt(),
-		ps.Mul(ay.ToDec()).QuoTruncate(ry.ToDec()).RoundInt(),
-	)
+	// pc = min(ps * (x / rx), ps * (y / ry))
+	pc = sdk.MinDec(
+		ps.MulTruncate(x.ToDec().QuoTruncate(rx.ToDec())),
+		ps.MulTruncate(y.ToDec().QuoTruncate(ry.ToDec())),
+	).TruncateInt()
+
+	mintRate := pc.ToDec().Quo(ps)                     // pc / ps
+	ax = rx.ToDec().Mul(mintRate).Ceil().TruncateInt() // rx * mintRate
+	ay = ry.ToDec().Mul(mintRate).Ceil().TruncateInt() // ry * mintRate
 
 	return
 }
