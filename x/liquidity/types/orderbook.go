@@ -26,9 +26,11 @@ func (orderBook OrderBook) Add(order Order) OrderBook {
 				newOrderBook[i].YToXOrders = append(newOrderBook[i].YToXOrders, order)
 			}
 		} else {
+			// Insert a new order group at index i.
 			newOrderBook = append(newOrderBook[:i], append([]OrderGroup{NewOrderGroup(order)}, newOrderBook[i:]...)...)
 		}
 	} else {
+		// Append a new order group at the end.
 		newOrderBook = append(newOrderBook, NewOrderGroup(order))
 	}
 	return newOrderBook
