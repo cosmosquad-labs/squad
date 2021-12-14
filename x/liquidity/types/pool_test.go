@@ -256,9 +256,75 @@ func TestPoolOperations_Deposit(t *testing.T) {
 			require.True(sdk.IntEq(t, sdk.NewInt(tc.pc), pc))
 			// Additional assertions
 			if !ops.IsDepleted() {
-				require.True(t, ax.MulRaw(tc.ps).GTE(pc.MulRaw(tc.rx)))
-				require.True(t, ay.MulRaw(tc.ps).GTE(pc.MulRaw(tc.ry)))
+				require.True(t, (ax.Int64()*tc.ps) >= (pc.Int64()*tc.rx)) // (ax / rx) > (pc / ps)
+				require.True(t, (ay.Int64()*tc.ps) >= (pc.Int64()*tc.ry)) // (ay / ry) > (pc / ps)
 			}
+		})
+	}
+}
+
+func TestPoolOperations_Withdraw(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		ps      int64 // pool coin supply
+		rx, ry  int64 // reserve balance
+		pc      int64 // redeeming pool coin amount
+		feeRate sdk.Dec
+		x, y    int64 // withdrawn coin amount
+	}{
+		{
+			name:    "ideal withdraw",
+			ps:      10000,
+			rx:      2000,
+			ry:      100,
+			pc:      1000,
+			feeRate: sdk.ZeroDec(),
+			x:       200,
+			y:       10,
+		},
+		{
+			name:    "ideal withdraw - with fee",
+			ps:      10000,
+			rx:      2000,
+			ry:      100,
+			pc:      1000,
+			feeRate: sdk.MustNewDecFromStr("0.003"),
+			x:       199,
+			y:       9,
+		},
+		{
+			name:    "withdraw all",
+			ps:      10,
+			rx:      123,
+			ry:      567,
+			pc:      10,
+			feeRate: sdk.MustNewDecFromStr("0.003"),
+			x:       123,
+			y:       567,
+		},
+		{
+			name:    "advantageous for pool",
+			ps:      10000,
+			rx:      100,
+			ry:      100,
+			pc:      99,
+			feeRate: sdk.ZeroDec(),
+			x:       0,
+			y:       0,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ops := types.NewPoolOperations(&staticPool{
+				poolCoinSupply: sdk.NewInt(tc.ps),
+				rx:             sdk.NewInt(tc.rx),
+				ry:             sdk.NewInt(tc.ry),
+			})
+			x, y := ops.Withdraw(sdk.NewInt(tc.pc), tc.feeRate)
+			require.True(sdk.IntEq(t, sdk.NewInt(tc.x), x))
+			require.True(sdk.IntEq(t, sdk.NewInt(tc.y), y))
+			// Additional assertions
+			require.True(t, (tc.pc*tc.rx) >= (x.Int64()*tc.ps))
+			require.True(t, (tc.pc*tc.ry) >= (y.Int64()*tc.ps))
 		})
 	}
 }

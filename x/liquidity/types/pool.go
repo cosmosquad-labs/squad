@@ -70,15 +70,29 @@ func (ops PoolOperations) Deposit(x, y sdk.Int) (ax, ay, pc sdk.Int) {
 		ps.MulTruncate(y.ToDec().QuoTruncate(ry.ToDec())),
 	).TruncateInt()
 
-	mintRate := pc.ToDec().Quo(ps)                     // pc / ps
-	ax = rx.ToDec().Mul(mintRate).Ceil().TruncateInt() // rx * mintRate
-	ay = ry.ToDec().Mul(mintRate).Ceil().TruncateInt() // ry * mintRate
+	mintProportion := pc.ToDec().Quo(ps)                     // pc / ps
+	ax = rx.ToDec().Mul(mintProportion).Ceil().TruncateInt() // rx * mintProportion
+	ay = ry.ToDec().Mul(mintProportion).Ceil().TruncateInt() // ry * mintProportion
 
 	return
 }
 
-func (ops PoolOperations) Withdraw(pc sdk.Int) (x, y sdk.Int) {
-	// TODO: implement
+func (ops PoolOperations) Withdraw(pc sdk.Int, feeRate sdk.Dec) (x, y sdk.Int) {
+	rx, ry := ops.Pool.ReserveBalance()
+	ps := ops.Pool.PoolCoinSupply()
+
+	// Redeeming the last pool coin
+	if pc.Equal(ps) {
+		x = rx
+		y = ry
+		return
+	}
+
+	proportion := pc.ToDec().QuoTruncate(ps.ToDec())                             // pc / ps
+	multiplier := sdk.OneDec().Sub(feeRate)                                      // 1 - feeRate
+	x = rx.ToDec().MulTruncate(proportion).MulTruncate(multiplier).TruncateInt() // rx * proportion * multiplier
+	y = ry.ToDec().MulTruncate(proportion).MulTruncate(multiplier).TruncateInt() // ry * proportion * multiplier
+
 	return
 }
 
