@@ -100,12 +100,7 @@ func (ops PoolOperations) OrderBook() OrderBook {
 	var orderBook OrderBook
 
 	for _, req := range ops.Pool.SwapRequests() {
-		orderBook.Add(Order{
-			Orderer:   req.Requester,
-			Direction: req.Direction,
-			Amount:    req.RemainingAmount,
-			Price:     req.Price,
-		})
+		orderBook.Add(NewOrder(req.Requester, req.Direction, req.Price, req.RemainingAmount))
 	}
 
 	return orderBook

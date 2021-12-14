@@ -61,3 +61,7 @@ type Order struct {
 	Price     sdk.Dec
 	Amount    sdk.Int
 }
+
+func NewOrder(orderer string, dir SwapDirection, price sdk.Dec, amt sdk.Int) Order {
+	return Order{orderer, dir, price, amt}
+}
