@@ -45,6 +45,7 @@ func (pool *wiredPool) ReserveBalance() (x, y sdk.Int) {
 }
 
 func (pool *wiredPool) SwapRequests() []types.SwapRequest {
+	// TODO: implement
 	return nil
 }
 

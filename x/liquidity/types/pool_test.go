@@ -10,8 +10,7 @@ import (
 	"github.com/tendermint/farming/x/liquidity/types"
 )
 
-var _ types.PoolI = (*staticPool)(nil)
-
+// staticPool is only for testing purpose.
 type staticPool struct {
 	initialPoolCoinSupply sdk.Int
 	poolCoinSupply        sdk.Int
