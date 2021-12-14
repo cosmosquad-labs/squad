@@ -103,11 +103,51 @@ func (ops PoolOperations) OrderBook() OrderBook {
 		ob.Add(NewOrder(req.Requester, req.Direction, req.Price, req.RemainingAmount))
 	}
 
+	// TODO: add orders from the pool - first need to determine tick size and range
+
 	return ob
 }
 
-func (ops PoolOperations) Match(orderBook OrderBook) {
-	p := ops.PoolPrice()
-	_ = p
-	// TODO: implement
+func (ops PoolOperations) Match(ob OrderBook) {
+	ops.Match1(ob)
+	// ops.Match2(ob)
+}
+
+func (ops PoolOperations) Match1(ob OrderBook) {
+	// Buy(x to y) orders whose price is higher than the last pool price
+	// are matched first in the matching phase #1, with sell(y to x) orders
+	// with the lowest price.
+	p := ops.PoolPrice() // last pool price
+
+	bi, found := ob.HighestPriceXToYOrderGroupIndex(0)
+	if !found || ob[bi].Price.LT(p) { // no matchable buy orders
+		return
+	}
+
+	si, found := ob.LowestPriceYToXOrderGroupIndex(len(ob) - 1)
+	if !found || ob[si].Price.GT(p) { // no matchable sell orders
+		return
+	}
+
+	for {
+		lbo := false // is this the last buy order?
+		nbi, found := ob.HighestPriceXToYOrderGroupIndex(bi + 1)
+		if !found || ob[nbi].Price.LT(p) { // no next matchable buy orders
+			lbo = true
+		}
+
+		lso := false
+		nsi, found := ob.LowestPriceYToXOrderGroupIndex(si - 1)
+		if !found || ob[nsi].Price.GT(p) { // no next matchable sell orders
+			lso = true
+		}
+
+		// match orders...
+
+		if lbo || lso {
+			break
+		}
+		bi = nbi
+		si = nsi
+	}
 }

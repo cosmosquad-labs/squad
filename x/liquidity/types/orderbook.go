@@ -38,19 +38,35 @@ func (ob OrderBook) Add(order Order) OrderBook {
 	return newOrderBook
 }
 
+func (ob OrderBook) HighestPriceXToYOrderGroupIndex(start int) (idx int, found bool) {
+	for i := start; i < len(ob); i++ {
+		if len(ob[i].XToYOrders) > 0 {
+			idx = i
+			found = true
+			return
+		}
+	}
+	return
+}
+
+func (ob OrderBook) LowestPriceYToXOrderGroupIndex(start int) (idx int, found bool) {
+	for i := start; i >= 0; i-- {
+		if len(ob[i].YToXOrders) > 0 {
+			idx = i
+			found = true
+			return
+		}
+	}
+	return
+}
+
 func (ob OrderBook) String() string {
 	lines := []string{
 		"+-----buy------+----------price-----------+-----sell-----+",
 	}
 	for _, og := range ob {
-		xToYAmt, yToXAmt := sdk.ZeroInt(), sdk.ZeroInt()
-		for _, order := range og.XToYOrders {
-			xToYAmt = xToYAmt.Add(order.Amount)
-		}
-		for _, order := range og.YToXOrders {
-			yToXAmt = yToXAmt.Add(order.Amount)
-		}
-		lines = append(lines, fmt.Sprintf("| %12s | %24s | %-12s |", xToYAmt, og.Price.String(), yToXAmt))
+		lines = append(lines,
+			fmt.Sprintf("| %12s | %24s | %-12s |", og.XToYAmount(), og.Price.String(), og.YToXAmount()))
 	}
 	lines = append(lines, "+--------------+--------------------------+--------------+")
 	return strings.Join(lines, "\n")
@@ -71,6 +87,22 @@ func NewOrderGroup(order Order) OrderGroup {
 		g.YToXOrders = append(g.YToXOrders, order)
 	}
 	return g
+}
+
+func (og OrderGroup) XToYAmount() sdk.Int {
+	amt := sdk.ZeroInt()
+	for _, order := range og.XToYOrders {
+		amt = amt.Add(order.Amount)
+	}
+	return amt
+}
+
+func (og OrderGroup) YToXAmount() sdk.Int {
+	amt := sdk.ZeroInt()
+	for _, order := range og.YToXOrders {
+		amt = amt.Add(order.Amount)
+	}
+	return amt
 }
 
 // Order represents a swap order, which is made by a user or a pool.
