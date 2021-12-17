@@ -65,3 +65,38 @@ func UnmarshalLiquidValidator(cdc codec.BinaryCodec, value []byte) (val LiquidVa
 	err = cdc.Unmarshal(value, &val)
 	return val, err
 }
+
+// TODO: MinMaxGap Return the list of LiquidValidator with the maximum gap and minimum gap from the target weight of LiquidValidators, respectively.
+func (vs LiquidValidators) MinMaxGap() (minGapVal LiquidValidator, maxGapVal LiquidValidator, amountNeeded sdk.Int) {
+	numWhitelistedVal := sdk.ZeroInt()
+	totalLiquidTokens := sdk.NewIntFromUint64(0)
+	for _, val := range vs {
+		totalLiquidTokens = totalLiquidTokens.Add(val.LiquidTokens)
+		if val.Status == 1 {
+			numWhitelistedVal = numWhitelistedVal.Add(sdk.OneInt())
+		}
+	}
+
+	maxGap := sdk.ZeroInt()
+	minGap := sdk.ZeroInt()
+	target := sdk.ZeroDec()
+
+	for _, val := range vs {
+		if val.Status == ValidatorStatusWhiteListed {
+			target = totalLiquidTokens.ToDec().QuoInt(numWhitelistedVal)
+		} else {
+			target = sdk.ZeroDec()
+		}
+		if val.LiquidTokens.Sub(target.TruncateInt()).GT(maxGap) {
+			maxGap = val.LiquidTokens.Sub(target.TruncateInt())
+			maxGapVal = val
+		}
+		if val.LiquidTokens.Sub(target.TruncateInt()).LT(minGap) {
+			minGap = val.LiquidTokens.Sub(target.TruncateInt())
+			minGapVal = val
+		}
+	}
+	amountNeeded = sdk.MinInt(maxGap, minGap.Abs())
+
+	return minGapVal, maxGapVal, amountNeeded
+}

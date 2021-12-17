@@ -7,6 +7,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/tendermint/farming/x/liquidstaking/types"
+	"testing"
+
 )
 
 // tests GetDelegation, GetDelegatorDelegations, SetDelegation, RemoveDelegation, GetDelegatorDelegations
@@ -680,3 +682,40 @@ func (suite *KeeperTestSuite) TestDelegation() {
 //	collectedCoins = suite.keeper.GetTotalCollectedCoins(suite.ctx, "liquidStaking1")
 //	suite.Require().True(coinsEq(expectedCoins, collectedCoins))
 //}
+
+func TestRebalancing(t *testing.T) {
+	lvs := types.LiquidValidators {
+		{
+			OperatorAddress: "1",
+			Status: 1,
+			LiquidTokens: sdk.NewIntFromUint64(100*1000000),
+			Weight: sdk.MustNewDecFromStr("0.05"),
+		},
+		{
+			OperatorAddress: "2",
+			Status: 1,
+			LiquidTokens: sdk.NewIntFromUint64(200*1000000),
+			Weight: sdk.MustNewDecFromStr("0.05"),
+		},
+		{
+			OperatorAddress: "3",
+			Status: 1,
+			LiquidTokens: sdk.NewIntFromUint64(300*1000000),
+			Weight: sdk.MustNewDecFromStr("0.05"),
+		},
+		{
+			OperatorAddress: "4",
+			Status: 1,
+			LiquidTokens: sdk.NewIntFromUint64(0*1000000),
+			Weight: sdk.MustNewDecFromStr("0.05"),
+		},
+		{
+			OperatorAddress: "5",
+			Status: 2,
+			LiquidTokens: sdk.NewIntFromUint64(400*1000000),
+			Weight: sdk.MustNewDecFromStr("0.05"),
+		},
+	}
+	maxGapVal, minGapVal, amount := lvs.MinMaxGap()
+	fmt.Println(maxGapVal, minGapVal, amount)
+}

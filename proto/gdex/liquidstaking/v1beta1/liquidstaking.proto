@@ -48,7 +48,7 @@ message WhitelistedValidator {
 
   // weight specifies the ... TBD
   string weight = 2 [
-    (gogoproto.moretags)   = "yaml:\"weight\"",
+    (gogoproto.moretags)   = "yaml:\"weight\"",.
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable)   = false
   ];
