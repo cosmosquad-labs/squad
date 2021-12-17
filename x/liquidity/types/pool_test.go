@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/tendermint/tendermint/crypto"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -24,6 +25,10 @@ func (pool *staticPool) InitialPoolCoinSupply() sdk.Int {
 
 func (pool *staticPool) PoolCoinSupply() sdk.Int {
 	return pool.poolCoinSupply
+}
+
+func (pool *staticPool) ReserveAddress() sdk.AccAddress {
+	return sdk.AccAddress(crypto.AddressHash([]byte("staticPool")))
 }
 
 func (pool *staticPool) ReserveBalance() (x, y sdk.Int) {

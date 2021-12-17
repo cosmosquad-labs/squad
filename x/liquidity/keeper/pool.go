@@ -37,6 +37,10 @@ func (pool *wiredPool) PoolCoinSupply() sdk.Int {
 	return k.bankKeeper.GetSupply(ctx, pool.PoolCoinDenom).Amount
 }
 
+func (pool *wiredPool) ReserveAddress() sdk.AccAddress {
+	return pool.GetReserveAddress()
+}
+
 func (pool *wiredPool) ReserveBalance() (x, y sdk.Int) {
 	k, ctx := pool.k, pool.ctx
 	x = k.bankKeeper.GetBalance(ctx, pool.GetReserveAddress(), pool.ReserveCoinDenoms[0]).Amount
