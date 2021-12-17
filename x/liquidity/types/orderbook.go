@@ -153,7 +153,10 @@ func (og OrderGroup) RemainingYToXAmount() sdk.Int {
 
 type Orders []*Order
 
-func (os Orders) Amount() sdk.Int {
+// RemainingAmount returns total remaining amount of orders.
+// Note that orders should have same SwapDirection, since
+// RemainingAmount doesn't rely on SwapDirection.
+func (os Orders) RemainingAmount() sdk.Int {
 	amt := sdk.ZeroInt()
 	for _, order := range os {
 		amt = amt.Add(order.RemainingAmount)
@@ -161,6 +164,8 @@ func (os Orders) Amount() sdk.Int {
 	return amt
 }
 
+// DemandingAmount returns total demanding amount of orders at given price.
+// Demanding amount is the amount of coins these orders want to receive.
 // TODO: use sdk.Dec here?
 func (os Orders) DemandingAmount(price sdk.Dec) sdk.Int {
 	da := sdk.ZeroInt()
@@ -176,11 +181,11 @@ func (os Orders) DemandingAmount(price sdk.Dec) sdk.Int {
 }
 
 // Match matches orders against other orders at given price.
-// It consumes all remaining amount in source(the receiver, os) orders.
+// It consumes all remaining amount in the source orders(os).
 func (os Orders) Match(others Orders, price sdk.Dec) {
-	amt := os.Amount()
+	amt := os.RemainingAmount()
 	da := os.DemandingAmount(price)
-	oa := others.Amount()
+	oa := others.RemainingAmount()
 
 	for _, order := range os {
 		proportion := order.RemainingAmount.ToDec().QuoTruncate(amt.ToDec())
@@ -199,8 +204,8 @@ func (os Orders) Match(others Orders, price sdk.Dec) {
 }
 
 func MatchOrders(buys, sells Orders, price sdk.Dec) {
-	bx := buys.Amount()                 // buy orders total amount
-	sy := sells.Amount()                // sell orders total amount
+	bx := buys.RemainingAmount()        // buy orders total amount
+	sy := sells.RemainingAmount()       // sell orders total amount
 	bdy := buys.DemandingAmount(price)  // buy orders demanding amount
 	sdx := sells.DemandingAmount(price) // sell orders demanding amount
 
@@ -219,9 +224,8 @@ func MatchOrders(buys, sells Orders, price sdk.Dec) {
 }
 
 // Order represents a swap order, which is made by a user or a pool.
-// TODO: use SwapRequest instead - all fields are identical?
 type Order struct {
-	Orderer         sdk.AccAddress // where the ReceivedAmount coin goes
+	Orderer         sdk.AccAddress
 	Direction       SwapDirection
 	Price           sdk.Dec
 	RemainingAmount sdk.Int
