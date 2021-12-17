@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/gov"
-	"github.com/cosmos/cosmos-sdk/x/gov/keeper"
+	"github.com/tendermint/farming/x/gov"
+	"github.com/tendermint/farming/x/gov/keeper"
 )
 
 func TestInvalidMsg(t *testing.T) {

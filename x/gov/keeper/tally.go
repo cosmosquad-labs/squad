@@ -20,6 +20,8 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal types.Proposal) (passes boo
 	totalVotingPower := sdk.ZeroDec()
 	currValidators := make(map[string]types.ValidatorGovInfo)
 
+	// TODO: Custom gov logic for liquid staking
+
 	// fetch all the bonded validators, insert them into currValidators
 	keeper.sk.IterateBondedValidatorsByPower(ctx, func(index int64, validator stakingtypes.ValidatorI) (stop bool) {
 		currValidators[validator.GetOperator().String()] = types.NewValidatorGovInfo(
