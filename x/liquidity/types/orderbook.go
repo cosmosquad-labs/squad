@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-type OrderBook []OrderGroup
+type OrderBook []OrderBookItem
 
 func (ob OrderBook) Add(os ...Order) OrderBook {
 	result := ob
@@ -37,11 +37,11 @@ func (ob OrderBook) add(order Order) OrderBook {
 			}
 		} else {
 			// Insert a new order group at index i.
-			newOrderBook = append(newOrderBook[:i], append([]OrderGroup{NewOrderGroup(order)}, newOrderBook[i:]...)...)
+			newOrderBook = append(newOrderBook[:i], append([]OrderBookItem{NewOrderBookItem(order)}, newOrderBook[i:]...)...)
 		}
 	} else {
 		// Append a new order group at the end.
-		newOrderBook = append(newOrderBook, NewOrderGroup(order))
+		newOrderBook = append(newOrderBook, NewOrderBookItem(order))
 	}
 	return newOrderBook
 }
@@ -118,14 +118,14 @@ func (ob OrderBook) String() string {
 	return strings.Join(lines, "\n")
 }
 
-type OrderGroup struct {
+type OrderBookItem struct {
 	Price      sdk.Dec
 	XToYOrders Orders
 	YToXOrders Orders
 }
 
-func NewOrderGroup(order Order) OrderGroup {
-	g := OrderGroup{Price: order.Price}
+func NewOrderBookItem(order Order) OrderBookItem {
+	g := OrderBookItem{Price: order.Price}
 	switch order.Direction {
 	case SwapDirectionXToY:
 		g.XToYOrders = append(g.XToYOrders, &order)
@@ -135,7 +135,7 @@ func NewOrderGroup(order Order) OrderGroup {
 	return g
 }
 
-func (og OrderGroup) RemainingXToYAmount() sdk.Int {
+func (og OrderBookItem) RemainingXToYAmount() sdk.Int {
 	amt := sdk.ZeroInt()
 	for _, order := range og.XToYOrders {
 		amt = amt.Add(order.RemainingAmount)
@@ -143,7 +143,7 @@ func (og OrderGroup) RemainingXToYAmount() sdk.Int {
 	return amt
 }
 
-func (og OrderGroup) RemainingYToXAmount() sdk.Int {
+func (og OrderBookItem) RemainingYToXAmount() sdk.Int {
 	amt := sdk.ZeroInt()
 	for _, order := range og.YToXOrders {
 		amt = amt.Add(order.RemainingAmount)
@@ -166,6 +166,8 @@ func (os Orders) RemainingAmount() sdk.Int {
 
 // DemandingAmount returns total demanding amount of orders at given price.
 // Demanding amount is the amount of coins these orders want to receive.
+// Note that orders should have same SwapDirection, since
+// DemandingAmount doesn't rely on SwapDirection.
 // TODO: use sdk.Dec here?
 func (os Orders) DemandingAmount(price sdk.Dec) sdk.Int {
 	da := sdk.ZeroInt()
@@ -180,9 +182,9 @@ func (os Orders) DemandingAmount(price sdk.Dec) sdk.Int {
 	return da
 }
 
-// Match matches orders against other orders at given price.
+// MatchAll matches orders against other orders at given price.
 // It consumes all remaining amount in the source orders(os).
-func (os Orders) Match(others Orders, price sdk.Dec) {
+func (os Orders) MatchAll(others Orders, price sdk.Dec) {
 	amt := os.RemainingAmount()
 	da := os.DemandingAmount(price)
 	oa := others.RemainingAmount()
@@ -203,23 +205,24 @@ func (os Orders) Match(others Orders, price sdk.Dec) {
 	}
 }
 
-func MatchOrders(buys, sells Orders, price sdk.Dec) {
-	bx := buys.RemainingAmount()        // buy orders total amount
-	sy := sells.RemainingAmount()       // sell orders total amount
-	bdy := buys.DemandingAmount(price)  // buy orders demanding amount
-	sdx := sells.DemandingAmount(price) // sell orders demanding amount
+// MatchOrders matches two order groups at given price.
+func MatchOrders(a, b Orders, price sdk.Dec) {
+	amtA := a.RemainingAmount()
+	amtB := b.RemainingAmount()
+	daA := a.DemandingAmount(price)
+	daB := b.DemandingAmount(price)
 
 	// determine which orders are bigger
-	if bx.LT(sdx) { // sell orders are bigger than buy orders
-		if bdy.GT(sy) { // sanity check TODO: remove
-			panic(fmt.Sprintf("%s > %s!", bdy, sy))
+	if amtA.LT(daB) {
+		if daA.GT(amtB) { // sanity check TODO: remove
+			panic(fmt.Sprintf("%s > %s!", daA, amtB))
 		}
-		buys.Match(sells, price)
-	} else { // sell orders are bigger than(or equal to) buy orders
-		if sdx.GT(bx) { // sanity check TODO: remove
-			panic(fmt.Sprintf("%s > %s!", sdx, bx))
+		a.MatchAll(b, price)
+	} else {
+		if daB.GT(amtA) { // sanity check TODO: remove
+			panic(fmt.Sprintf("%s > %s!", daB, amtA))
 		}
-		sells.Match(buys, price)
+		b.MatchAll(a, price)
 	}
 }
 
