@@ -80,28 +80,27 @@ func (ob OrderBook) MatchAtPrice(price sdk.Dec) {
 	}
 
 	for {
-		lbg := false // is this the last matchable buy order group?
-		nbi, found := ob.HighestPriceXToYOrderGroupIndex(bi + 1)
-		if !found || ob[nbi].Price.LT(price) { // no next matchable buy orders
-			lbg = true
-		}
-
-		lsg := false // is this the last matchable sell order group?
-		nsi, found := ob.LowestPriceYToXOrderGroupIndex(si - 1)
-		if !found || ob[nsi].Price.GT(price) { // no next matchable sell orders
-			lsg = true
-		}
-
 		bg := ob[bi] // current buy order group
 		sg := ob[si] // current sell order group
 
 		MatchOrders(bg.XToYOrders, sg.YToXOrders, price)
 
-		if lbg || lsg {
-			break
+		if bg.XToYOrders.RemainingAmount().IsZero() {
+			nbi, found := ob.HighestPriceXToYOrderGroupIndex(bi + 1)
+			if !found || ob[nbi].Price.LT(price) { // no next matchable buy orders
+				break
+			}
+
+			bi = nbi
 		}
-		bi = nbi
-		si = nsi
+
+		if bg.YToXOrders.RemainingAmount().IsZero() {
+			nsi, found := ob.LowestPriceYToXOrderGroupIndex(si - 1)
+			if !found || ob[nsi].Price.GT(price) { // no next matchable sell orders
+				break
+			}
+			si = nsi
+		}
 	}
 }
 
@@ -112,7 +111,7 @@ func (ob OrderBook) String() string {
 	for _, og := range ob {
 		lines = append(lines,
 			fmt.Sprintf("| %12s | %24s | %-12s |",
-				og.RemainingXToYAmount(), og.Price.String(), og.RemainingYToXAmount()))
+				og.XToYOrders.RemainingAmount(), og.Price.String(), og.YToXOrders.RemainingAmount()))
 	}
 	lines = append(lines, "+--------------+--------------------------+--------------+")
 	return strings.Join(lines, "\n")
@@ -133,22 +132,6 @@ func NewOrderBookItem(order Order) OrderBookItem {
 		g.YToXOrders = append(g.YToXOrders, &order)
 	}
 	return g
-}
-
-func (og OrderBookItem) RemainingXToYAmount() sdk.Int {
-	amt := sdk.ZeroInt()
-	for _, order := range og.XToYOrders {
-		amt = amt.Add(order.RemainingAmount)
-	}
-	return amt
-}
-
-func (og OrderBookItem) RemainingYToXAmount() sdk.Int {
-	amt := sdk.ZeroInt()
-	for _, order := range og.YToXOrders {
-		amt = amt.Add(order.RemainingAmount)
-	}
-	return amt
 }
 
 type Orders []*Order
@@ -186,8 +169,14 @@ func (os Orders) DemandingAmount(price sdk.Dec) sdk.Int {
 // It consumes all remaining amount in the source orders(os).
 func (os Orders) MatchAll(others Orders, price sdk.Dec) {
 	amt := os.RemainingAmount()
+	if amt.IsZero() {
+		return
+	}
 	da := os.DemandingAmount(price)
 	oa := others.RemainingAmount()
+	if oa.IsZero() {
+		return
+	}
 
 	for _, order := range os {
 		proportion := order.RemainingAmount.ToDec().QuoTruncate(amt.ToDec())
