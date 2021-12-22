@@ -8,6 +8,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+type PriceDirection int
+
+const (
+	PriceStaying PriceDirection = iota + 1
+	PriceIncreasing
+	PriceDecreasing
+)
+
 type OrderBook []OrderBookItem
 
 func (ob OrderBook) Add(os ...Order) OrderBook {
@@ -46,7 +54,7 @@ func (ob OrderBook) add(order Order) OrderBook {
 	return newOrderBook
 }
 
-func (ob OrderBook) HighestPriceXToYOrderGroupIndex(start int) (idx int, found bool) {
+func (ob OrderBook) HighestPriceXToYItemIndex(start int) (idx int, found bool) {
 	for i := start; i < len(ob); i++ {
 		if len(ob[i].XToYOrders) > 0 {
 			idx = i
@@ -57,7 +65,7 @@ func (ob OrderBook) HighestPriceXToYOrderGroupIndex(start int) (idx int, found b
 	return
 }
 
-func (ob OrderBook) LowestPriceYToXOrderGroupIndex(start int) (idx int, found bool) {
+func (ob OrderBook) LowestPriceYToXItemIndex(start int) (idx int, found bool) {
 	for i := start; i >= 0; i-- {
 		if len(ob[i].YToXOrders) > 0 {
 			idx = i
@@ -68,14 +76,42 @@ func (ob OrderBook) LowestPriceYToXOrderGroupIndex(start int) (idx int, found bo
 	return
 }
 
-func (ob OrderBook) MatchAtPrice(price sdk.Dec) {
-	bi, found := ob.HighestPriceXToYOrderGroupIndex(0)
-	if !found || ob[bi].Price.LT(price) { // no matchable buy orders
+func (ob OrderBook) PriceDirection(lastPrice sdk.Dec) PriceDirection {
+	mb := sdk.ZeroInt()  // buy order amount with price higher than the last price
+	ms := sdk.ZeroInt()  // sell order amount with price lower than the last price
+	lpb := sdk.ZeroInt() // buy order amount with price equal to the last price
+	lps := sdk.ZeroInt() // buy order amount with price equal to the last price
+
+	for _, og := range ob {
+		switch {
+		case og.Price.GT(lastPrice):
+			mb = mb.Add(og.XToYOrders.RemainingAmount())
+		case og.Price.LT(lastPrice):
+			ms = ms.Add(og.YToXOrders.RemainingAmount())
+		default:
+			lpb = lpb.Add(og.XToYOrders.RemainingAmount())
+			lps = lps.Add(og.YToXOrders.RemainingAmount())
+		}
+	}
+
+	switch {
+	case mb.ToDec().GT(ms.Add(lps).ToDec().Mul(lastPrice)):
+		return PriceIncreasing
+	case ms.ToDec().Mul(lastPrice).GT(mb.Add(lpb).ToDec()):
+		return PriceDecreasing
+	default:
+		return PriceStaying
+	}
+}
+
+func (ob OrderBook) MatchAtLastPrice(lastPrice sdk.Dec) {
+	bi, found := ob.HighestPriceXToYItemIndex(0)
+	if !found {
 		return
 	}
 
-	si, found := ob.LowestPriceYToXOrderGroupIndex(len(ob) - 1)
-	if !found || ob[si].Price.GT(price) { // no matchable sell orders
+	si, found := ob.LowestPriceYToXItemIndex(len(ob) - 1)
+	if !found {
 		return
 	}
 
@@ -83,20 +119,74 @@ func (ob OrderBook) MatchAtPrice(price sdk.Dec) {
 		bg := ob[bi] // current buy order group
 		sg := ob[si] // current sell order group
 
-		MatchOrders(bg.XToYOrders, sg.YToXOrders, price)
+		if bg.Price.LT(lastPrice) || sg.Price.GT(lastPrice) {
+			break
+		}
+
+		MatchOrders(bg.XToYOrders, sg.YToXOrders, lastPrice)
 
 		if bg.XToYOrders.RemainingAmount().IsZero() {
-			nbi, found := ob.HighestPriceXToYOrderGroupIndex(bi + 1)
-			if !found || ob[nbi].Price.LT(price) { // no next matchable buy orders
+			nbi, found := ob.HighestPriceXToYItemIndex(bi + 1)
+			if !found {
 				break
 			}
-
 			bi = nbi
 		}
 
 		if bg.YToXOrders.RemainingAmount().IsZero() {
-			nsi, found := ob.LowestPriceYToXOrderGroupIndex(si - 1)
-			if !found || ob[nsi].Price.GT(price) { // no next matchable sell orders
+			nsi, found := ob.LowestPriceYToXItemIndex(si - 1)
+			if !found {
+				break
+			}
+			si = nsi
+		}
+	}
+}
+
+func (ob OrderBook) Match(lastPrice sdk.Dec) {
+	pd := ob.PriceDirection(lastPrice) // price direction
+	if pd == PriceStaying {
+		return // no matching needed to be done
+	}
+
+	bi, found := ob.HighestPriceXToYItemIndex(0)
+	if !found {
+		return
+	}
+
+	si, found := ob.LowestPriceYToXItemIndex(len(ob) - 1)
+	if !found {
+		return
+	}
+
+	for {
+		bg := ob[bi] // current buy order group
+		sg := ob[si] // current sell order group
+
+		if bg.Price.LT(sg.Price) {
+			break
+		}
+
+		var matchPrice sdk.Dec
+		switch pd {
+		case PriceIncreasing:
+			matchPrice = sg.Price
+		case PriceDecreasing:
+			matchPrice = bg.Price
+		}
+		MatchOrders(bg.XToYOrders, sg.YToXOrders, matchPrice)
+
+		if bg.XToYOrders.RemainingAmount().IsZero() {
+			nbi, found := ob.HighestPriceXToYItemIndex(bi + 1)
+			if !found {
+				break
+			}
+			bi = nbi
+		}
+
+		if bg.YToXOrders.RemainingAmount().IsZero() {
+			nsi, found := ob.LowestPriceYToXItemIndex(si - 1)
+			if !found {
 				break
 			}
 			si = nsi

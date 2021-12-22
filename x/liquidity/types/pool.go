@@ -118,8 +118,8 @@ func (ops PoolOperations) OrderBook() OrderBook {
 func (ops PoolOperations) Match(ob OrderBook) {
 	// Match phase 1
 	p := ops.PoolPrice()
-	ob.MatchAtPrice(p)
+	ob.MatchAtLastPrice(p)
 
 	// Match phase 2
-	// TODO: implement
+	ob.Match(p)
 }
