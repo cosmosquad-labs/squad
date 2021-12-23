@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/farming/x/liquidstaking/types"
 )
@@ -38,31 +39,23 @@ func (k Keeper) Rebalancing(ctx sdk.Context, moduleAcc sdk.AccAddress, activeVal
 
 	for i := 0; i < len(activeVals); i++ {
 		maxVal, minVal, amountNeeded := activeVals.MinMaxGap(targetMap)
-		if amountNeeded.LT(threshold) {
+		if i == 0 && amountNeeded.LT(threshold) {
 			break
-		} else {
-			for idx := range activeVals {
-				if activeVals[idx].OperatorAddress == maxVal.OperatorAddress {
-					activeVals[idx].LiquidTokens = activeVals[idx].LiquidTokens.Add(amountNeeded.TruncateInt())
-				}
-				if activeVals[idx].OperatorAddress == minVal.OperatorAddress {
-					activeVals[idx].LiquidTokens = activeVals[idx].LiquidTokens.Sub(amountNeeded.TruncateInt())
-				}
+		}
+		for idx := range activeVals {
+			if activeVals[idx].OperatorAddress == maxVal.OperatorAddress {
+				activeVals[idx].LiquidTokens = activeVals[idx].LiquidTokens.Add(amountNeeded.TruncateInt())
 			}
-
+			if activeVals[idx].OperatorAddress == minVal.OperatorAddress {
+				activeVals[idx].LiquidTokens = activeVals[idx].LiquidTokens.Sub(amountNeeded.TruncateInt())
+			}
 		}
 	}
-
+	fmt.Println(activeVals)
 	// time, _ := k.stakingKeeper.BeginRedelegation(ctx, moduleAcc, maxVal.GetOperator(), minVal.GetOperator(), amountNeeded)
 	// coins, _ := k.stakingKeeper.CompleteRedelegation(ctx, moduleAcc, maxVal.GetOperator(), minVal.GetOperator())
 
-	//for _, val := range activeVals {
 	//	//TODO: add rebalancing logic
-
-	//val.Weight
-	//val.OperatorAddress
-	//val.LiquidTokens
-	//val.Status
 
 	return activeVals
 }

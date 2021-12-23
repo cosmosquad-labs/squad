@@ -29,13 +29,13 @@ func (suite *KeeperTestSuite) TestRebalancing() {
 		{
 			OperatorAddress: "cosmosvaloper180d0fe0w0eqnn04mwhx8h66hnttgqw32fsr6jg",
 			Status:          1,
-			LiquidTokens:    sdk.NewIntFromUint64(250 * 1000000),
+			LiquidTokens:    sdk.NewIntFromUint64(0 * 1000000),
 			Weight:          sdk.MustNewDecFromStr("1"),
 		},
 		{
 			OperatorAddress: "cosmosvaloper1nmfag3hmkx3qyhpmq7jx5996k8uhgh87xhcqfq",
 			Status:          2,
-			LiquidTokens:    sdk.NewIntFromUint64(150 * 1000000),
+			LiquidTokens:    sdk.NewIntFromUint64(400 * 1000000),
 			Weight:          sdk.MustNewDecFromStr("1"),
 		},
 	}
