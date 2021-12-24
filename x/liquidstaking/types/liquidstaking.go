@@ -67,7 +67,7 @@ func UnmarshalLiquidValidator(cdc codec.BinaryCodec, value []byte) (val LiquidVa
 }
 
 // TODO: MinMaxGap Return the list of LiquidValidator with the maximum gap and minimum gap from the target weight of LiquidValidators, respectively.
-func (vs LiquidValidators) MinMaxGap(targetMap map[string]sdk.Dec) (minGapVal LiquidValidator, maxGapVal LiquidValidator, amountNeeded sdk.Dec) {
+func (vs LiquidValidators) MinMaxGap(targetMap map[string]sdk.Int) (minGapVal LiquidValidator, maxGapVal LiquidValidator, amountNeeded sdk.Dec) {
 	maxGap := sdk.ZeroDec()
 	minGap := sdk.ZeroDec()
 

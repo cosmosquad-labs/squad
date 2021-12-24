@@ -27,18 +27,21 @@ func (k Keeper) Rebalancing(ctx sdk.Context, moduleAcc sdk.AccAddress, activeVal
 	}
 
 	var targetWeight sdk.Dec
-	targetMap := map[string]sdk.Dec{}
+	targetMap := map[string]sdk.Int{}
 	for _, val := range activeVals {
 		if val.Status == 1 {
-			targetWeight = sdk.OneDec()
+			targetWeight = val.Weight
 		} else {
 			targetWeight = sdk.ZeroDec()
 		}
-		targetMap[val.OperatorAddress] = totalLiquidTokens.ToDec().Mul(targetWeight).Quo(totalWeight)
+		targetMap[val.OperatorAddress] = totalLiquidTokens.ToDec().MulTruncate(targetWeight).QuoTruncate(totalWeight)
 	}
+	// TODO : convert target value to sdk.Int
+	fmt.Println(targetMap)
 
 	for i := 0; i < len(activeVals); i++ {
 		maxVal, minVal, amountNeeded := activeVals.MinMaxGap(targetMap)
+		fmt.Println(amountNeeded)
 		if i == 0 && amountNeeded.LT(threshold) {
 			break
 		}
