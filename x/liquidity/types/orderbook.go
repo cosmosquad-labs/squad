@@ -104,50 +104,9 @@ func (ob OrderBook) PriceDirection(lastPrice sdk.Dec) PriceDirection {
 	}
 }
 
-func (ob OrderBook) MatchAtLastPrice(lastPrice sdk.Dec) {
-	bi, found := ob.HighestPriceXToYItemIndex(0)
-	if !found {
-		return
-	}
-
-	si, found := ob.LowestPriceYToXItemIndex(len(ob) - 1)
-	if !found {
-		return
-	}
-
-	for {
-		bg := ob[bi] // current buy order group
-		sg := ob[si] // current sell order group
-
-		if bg.Price.LT(lastPrice) || sg.Price.GT(lastPrice) {
-			break
-		}
-
-		MatchOrders(bg.XToYOrders, sg.YToXOrders, lastPrice)
-
-		if bg.XToYOrders.RemainingAmount().IsZero() {
-			nbi, found := ob.HighestPriceXToYItemIndex(bi + 1)
-			if !found {
-				break
-			}
-			bi = nbi
-		}
-
-		if bg.YToXOrders.RemainingAmount().IsZero() {
-			nsi, found := ob.LowestPriceYToXItemIndex(si - 1)
-			if !found {
-				break
-			}
-			si = nsi
-		}
-	}
-}
-
+// lastPrice is the last order book price.
 func (ob OrderBook) Match(lastPrice sdk.Dec) {
 	pd := ob.PriceDirection(lastPrice) // price direction
-	if pd == PriceStaying {
-		return // no matching needed to be done
-	}
 
 	bi, found := ob.HighestPriceXToYItemIndex(0)
 	if !found {
@@ -173,6 +132,8 @@ func (ob OrderBook) Match(lastPrice sdk.Dec) {
 			matchPrice = sg.Price
 		case PriceDecreasing:
 			matchPrice = bg.Price
+		case PriceStaying:
+			matchPrice = lastPrice
 		}
 		MatchOrders(bg.XToYOrders, sg.YToXOrders, matchPrice)
 
@@ -255,35 +216,6 @@ func (os Orders) DemandingAmount(price sdk.Dec) sdk.Int {
 	return da
 }
 
-// MatchAll matches orders against other orders at given price.
-// It consumes all remaining amount in the source orders(os).
-func (os Orders) MatchAll(others Orders, price sdk.Dec) {
-	amt := os.RemainingAmount()
-	if amt.IsZero() {
-		return
-	}
-	da := os.DemandingAmount(price)
-	oa := others.RemainingAmount()
-	if oa.IsZero() {
-		return
-	}
-
-	for _, order := range os {
-		proportion := order.RemainingAmount.ToDec().QuoTruncate(amt.ToDec())
-		order.RemainingAmount = sdk.ZeroInt()
-		in := da.ToDec().MulTruncate(proportion).TruncateInt()
-		order.ReceivedAmount = order.ReceivedAmount.Add(in)
-	}
-
-	for _, order := range others {
-		proportion := order.RemainingAmount.ToDec().QuoTruncate(oa.ToDec())
-		out := da.ToDec().MulTruncate(proportion).TruncateInt()
-		in := amt.ToDec().MulTruncate(proportion).TruncateInt()
-		order.RemainingAmount = order.RemainingAmount.Sub(out)
-		order.ReceivedAmount = order.ReceivedAmount.Add(in)
-	}
-}
-
 // MatchOrders matches two order groups at given price.
 func MatchOrders(a, b Orders, price sdk.Dec) {
 	amtA := a.RemainingAmount()
@@ -291,17 +223,51 @@ func MatchOrders(a, b Orders, price sdk.Dec) {
 	daA := a.DemandingAmount(price)
 	daB := b.DemandingAmount(price)
 
-	// determine which orders are bigger
-	if amtA.LT(daB) {
+	var sos, bos Orders // smaller orders, bigger orders
+	// Remaining amount and demanding amount of smaller orders and bigger orders.
+	var sa, ba, sda sdk.Int
+	if amtA.LTE(daB) { // a is smaller than(or equal to) b
 		if daA.GT(amtB) { // sanity check TODO: remove
 			panic(fmt.Sprintf("%s > %s!", daA, amtB))
 		}
-		a.MatchAll(b, price)
-	} else {
+		sos, bos = a, b
+		sa, ba = amtA, amtB
+		sda = daA
+	} else { // b is smaller than a
 		if daB.GT(amtA) { // sanity check TODO: remove
 			panic(fmt.Sprintf("%s > %s!", daB, amtA))
 		}
-		b.MatchAll(a, price)
+		sos, bos = b, a
+		sa, ba = amtB, amtA
+		sda = daB
+	}
+
+	if sa.IsZero() || ba.IsZero() { // TODO: need more zero value checks?
+		return
+	}
+
+	for _, order := range sos {
+		proportion := order.RemainingAmount.ToDec().QuoTruncate(sa.ToDec()) // RemainingAmount / sa
+		order.RemainingAmount = sdk.ZeroInt()
+		var in sdk.Int
+		if sa.Equal(ba) {
+			in = ba.ToDec().MulTruncate(proportion).TruncateInt() // ba * proportion
+		} else {
+			in = sda.ToDec().MulTruncate(proportion).TruncateInt() // sda * proportion
+		}
+		order.ReceivedAmount = order.ReceivedAmount.Add(in)
+	}
+
+	for _, order := range bos {
+		proportion := order.RemainingAmount.ToDec().QuoTruncate(ba.ToDec()) // RemainingAmount / ba
+		if sa.Equal(ba) {
+			order.RemainingAmount = sdk.ZeroInt()
+		} else {
+			out := sda.ToDec().MulTruncate(proportion).TruncateInt() // sda * proportion
+			order.RemainingAmount = order.RemainingAmount.Sub(out)
+		}
+		in := sa.ToDec().MulTruncate(proportion).TruncateInt() // sa * proportion
+		order.ReceivedAmount = order.ReceivedAmount.Add(in)
 	}
 }
 
