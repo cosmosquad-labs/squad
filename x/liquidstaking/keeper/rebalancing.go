@@ -34,31 +34,25 @@ func (k Keeper) Rebalancing(ctx sdk.Context, moduleAcc sdk.AccAddress, activeVal
 		} else {
 			targetWeight = sdk.ZeroDec()
 		}
-		targetMap[val.OperatorAddress] = totalLiquidTokens.ToDec().MulTruncate(targetWeight).QuoTruncate(totalWeight)
+		targetMap[val.OperatorAddress] = totalLiquidTokens.ToDec().MulTruncate(targetWeight).QuoTruncate(totalWeight).TruncateInt()
 	}
-	// TODO : convert target value to sdk.Int
 	fmt.Println(targetMap)
 
 	for i := 0; i < len(activeVals); i++ {
 		maxVal, minVal, amountNeeded := activeVals.MinMaxGap(targetMap)
-		fmt.Println(amountNeeded)
-		if i == 0 && amountNeeded.LT(threshold) {
+		if amountNeeded.IsZero() || (i == 0 && amountNeeded.LT(threshold.TruncateInt())) {
 			break
 		}
 		for idx := range activeVals {
 			if activeVals[idx].OperatorAddress == maxVal.OperatorAddress {
-				activeVals[idx].LiquidTokens = activeVals[idx].LiquidTokens.Add(amountNeeded.TruncateInt())
+				activeVals[idx].LiquidTokens = activeVals[idx].LiquidTokens.Add(amountNeeded)
 			}
 			if activeVals[idx].OperatorAddress == minVal.OperatorAddress {
-				activeVals[idx].LiquidTokens = activeVals[idx].LiquidTokens.Sub(amountNeeded.TruncateInt())
+				activeVals[idx].LiquidTokens = activeVals[idx].LiquidTokens.Sub(amountNeeded)
 			}
 		}
 	}
 	fmt.Println(activeVals)
-	// time, _ := k.stakingKeeper.BeginRedelegation(ctx, moduleAcc, maxVal.GetOperator(), minVal.GetOperator(), amountNeeded)
-	// coins, _ := k.stakingKeeper.CompleteRedelegation(ctx, moduleAcc, maxVal.GetOperator(), minVal.GetOperator())
-
-	//	//TODO: add rebalancing logic
 
 	return activeVals
 }
