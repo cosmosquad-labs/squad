@@ -1,7 +1,106 @@
 syntax = "proto3";
 package gdex.liquidity.v1beta1;
 
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
 option go_package = "github.com/tendermint/farming/x/liquidity/types";
 
 // Msg defines the Msg service.
-service Msg {}
+service Msg {
+  // Submit a deposit message to the liquidity pool batch
+  rpc DepositWithinBatch(MsgDepositWithinBatch) returns (MsgDepositWithinBatchResponse);
+
+  // Submit a withdraw message from the liquidity pool batch
+  rpc WithdrawWithinBatch(MsgWithdrawWithinBatch) returns (MsgWithdrawWithinBatchResponse);
+
+  // Submit a swap message to the liquidity pool batch
+  rpc SwapWithinBatch(MsgSwapWithinBatch) returns (MsgSwapWithinBatchResponse);
+}
+
+// MsgDepositWithinBatch defines `sdk.Msg` type that supports submitting
+// a deposit message to the liquidity pool batch.
+//
+// The request message is not immediately executed; it is stacked in the liquidity pool batch and
+// it is going to be executed in the `endblock` at the same time as other requests.
+message MsgDepositWithinBatch {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // depositor_address specifies the bech32-encoded address that deposits coins to the pool
+  string depositor_address = 1;
+
+  // pool_id specifies the pool id
+  uint64 pool_id = 2;
+
+  // deposit_coins specifies the reserve coin pair of the pool for deposit
+  repeated cosmos.base.v1beta1.Coin deposit_coins = 3
+      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+}
+
+// MsgDepositWithinBatchResponse defines the Msg/DepositWithinBatch response type.
+message MsgDepositWithinBatchResponse {}
+
+// MsgWithdrawWithinBatch defines `sdk.Msg` type that supports submitting
+// a withdraw request to the liquidity pool batch.
+//
+// The request message is immediately executed; it is stacked in the liquidity pool batch and
+// it is going to be executed in the `endblock` at the same time as other requests.
+message MsgWithdrawWithinBatch {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // withdrawer_address specifies the bech32-encoded address that withdraws pool coin from the pool
+  string withdrawer_address = 1;
+
+  // pool_id specifies the pool id
+  uint64 pool_id = 2;
+
+  // pool_coin specifies the liquidity pool coin
+  cosmos.base.v1beta1.Coin pool_coin = 3
+      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"];
+}
+
+// MsgWithdrawWithinBatchResponse defines the Msg/WithdrawWithinBatch response type.
+message MsgWithdrawWithinBatchResponse {}
+
+// MsgSwapWithinBatch defines an sdk.Msg type that supports submitting
+// a swap request to the liquidity pool batch.
+//
+// The request message is immediately executed; it is stacked in the liquidity pool batch and
+// it is going to be executed in the `endblock` at the same time as other requests.
+message MsgSwapWithinBatch {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // swap_requester_address specifies the bech32-encoded address that swaps X to Y coin
+  string swap_requester_address = 1;
+
+  // pool_id specifies the pool id
+  uint64 pool_id = 2;
+
+  // swap_type_id specifies the swap type id; it only supports 1 in this version
+  uint32 swap_type_id = 3;
+
+  // offer sdk.coin for the swap request, must match the denom in the pool
+  cosmos.base.v1beta1.Coin offer_coin = 4
+      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"];
+
+  // demand_coin_denom specifies the demand coin denom
+  // it is the coin denomination that swap requester wants to swap with
+  string demand_coin_denom = 5;
+
+  // half of offer coin amount * params.swap_fee_rate for reservation to pay fees.
+  cosmos.base.v1beta1.Coin offer_coin_fee = 6
+      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"];
+
+  // limit order price for the order, the price is the exchange ratio of X/Y
+  // where X is the amount of the first coin and Y is the amount
+  // of the second coin when their denoms are sorted alphabetically.
+  string order_price = 7
+      [(gogoproto.nullable) = false, (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec"];
+}
+
+// MsgSwapWithinBatchResponse defines the Msg/Swap response type.
+message MsgSwapWithinBatchResponse {}
