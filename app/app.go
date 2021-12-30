@@ -418,6 +418,7 @@ func NewFarmingApp(
 		appCodec,
 		keys[liquiditytypes.StoreKey],
 		app.GetSubspace(liquiditytypes.ModuleName),
+		app.AccountKeeper,
 		app.BankKeeper,
 	)
 	// TODO: fix liquidstaking keeper deps
