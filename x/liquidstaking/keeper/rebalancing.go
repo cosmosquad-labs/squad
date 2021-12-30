@@ -56,3 +56,39 @@ func (k Keeper) Rebalancing(ctx sdk.Context, moduleAcc sdk.AccAddress, activeVal
 
 	return activeVals
 }
+
+func (k Keeper) ProcessStaking(moduleAcc sdk.AccAddress, activeVals types.LiquidValidators, addStakingTokens sdk.Int, unstakingTokens sdk.Int) (rebalancedLiquidVals types.LiquidValidators) {
+	// suppose that when unstaking process starts, the required amount of unstaking is transferred to the moduleAcc
+	// and when the unstaking queue matures, finally the tokens are transferred to staker's address
+	// addStakingTokens : additional staking amount to be considered when rebalancing
+	// unstakingTokens : unstaking amount to be considered when rebalancing
+
+	type accountBalance struct {
+		Address      string
+		LiquidTokens sdk.Int
+	}
+	moduleAccBalance := accountBalance{
+		Address:      moduleAcc.String(),
+		LiquidTokens: sdk.ZeroInt(),
+	}
+	// temporary struct for tokens in moduleAcc (require to fix)
+
+	if addStakingTokens.GT(unstakingTokens) {
+		moduleAccBalance.LiquidTokens = moduleAccBalance.LiquidTokens.Add(unstakingTokens)
+		addStakingTokens = addStakingTokens.Sub(unstakingTokens) // must change to send action
+		distrbutionAmount := addStakingTokens.Quo(sdk.NewInt(int64(len(activeVals))))
+		for _, val := range activeVals {
+			if val.Status == 1 {
+				val.LiquidTokens = val.LiquidTokens.Add(distrbutionAmount)
+				addStakingTokens = addStakingTokens.Sub(distrbutionAmount) // must change to delegate action
+			}
+		}
+	} else {
+		moduleAccBalance.LiquidTokens = moduleAccBalance.LiquidTokens.Add(addStakingTokens)
+		unstakingTokens = unstakingTokens.Sub(addStakingTokens) // must change to send action
+
+	}
+	fmt.Println(moduleAccBalance)
+
+	return
+}
