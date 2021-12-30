@@ -30,12 +30,13 @@ var (
 type KeeperTestSuite struct {
 	suite.Suite
 
-	app     *simapp.FarmingApp
-	ctx     sdk.Context
-	keeper  keeper.Keeper
-	querier keeper.Querier
-	srv     types.MsgServer
-	addrs   []sdk.AccAddress
+	app         *simapp.FarmingApp
+	ctx         sdk.Context
+	keeper      keeper.Keeper
+	querier     keeper.Querier
+	srv         types.MsgServer
+	addrs       []sdk.AccAddress
+	samplePools []types.Pool
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -58,4 +59,15 @@ func (suite *KeeperTestSuite) SetupTest() {
 		suite.Require().NoError(err)
 	}
 	// TODO: not implemented yet
+	reserveCoinDenoms := []string{denom1, denom2}
+	poolName := types.PoolName(reserveCoinDenoms, 1)
+
+	suite.samplePools = []types.Pool{
+		{
+			Id:                1,
+			ReserveCoinDenoms: []string{denom1, denom2},
+			ReserveAddress:    types.GetPoolReserveAcc(poolName).String(),
+			PoolCoinDenom:     types.GetPoolCoinDenom(poolName),
+		},
+	}
 }

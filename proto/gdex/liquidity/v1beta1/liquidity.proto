@@ -2,6 +2,7 @@ syntax = "proto3";
 package gdex.liquidity.v1beta1;
 
 import "gogoproto/gogo.proto";
+import "gdex/liquidity/v1beta1/tx.proto";
 
 option go_package                      = "github.com/tendermint/farming/x/liquidity/types";
 option (gogoproto.goproto_getters_all) = false;
@@ -21,6 +22,52 @@ message Pool {
   string reserve_address = 3;
 
   string pool_coin_denom = 4;
+}
+
+// DepositRequest defines a deposit request.
+message DepositRequest {
+  // msg_height specifies the height where this message is appended to the batch
+  int64 msg_height = 1;
+
+  // msg_index specifies the index of the message
+  uint64 msg_index = 2;
+
+  // executed specifies the request execution status within batch
+  // it returns true if the message is executed in batch
+  bool executed = 3;
+
+  // succeeded specifies the success/failure status within batch
+  // it returns true if the message is executed and success in batch
+  bool succeeded = 4;
+
+  // to_be_deleted specifies the status if the message is to be deleted on kv store
+  bool to_be_deleted = 5;
+
+  // MsgDepositWithinBatch specifies the deposit message
+  MsgDepositWithinBatch msg = 6 [(gogoproto.moretags) = "yaml:\"msg\""];
+}
+
+// WithdrawRequest defines a withdraw request.
+message WithdrawRequest {
+  // msg_height specifies the height where this message is appended to the batch
+  int64 msg_height = 1;
+
+  // msg_index specifies the index of the message
+  uint64 msg_index = 2;
+
+  // executed specifies the request execution status within batch
+  // it returns true if the message is executed in batch
+  bool executed = 3;
+
+  // succeeded specifies the success/failure status within batch
+  // it returns true if the message is executed and success in batch
+  bool succeeded = 4;
+
+  // to_be_deleted specifies the status if the message is to be deleted on kv store
+  bool to_be_deleted = 5;
+
+  // MsgWithdrawWithinBatch specifies the withdraw message
+  MsgWithdrawWithinBatch msg = 6 [(gogoproto.moretags) = "yaml:\"msg\""];
 }
 
 // SwapRequest defines a swap request.

@@ -36,7 +36,7 @@ message MsgDepositWithinBatch {
 
   // deposit_coins specifies the reserve coin pair of the pool for deposit
   repeated cosmos.base.v1beta1.Coin deposit_coins = 3
-      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
 }
 
 // MsgDepositWithinBatchResponse defines the Msg/DepositWithinBatch response type.
@@ -59,7 +59,7 @@ message MsgWithdrawWithinBatch {
 
   // pool_coin specifies the liquidity pool coin
   cosmos.base.v1beta1.Coin pool_coin = 3
-      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"];
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];
 }
 
 // MsgWithdrawWithinBatchResponse defines the Msg/WithdrawWithinBatch response type.
@@ -85,7 +85,7 @@ message MsgSwapWithinBatch {
 
   // offer sdk.coin for the swap request, must match the denom in the pool
   cosmos.base.v1beta1.Coin offer_coin = 4
-      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"];
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];
 
   // demand_coin_denom specifies the demand coin denom
   // it is the coin denomination that swap requester wants to swap with
@@ -93,13 +93,13 @@ message MsgSwapWithinBatch {
 
   // half of offer coin amount * params.swap_fee_rate for reservation to pay fees.
   cosmos.base.v1beta1.Coin offer_coin_fee = 6
-      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"];
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];
 
   // limit order price for the order, the price is the exchange ratio of X/Y
   // where X is the amount of the first coin and Y is the amount
   // of the second coin when their denoms are sorted alphabetically.
   string order_price = 7
-      [(gogoproto.nullable) = false, (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec"];
+      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
 }
 
 // MsgSwapWithinBatchResponse defines the Msg/Swap response type.

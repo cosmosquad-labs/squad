@@ -12,4 +12,7 @@ const (
 
 	// QuerierRoute defines the module's query routing key
 	QuerierRoute = ModuleName
+
+	// PoolCoinDenomPrefix is the prefix used for liquidity pool coin representation
+	PoolCoinDenomPrefix = "pool"
 )
