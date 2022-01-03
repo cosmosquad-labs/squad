@@ -51,9 +51,16 @@ func (k Keeper) NetAmount(ctx sdk.Context) sdk.Dec {
 }
 
 // LiquidStaking ...
-// TODO: distribute activeValidators or make upper level function
 func (k Keeper) LiquidStaking(
 	ctx sdk.Context, proxyAcc, liquidStaker sdk.AccAddress, stakingCoin sdk.Coin) (newShares sdk.Dec, err error) {
+
+	// check bond denomination
+	bondDenom := k.stakingKeeper.BondDenom(ctx)
+	if stakingCoin.Denom != bondDenom {
+		return sdk.ZeroDec(), sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", stakingCoin.Denom, bondDenom,
+		)
+	}
 
 	netAmount := k.NetAmount(ctx)
 
@@ -84,14 +91,6 @@ func (k Keeper) LiquidStaking(
 	if err != nil {
 		// TODO: make custom err
 		return sdk.ZeroDec(), err
-	}
-
-	// check bond denomination
-	bondDenom := k.stakingKeeper.BondDenom(ctx)
-	if stakingCoin.Denom != bondDenom {
-		return sdk.ZeroDec(), sdkerrors.Wrapf(
-			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", stakingCoin.Denom, bondDenom,
-		)
 	}
 
 	activeVals, totalWeight := k.GetActiveLiquidValidators(ctx)
@@ -129,9 +128,16 @@ func (k Keeper) LiquidUnstaking(
 	ctx sdk.Context, proxyAcc, liquidStaker sdk.AccAddress, amount sdk.Coin,
 ) (time.Time, []stakingtypes.UnbondingDelegation, error) {
 
-	// UnstakeAmount = NetAmount * BTokenAmount/TotalSupply * (1-UnstakeFeeRate), review decimal truncation
+	// check bond denomination
 	params := k.GetParams(ctx)
 	liquidBondDenom := k.LiquidBondDenom(ctx)
+	if amount.Denom != liquidBondDenom {
+		return time.Time{}, []stakingtypes.UnbondingDelegation{}, sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", amount.Denom, liquidBondDenom,
+		)
+	}
+
+	// UnstakeAmount = NetAmount * BTokenAmount/TotalSupply * (1-UnstakeFeeRate), review decimal truncation
 	bTokenTotalSupply := k.bankKeeper.GetSupply(ctx, liquidBondDenom)
 	if !bTokenTotalSupply.IsPositive() {
 		return time.Time{}, []stakingtypes.UnbondingDelegation{}, fmt.Errorf("DefaultLiquidBondDenom supply is not positive")
