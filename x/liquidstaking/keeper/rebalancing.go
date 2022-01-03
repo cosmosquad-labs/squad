@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/farming/x/liquidstaking/types"
 )
@@ -71,18 +72,19 @@ func (k Keeper) ProcessStaking(moduleAcc sdk.AccAddress, activeVals types.Liquid
 		Address:      moduleAcc.String(),
 		LiquidTokens: sdk.ZeroInt(),
 	}
-	// temporary struct for tokens in moduleAcc (require to fix)
+	// TODO: temporary struct for tokens in moduleAcc (require to fix)
 
+	lenActiveVals := len(activeVals)
 	if addStakingTokens.GT(unstakingTokens) {
 		moduleAccBalance.LiquidTokens = moduleAccBalance.LiquidTokens.Add(unstakingTokens)
 		addStakingTokens = addStakingTokens.Sub(unstakingTokens) // above 2 line must change to send action
-		distributionAmount := addStakingTokens.Quo(sdk.NewInt(int64(len(activeVals))))
-		for idx := range activeVals {
+		distributionAmount := addStakingTokens.Quo(sdk.NewInt(int64(lenActiveVals)))
+		for i := 0; i < lenActiveVals; i++ {
 			if distributionAmount.Equal(sdk.ZeroInt()) {
 				break
 			}
-			if activeVals[idx].Status == 1 {
-				activeVals[idx].LiquidTokens = activeVals[idx].LiquidTokens.Add(distributionAmount)
+			if activeVals[i].Status == 1 {
+				activeVals[i].LiquidTokens = activeVals[i].LiquidTokens.Add(distributionAmount)
 				addStakingTokens = addStakingTokens.Sub(distributionAmount) // must change to delegate action
 			}
 		}
@@ -90,12 +92,12 @@ func (k Keeper) ProcessStaking(moduleAcc sdk.AccAddress, activeVals types.Liquid
 		moduleAccBalance.LiquidTokens = moduleAccBalance.LiquidTokens.Add(addStakingTokens)
 		unstakingTokens = unstakingTokens.Sub(addStakingTokens) // must change to send action
 		contributionAmount := unstakingTokens.Quo(sdk.NewInt(int64(len(activeVals))))
-		for idx := range activeVals {
+		for i := 0; i < lenActiveVals; i++ {
 			if contributionAmount.Equal(sdk.ZeroInt()) {
 				break
 			}
-			if activeVals[idx].Status == 1 {
-				activeVals[idx].LiquidTokens = activeVals[idx].LiquidTokens.Sub(contributionAmount)
+			if activeVals[i].Status == 1 {
+				activeVals[i].LiquidTokens = activeVals[i].LiquidTokens.Sub(contributionAmount)
 				moduleAccBalance.LiquidTokens = moduleAccBalance.LiquidTokens.Add(contributionAmount) // must change to undelegate action
 			}
 		}

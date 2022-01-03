@@ -24,7 +24,7 @@ func (h Hooks) AfterProposalFailedMinDeposit(_ sdk.Context, _ uint64)          {
 func (h Hooks) AfterProposalVotingPeriodEnded(_ sdk.Context, _ uint64)         {}
 
 func (h Hooks) GetOtherVotes(ctx sdk.Context, votes *govtypes.Votes, otherVotes *govtypes.OtherVotes) {
-	liquidVals := h.k.GetActiveLiquidValidators(ctx)
+	liquidVals, _ := h.k.GetActiveLiquidValidators(ctx)
 	lenLiquidVals := len(liquidVals)
 	totalSupply := h.k.bankKeeper.GetSupply(ctx, types.LiquidBondDenom).Amount.ToDec()
 	if totalSupply.IsPositive() {

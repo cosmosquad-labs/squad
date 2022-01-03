@@ -80,6 +80,7 @@ func (suite *KeeperTestSuite) TestLiquidStaking() {
 
 	proxyAccDel1, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, types.LiquidStakingProxyAcc, valOpers[0])
 	fmt.Println("proxyAccDel1 after after", proxyAccDel1)
+	// TODO: add cases for weight
 }
 
 // test Liquid Staking gov power
@@ -92,10 +93,10 @@ func (suite *KeeperTestSuite) TestLiquidStakingGov() {
 	// v1, v2, v3, v4
 	vals, valOpers := suite.CreateValidators([]int64{10000000, 10000000, 10000000, 10000000, 10000000})
 	params.WhitelistedValidators = []types.WhitelistedValidator{
-		{valOpers[0].String(), sdk.OneDec()},
-		{valOpers[1].String(), sdk.OneDec()},
-		{valOpers[2].String(), sdk.OneDec()},
-		{valOpers[3].String(), sdk.OneDec()},
+		{valOpers[0].String(), sdk.MustNewDecFromStr("0.25")},
+		{valOpers[1].String(), sdk.MustNewDecFromStr("0.25")},
+		{valOpers[2].String(), sdk.MustNewDecFromStr("0.25")},
+		{valOpers[3].String(), sdk.MustNewDecFromStr("0.25")},
 	}
 	suite.keeper.SetParams(suite.ctx, params)
 	suite.ctx = suite.ctx.WithBlockHeight(100).WithBlockTime(types.MustParseRFC3339("2022-03-01T00:00:00Z"))
