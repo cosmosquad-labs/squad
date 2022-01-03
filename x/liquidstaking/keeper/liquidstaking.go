@@ -10,6 +10,11 @@ import (
 	"github.com/tendermint/farming/x/liquidstaking/types"
 )
 
+func (k Keeper) LiquidBondDenom(ctx sdk.Context) (res string) {
+	k.paramSpace.Get(ctx, types.KeyLiquidBondDenom, &res)
+	return
+}
+
 func (k Keeper) NetAmount(ctx sdk.Context) sdk.Dec {
 	// delegation power, bondDenom balance, remaining reward, unbonding amount of types.LiquidStakingProxyAcc
 	bondDenom := k.stakingKeeper.BondDenom(ctx)
@@ -59,8 +64,8 @@ func (k Keeper) LiquidStaking(
 	}
 
 	// mint btoken, MintAmount = TotalSupply * StakeAmount/NetAmount
-	// TODO: types.LiquidBondDenom to be params.LiquidBondDenom and keeper.LiquidBondDenom()
-	bTokenTotalSupply := k.bankKeeper.GetSupply(ctx, types.LiquidBondDenom)
+	liquidBondDenom := k.LiquidBondDenom(ctx)
+	bTokenTotalSupply := k.bankKeeper.GetSupply(ctx, liquidBondDenom)
 	mintAmt := stakingCoin.Amount
 	stakingAmt := stakingCoin.Amount.ToDec()
 	if bTokenTotalSupply.IsPositive() {
@@ -69,7 +74,7 @@ func (k Keeper) LiquidStaking(
 	}
 
 	// mint on module acc and send
-	mintCoin := sdk.NewCoins(sdk.NewCoin(types.LiquidBondDenom, mintAmt))
+	mintCoin := sdk.NewCoins(sdk.NewCoin(liquidBondDenom, mintAmt))
 	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, mintCoin)
 	if err != nil {
 		// TODO: make custom err
@@ -126,9 +131,10 @@ func (k Keeper) LiquidUnstaking(
 
 	// UnstakeAmount = NetAmount * BTokenAmount/TotalSupply * (1-UnstakeFeeRate), review decimal truncation
 	params := k.GetParams(ctx)
-	bTokenTotalSupply := k.bankKeeper.GetSupply(ctx, types.LiquidBondDenom)
+	liquidBondDenom := k.LiquidBondDenom(ctx)
+	bTokenTotalSupply := k.bankKeeper.GetSupply(ctx, liquidBondDenom)
 	if !bTokenTotalSupply.IsPositive() {
-		return time.Time{}, []stakingtypes.UnbondingDelegation{}, fmt.Errorf("LiquidBondDenom supply is not positive")
+		return time.Time{}, []stakingtypes.UnbondingDelegation{}, fmt.Errorf("DefaultLiquidBondDenom supply is not positive")
 	}
 	amountDec := amount.Amount.ToDec()
 	netAmount := k.NetAmount(ctx)
@@ -142,7 +148,7 @@ func (k Keeper) LiquidUnstaking(
 		// TODO: make custom err
 		return time.Time{}, []stakingtypes.UnbondingDelegation{}, err
 	}
-	err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(sdk.NewCoin(types.LiquidBondDenom, amount.Amount)))
+	err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(sdk.NewCoin(liquidBondDenom, amount.Amount)))
 	if err != nil {
 		// TODO: make custom err
 		return time.Time{}, []stakingtypes.UnbondingDelegation{}, err
@@ -252,7 +258,7 @@ func (k Keeper) GetActiveLiquidValidators(ctx sdk.Context) (vals []types.LiquidV
 
 	for ; iterator.Valid(); iterator.Next() {
 		val := types.MustUnmarshalLiquidValidator(k.cdc, iterator.Value())
-		if val.Status == types.ValidatorStatusWhiteListed {
+		if val.Status == types.ValidatorStatusActive {
 			vals = append(vals, val)
 			totalWeight = totalWeight.Add(val.Weight)
 		}

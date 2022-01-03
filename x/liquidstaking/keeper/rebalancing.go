@@ -16,7 +16,7 @@ func (k Keeper) UpdateLiquidValidators(ctx sdk.Context) {
 	//k.stakingKeeper.GetLastTotalPower()
 }
 
-// activeVals containing ValidatorStatusWhiteListed which is containing just added on whitelist(power 0) and ValidatorStatusDelisting
+// activeVals containing ValidatorStatusActive which is containing just added on whitelist(power 0) and ValidatorStatusDelisting
 func (k Keeper) Rebalancing(ctx sdk.Context, moduleAcc sdk.AccAddress, activeVals types.LiquidValidators, threshold sdk.Dec) (rebalancedLiquidVals types.LiquidValidators) {
 	totalLiquidTokens := sdk.ZeroInt()
 	totalWeight := sdk.ZeroDec()
