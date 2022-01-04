@@ -10,6 +10,8 @@ option (gogoproto.goproto_getters_all) = false;
 message Params {
   string initial_pool_coin_supply = 1
       [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+
+  uint32 batch_size = 2;
 }
 
 // Pool defines a liquidity pool.

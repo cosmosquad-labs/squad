@@ -34,6 +34,13 @@ func TestParams_Validate(t *testing.T) {
 			},
 			"initial pool coin supply must be positive: 0",
 		},
+		{
+			"zero batch size",
+			func(params *types.Params) {
+				params.BatchSize = 0
+			},
+			"batch size must be positive: 0",
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			params := types.DefaultParams()

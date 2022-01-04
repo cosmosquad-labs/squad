@@ -9,10 +9,12 @@ import (
 
 var (
 	KeyInitialPoolCoinSupply = []byte("InitialPoolCoinSupply")
+	KeyBatchSize             = []byte("BatchSize")
 )
 
 var (
-	DefaultInitialPoolCoinSupply = sdk.NewInt(1_000_000_000_000)
+	DefaultInitialPoolCoinSupply        = sdk.NewInt(1_000_000_000_000)
+	DefaultBatchSize             uint32 = 1
 )
 
 var _ paramstypes.ParamSet = (*Params)(nil)
@@ -24,12 +26,14 @@ func ParamKeyTable() paramstypes.KeyTable {
 func DefaultParams() Params {
 	return Params{
 		InitialPoolCoinSupply: DefaultInitialPoolCoinSupply,
+		BatchSize:             DefaultBatchSize,
 	}
 }
 
 func (params *Params) ParamSetPairs() paramstypes.ParamSetPairs {
 	return paramstypes.ParamSetPairs{
 		paramstypes.NewParamSetPair(KeyInitialPoolCoinSupply, &params.InitialPoolCoinSupply, validateInitialPoolCoinSupply),
+		paramstypes.NewParamSetPair(KeyBatchSize, &params.BatchSize, validateBatchSize),
 	}
 }
 
@@ -39,6 +43,7 @@ func (params Params) Validate() error {
 		validateFunc func(i interface{}) error
 	}{
 		{params.InitialPoolCoinSupply, validateInitialPoolCoinSupply},
+		{params.BatchSize, validateBatchSize},
 	} {
 		if err := field.validateFunc(field.val); err != nil {
 			return err
@@ -59,6 +64,19 @@ func validateInitialPoolCoinSupply(i interface{}) error {
 
 	if !v.IsPositive() {
 		return fmt.Errorf("initial pool coin supply must be positive: %s", v)
+	}
+
+	return nil
+}
+
+func validateBatchSize(i interface{}) error {
+	v, ok := i.(uint32)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v == 0 {
+		return fmt.Errorf("batch size must be positive: %d", v)
 	}
 
 	return nil
