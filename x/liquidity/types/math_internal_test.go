@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestLog10f(t *testing.T) {
+func Test_log10f(t *testing.T) {
 	require.Panics(t, func() {
 		log10f(sdk.ZeroDec())
 	})
@@ -30,5 +30,20 @@ func TestLog10f(t *testing.T) {
 		{sdk.MustNewDecFromStr("0.000000000000000001"), -18},
 	} {
 		require.Equal(t, tc.ret, log10f(tc.x))
+	}
+}
+
+func Test_pow10(t *testing.T) {
+	for _, tc := range []struct {
+		power int
+		ret   sdk.Dec
+	}{
+		{0, sdk.NewDec(1)},
+		{1, sdk.NewDec(10)},
+		{2, sdk.NewDec(100)},
+		{-1, sdk.NewDecWithPrec(1, 1)},
+		{-2, sdk.NewDecWithPrec(1, 2)},
+	} {
+		require.True(sdk.DecEq(t, tc.ret, pow10(tc.power)))
 	}
 }

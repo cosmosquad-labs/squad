@@ -26,3 +26,14 @@ func log10f(x sdk.Dec) int {
 	}
 	return ret
 }
+
+func pow10(power int) sdk.Dec {
+	switch {
+	case power == 0:
+		return sdk.OneDec()
+	case power > 0:
+		return sdk.NewDec(10).Power(uint64(power))
+	default:
+		return sdk.OneDec().QuoTruncate(sdk.NewDec(10).Power(uint64(-power)))
+	}
+}
