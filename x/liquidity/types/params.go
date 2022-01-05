@@ -10,11 +10,13 @@ import (
 var (
 	KeyInitialPoolCoinSupply = []byte("InitialPoolCoinSupply")
 	KeyBatchSize             = []byte("BatchSize")
+	KeyTickPrecision         = []byte("TickPrecision")
 )
 
 var (
 	DefaultInitialPoolCoinSupply        = sdk.NewInt(1_000_000_000_000)
 	DefaultBatchSize             uint32 = 1
+	DefaultTickPrecision         uint32 = 3
 )
 
 var _ paramstypes.ParamSet = (*Params)(nil)
@@ -27,6 +29,7 @@ func DefaultParams() Params {
 	return Params{
 		InitialPoolCoinSupply: DefaultInitialPoolCoinSupply,
 		BatchSize:             DefaultBatchSize,
+		TickPrecision:         DefaultTickPrecision,
 	}
 }
 
@@ -34,6 +37,7 @@ func (params *Params) ParamSetPairs() paramstypes.ParamSetPairs {
 	return paramstypes.ParamSetPairs{
 		paramstypes.NewParamSetPair(KeyInitialPoolCoinSupply, &params.InitialPoolCoinSupply, validateInitialPoolCoinSupply),
 		paramstypes.NewParamSetPair(KeyBatchSize, &params.BatchSize, validateBatchSize),
+		paramstypes.NewParamSetPair(KeyTickPrecision, &params.TickPrecision, validateTickPrecision),
 	}
 }
 
@@ -44,6 +48,7 @@ func (params Params) Validate() error {
 	}{
 		{params.InitialPoolCoinSupply, validateInitialPoolCoinSupply},
 		{params.BatchSize, validateBatchSize},
+		{params.TickPrecision, validateTickPrecision},
 	} {
 		if err := field.validateFunc(field.val); err != nil {
 			return err
@@ -77,6 +82,19 @@ func validateBatchSize(i interface{}) error {
 
 	if v == 0 {
 		return fmt.Errorf("batch size must be positive: %d", v)
+	}
+
+	return nil
+}
+
+func validateTickPrecision(i interface{}) error {
+	v, ok := i.(uint32)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v == 0 {
+		return fmt.Errorf("tick precision must be positive: %d", v)
 	}
 
 	return nil

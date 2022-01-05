@@ -12,6 +12,8 @@ message Params {
       [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
 
   uint32 batch_size = 2;
+
+  uint32 tick_precision = 3;
 }
 
 // Pool defines a liquidity pool.
