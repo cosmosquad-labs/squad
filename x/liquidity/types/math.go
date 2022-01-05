@@ -10,6 +10,7 @@ var (
 )
 
 // log10f returns floor(log10(x)).
+// TODO: cache the result of log10f
 func log10f(x sdk.Dec) int {
 	if x.IsZero() {
 		panic("x must not be zero")
@@ -22,7 +23,7 @@ func log10f(x sdk.Dec) int {
 		return ret - 1
 	}
 	for ; x.LT(oneDec); ret-- {
-		x = x.Mul(tenDec)
+		x = x.MulTruncate(tenDec)
 	}
 	return ret
 }
@@ -30,10 +31,10 @@ func log10f(x sdk.Dec) int {
 func pow10(power int) sdk.Dec {
 	switch {
 	case power == 0:
-		return sdk.OneDec()
+		return oneDec
 	case power > 0:
-		return sdk.NewDec(10).Power(uint64(power))
+		return tenDec.Power(uint64(power))
 	default:
-		return sdk.OneDec().QuoTruncate(sdk.NewDec(10).Power(uint64(-power)))
+		return sdk.NewDecWithPrec(1, int64(-power))
 	}
 }

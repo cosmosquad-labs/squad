@@ -13,8 +13,8 @@ func Test_log10f(t *testing.T) {
 	})
 
 	for _, tc := range []struct {
-		x   sdk.Dec
-		ret int
+		x        sdk.Dec
+		expected int
 	}{
 		{sdk.MustNewDecFromStr("999.99999999999999999"), 2},
 		{sdk.MustNewDecFromStr("100"), 2},
@@ -29,14 +29,14 @@ func Test_log10f(t *testing.T) {
 		{sdk.MustNewDecFromStr("0.000000000000000009"), -18},
 		{sdk.MustNewDecFromStr("0.000000000000000001"), -18},
 	} {
-		require.Equal(t, tc.ret, log10f(tc.x))
+		require.Equal(t, tc.expected, log10f(tc.x))
 	}
 }
 
 func Test_pow10(t *testing.T) {
 	for _, tc := range []struct {
-		power int
-		ret   sdk.Dec
+		power    int
+		expected sdk.Dec
 	}{
 		{0, sdk.NewDec(1)},
 		{1, sdk.NewDec(10)},
@@ -44,6 +44,6 @@ func Test_pow10(t *testing.T) {
 		{-1, sdk.NewDecWithPrec(1, 1)},
 		{-2, sdk.NewDecWithPrec(1, 2)},
 	} {
-		require.True(sdk.DecEq(t, tc.ret, pow10(tc.power)))
+		require.True(sdk.DecEq(t, tc.expected, pow10(tc.power)))
 	}
 }
