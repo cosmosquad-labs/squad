@@ -1,51 +1,46 @@
 package types
 
 import (
-	"fmt"
 	"math"
+	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func tickInterval(price sdk.Dec, prec int) sdk.Dec {
-	return pow10(log10f(price) - prec)
-}
-
-func fitToTick(price sdk.Dec, prec int) sdk.Dec {
-	pow := prec - log10f(price)
-	t := pow10(int(math.Abs(float64(pow))))
-	if pow >= 0 {
-		return price.MulTruncate(t).TruncateDec().QuoTruncate(t)
+func PriceToTick(price sdk.Dec, prec int) sdk.Dec {
+	b := price.BigInt()
+	l := len(b.Text(10)) - 1 // floor(log10(b))
+	d := int64(l - prec)
+	if d > 0 {
+		p := big.NewInt(10)
+		p.Exp(p, big.NewInt(d), nil)
+		b.Quo(b, p).Mul(b, p)
 	}
-	return price.QuoTruncate(t).TruncateDec().MulTruncate(t)
+	return sdk.NewDecFromBigIntWithPrec(b, sdk.Precision)
 }
 
-func upTick(price sdk.Dec, prec int) sdk.Dec {
-	return fitToTick(price, prec).Add(tickInterval(price, prec))
-}
-
-// TODO: optimize it
-func downTick(price sdk.Dec, prec int) sdk.Dec {
-	p := fitToTick(price, prec)
-	if p.Equal(price) {
-		if isLowestTick(p, prec) {
-			panic(fmt.Errorf("%s is the lowest possible tick", price))
-		}
-		var i sdk.Dec
-		if pow10(log10f(p)).Equal(p) {
-			i = tickInterval(p.Quo(tenDec), prec)
-		} else {
-			i = tickInterval(p, prec)
-		}
-		p = p.Sub(i)
+func TickToIndex(tick sdk.Dec, prec int) int {
+	b := tick.BigInt()
+	l := len(b.Text(10)) - 1 // floor(log10(b))
+	d := int64(l - prec)
+	if d > 0 {
+		q := big.NewInt(10)
+		q.Exp(q, big.NewInt(d), nil)
+		b.Quo(b, q)
 	}
-	return p
+	p := int(math.Pow10(prec))
+	b.Sub(b, big.NewInt(int64(p)))
+	return (l-prec)*9*p + int(b.Int64())
 }
 
-func isLowestTick(price sdk.Dec, prec int) bool {
-	l := log10f(price)
-	if -l != sdk.Precision-prec {
-		return false
+func TickFromIndex(i, prec int) sdk.Dec {
+	p := int(math.Pow10(prec))
+	l := i/(9*p) + prec
+	t := big.NewInt(int64(p + i%(p*9)))
+	if l > prec {
+		m := big.NewInt(10)
+		m.Exp(m, big.NewInt(int64(l-prec)), nil)
+		t.Mul(t, m)
 	}
-	return price.Equal(pow10(l))
+	return sdk.NewDecFromBigIntWithPrec(t, sdk.Precision)
 }
