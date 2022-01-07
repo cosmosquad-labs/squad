@@ -7,18 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func PriceToTick(price sdk.Dec, prec int) sdk.Dec {
-	b := price.BigInt()
-	l := char(price)
-	d := int64(l - prec)
-	if d > 0 {
-		p := big.NewInt(10)
-		p.Exp(p, big.NewInt(d), nil)
-		b.Quo(b, p).Mul(b, p)
-	}
-	return sdk.NewDecFromBigIntWithPrec(b, sdk.Precision)
-}
-
 // TODO: remove
 func TickToIndex(tick sdk.Dec, prec int) int {
 	b := tick.BigInt()
@@ -63,12 +51,8 @@ func pow10(n int) sdk.Dec {
 	return sdk.NewDecFromBigIntWithPrec(x, sdk.Precision)
 }
 
-func UpTick(tick sdk.Dec, prec int) sdk.Dec {
-	l := char(tick)
-	return tick.Add(pow10(l - prec))
-}
-
-func IsPow10(x sdk.Dec) bool {
+// isPow10 returns whether x is a power of 10 or not.
+func isPow10(x sdk.Dec) bool {
 	b := x.BigInt()
 	if b.Sign() <= 0 {
 		return false
@@ -88,17 +72,41 @@ func IsPow10(x sdk.Dec) bool {
 	return b.Cmp(big.NewInt(1)) == 0
 }
 
-func DownTick(tick sdk.Dec, prec int) sdk.Dec {
-	l := char(tick)
+// PriceToTick returns the highest price tick under(or equal to) the price.
+func PriceToTick(price sdk.Dec, prec int) sdk.Dec {
+	b := price.BigInt()
+	l := char(price)
+	d := int64(l - prec)
+	if d > 0 {
+		p := big.NewInt(10)
+		p.Exp(p, big.NewInt(d), nil)
+		b.Quo(b, p).Mul(b, p)
+	}
+	return sdk.NewDecFromBigIntWithPrec(b, sdk.Precision)
+}
+
+// UpTick returns the next lowest price tick above the price.
+// UpTick guarantees that the price is already fit in ticks.
+func UpTick(price sdk.Dec, prec int) sdk.Dec {
+	l := char(price)
+	return price.Add(pow10(l - prec))
+}
+
+// DownTick returns the next highest price tick under the price.
+// DownTick guarantees that the price is already fit in ticks.
+// DownTick doesn't check if the price is the lowest price tick.
+func DownTick(price sdk.Dec, prec int) sdk.Dec {
+	l := char(price)
 	var d sdk.Dec
-	if IsPow10(tick) {
+	if isPow10(price) {
 		d = pow10(l - prec - 1)
 	} else {
 		d = pow10(l - prec)
 	}
-	return tick.Sub(d)
+	return price.Sub(d)
 }
 
+// LowestTick returns the lowest possible price tick.
 func LowestTick(prec int) sdk.Dec {
 	return sdk.NewDecWithPrec(1, int64(sdk.Precision-prec))
 }

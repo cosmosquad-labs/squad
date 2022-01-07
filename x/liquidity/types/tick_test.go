@@ -76,10 +76,6 @@ func TestUpTick(t *testing.T) {
 }
 
 func TestDownTick(t *testing.T) {
-	require.Panics(t, func() {
-		types.DownTick(sdk.MustNewDecFromStr("0.000000000000001000"), tickPrec)
-	})
-
 	for _, tc := range []struct {
 		price    sdk.Dec
 		prec     int
