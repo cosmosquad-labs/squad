@@ -16,26 +16,51 @@ message Params {
   uint32 tick_precision = 3;
 }
 
-// Pool defines a liquidity pool.
+// Pool defines a basic liquidity pool with no min-price and max-price.
 message Pool {
   uint64 id = 1;
 
-  repeated string reserve_coin_denoms = 2;
+  uint64 pair_id = 2;
 
-  string reserve_address = 3;
+  repeated string reserve_coin_denoms = 3;
 
-  string pool_coin_denom = 4;
+  string reserve_address = 4;
+
+  string pool_coin_denom = 5;
+
+  uint64 last_deposit_request_id = 6;
+
+  uint64 last_withdraw_request_id = 7;
+}
+
+// Pair defines a coin pair.
+message Pair {
+  uint64 id = 1;
+
+  repeated string coin_denoms = 2;
+
+  uint64 last_swap_request_id = 3;
+
+  string last_price = 4
+      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
 }
 
 // SwapRequest defines a swap request.
 message SwapRequest {
-  string requester = 1;
+  uint64 id = 1;
 
-  SwapDirection direction = 2;
+  uint64 pair_id = 2;
 
-  string price = 3 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  string orderer = 3;
 
-  string remaining_amount = 4
+  SwapDirection direction = 4;
+
+  string price = 5 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+
+  string remaining_amount = 6
+      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+
+  string received_amount = 7
       [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
 }
 
