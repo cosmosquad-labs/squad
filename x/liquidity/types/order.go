@@ -83,36 +83,39 @@ func (ob OrderBook) SwapPrice(lastPrice sdk.Dec) sdk.Dec {
 	dir := ob.EstimatedPriceDirection(lastPrice)
 
 	os := MergeOrderSources(ob.buys, ob.sells) // temporary order source just for ticks
-	tick := PriceToTick(lastPrice, ob.prec)
+	curTick := PriceToTick(lastPrice, ob.prec)
+	// TODO: use PriceToUpTick for PriceIncreasing
 	lowestTick := LowestTick(ob.prec)
 
+	swapPrice := curTick
 	for {
-		ba := ob.buys.AmountGTE(tick)
-		sa := tick.MulInt(ob.sells.AmountLTE(tick)).TruncateInt()
+		ba := ob.buys.AmountGTE(curTick)
+		sa := curTick.MulInt(ob.sells.AmountLTE(curTick)).TruncateInt()
 
 		var next sdk.Dec
 		var found bool
 		switch dir {
 		case PriceIncreasing:
-			if ba.GTE(sa) { // TODO: check this condition(is GTE correct?)
-				return tick
+			if sa.GT(ba) {
+				return swapPrice
 			}
-			// TODO: check if there is no up tick?
-			next, found = os.UpTick(tick, ob.prec)
+			// TODO: check if there is no uptick?
+			next, found = os.UpTick(curTick, ob.prec)
 		case PriceDecreasing:
-			if sa.GTE(ba) { // TODO: check this condition(is LTE correct?)
-				return tick
+			if ba.GT(sa) {
+				return swapPrice
 			}
 
-			if tick.Equal(lowestTick) {
-				return tick
+			if curTick.Equal(lowestTick) {
+				return curTick
 			}
 
-			next, found = os.DownTick(tick, ob.prec)
+			next, found = os.DownTick(curTick, ob.prec)
 		}
 		if !found {
-			return tick
+			return curTick
 		}
-		tick = next
+		swapPrice = curTick
+		curTick = next
 	}
 }

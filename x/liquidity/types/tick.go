@@ -9,7 +9,7 @@ import (
 
 func PriceToTick(price sdk.Dec, prec int) sdk.Dec {
 	b := price.BigInt()
-	l := len(b.Text(10)) - 1
+	l := log10f(price)
 	d := int64(l - prec)
 	if d > 0 {
 		p := big.NewInt(10)
