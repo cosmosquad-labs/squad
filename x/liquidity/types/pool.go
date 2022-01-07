@@ -4,6 +4,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+var (
+	_ PoolI = (*PoolInfo)(nil)
+	// TODO: add RangedPoolInfo for v2
+)
+
 func (pool Pool) GetReserveAddress() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(pool.ReserveAddress)
 	if err != nil {
@@ -13,58 +18,59 @@ func (pool Pool) GetReserveAddress() sdk.AccAddress {
 }
 
 type PoolI interface {
-	InitialPoolCoinSupply() sdk.Int
+	Balance() (rx, ry sdk.Int)
 	PoolCoinSupply() sdk.Int
-	ReserveAddress() sdk.AccAddress
-	ReserveBalance() (x, y sdk.Int)
-	SwapRequests() []SwapRequest
+	Price() sdk.Dec
 }
 
-type PoolOperations struct {
-	Pool PoolI
+type PoolInfo struct {
+	rx, ry sdk.Int
+	ps     sdk.Int
 }
 
-func NewPoolOperations(pool PoolI) PoolOperations {
-	return PoolOperations{pool}
+func NewPoolInfo(rx, ry, ps sdk.Int) PoolInfo {
+	return PoolInfo{
+		rx: rx,
+		ry: ry,
+		ps: ps,
+	}
 }
 
-func (ops PoolOperations) IsDepleted() bool {
-	pc := ops.Pool.PoolCoinSupply()
-	if pc.IsZero() {
+func (info PoolInfo) Balance() (rx, ry sdk.Int) {
+	return info.rx, info.ry
+}
+
+func (info PoolInfo) PoolCoinSupply() sdk.Int {
+	return info.ps
+}
+
+func (info PoolInfo) Price() sdk.Dec {
+	if info.rx.IsZero() || info.ry.IsZero() {
+		panic("pool price is not defined for a depleted pool")
+	}
+	return info.rx.ToDec().Quo(info.ry.ToDec())
+}
+
+func IsDepletedPool(pool PoolI) bool {
+	ps := pool.PoolCoinSupply()
+	if ps.IsZero() {
 		return true
 	}
-	rx, ry := ops.Pool.ReserveBalance()
+	rx, ry := pool.Balance()
 	if rx.IsZero() || ry.IsZero() {
 		return true
 	}
 	return false
 }
 
-func (ops PoolOperations) PoolPrice() sdk.Dec {
-	if ops.IsDepleted() {
-		return sdk.ZeroDec()
-	}
-	rx, ry := ops.Pool.ReserveBalance()
-	return rx.ToDec().Quo(ry.ToDec())
-}
-
-// Deposit returns accepted x amount, accepted y amount and
+// DepositToPool returns accepted x amount, accepted y amount and
 // minted pool coin amount.
-func (ops PoolOperations) Deposit(x, y sdk.Int) (ax, ay, pc sdk.Int) {
-	// If the pool is depleted, accept all coins and mint
-	// pool coins as much as the initial pool coin supply.
-	if ops.IsDepleted() {
-		ax = x
-		ay = y
-		pc = ops.Pool.InitialPoolCoinSupply()
-		return
-	}
-
+func DepositToPool(pool PoolI, x, y sdk.Int) (ax, ay, pc sdk.Int) {
 	// Calculate accepted amount and minting amount.
 	// Note that we take as many coins as possible(by ceiling numbers)
 	// from depositor and mint as little coins as possible.
-	rx, ry := ops.Pool.ReserveBalance()
-	ps := ops.Pool.PoolCoinSupply().ToDec()
+	rx, ry := pool.Balance()
+	ps := pool.PoolCoinSupply().ToDec()
 	// pc = min(ps * (x / rx), ps * (y / ry))
 	pc = sdk.MinDec(
 		ps.MulTruncate(x.ToDec().QuoTruncate(rx.ToDec())),
@@ -78,9 +84,9 @@ func (ops PoolOperations) Deposit(x, y sdk.Int) (ax, ay, pc sdk.Int) {
 	return
 }
 
-func (ops PoolOperations) Withdraw(pc sdk.Int, feeRate sdk.Dec) (x, y sdk.Int) {
-	rx, ry := ops.Pool.ReserveBalance()
-	ps := ops.Pool.PoolCoinSupply()
+func WithdrawFromPool(pool PoolI, pc sdk.Int, feeRate sdk.Dec) (x, y sdk.Int) {
+	rx, ry := pool.Balance()
+	ps := pool.PoolCoinSupply()
 
 	// Redeeming the last pool coin
 	if pc.Equal(ps) {
@@ -96,21 +102,3 @@ func (ops PoolOperations) Withdraw(pc sdk.Int, feeRate sdk.Dec) (x, y sdk.Int) {
 
 	return
 }
-
-//func (ops PoolOperations) OrderBook() OrderBook {
-//	var ob OrderBook
-//
-//	for _, req := range ops.Pool.SwapRequests() {
-//		ob.Add(Order{
-//			Orderer:         req.GetRequester(),
-//			Direction:       req.Direction,
-//			Price:           req.Price,
-//			RemainingAmount: req.RemainingAmount,
-//			ReceivedAmount:  sdk.ZeroInt(),
-//		})
-//	}
-//
-//	// TODO: add orders from the pool - first need to determine tick size and range
-//
-//	return ob
-//}
