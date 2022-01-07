@@ -7,9 +7,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_log10f(t *testing.T) {
+func Test_char(t *testing.T) {
 	require.Panics(t, func() {
-		log10f(sdk.ZeroDec())
+		char(sdk.ZeroDec())
 	})
 
 	for _, tc := range []struct {
@@ -30,7 +30,7 @@ func Test_log10f(t *testing.T) {
 		{sdk.MustNewDecFromStr("0.000000000000000001"), 0},
 	} {
 		t.Run("", func(t *testing.T) {
-			require.Equal(t, tc.expected, log10f(tc.x))
+			require.Equal(t, tc.expected, char(tc.x))
 		})
 	}
 }

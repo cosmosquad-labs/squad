@@ -9,7 +9,7 @@ import (
 
 func PriceToTick(price sdk.Dec, prec int) sdk.Dec {
 	b := price.BigInt()
-	l := log10f(price)
+	l := char(price)
 	d := int64(l - prec)
 	if d > 0 {
 		p := big.NewInt(10)
@@ -47,15 +47,16 @@ func TickFromIndex(i, prec int) sdk.Dec {
 	return sdk.NewDecFromBigIntWithPrec(t, sdk.Precision)
 }
 
-// log10f returns floor(log10(x * pow(10, sdk.Precision)))
-func log10f(x sdk.Dec) int {
+// char returns the characteristic(integral part) of
+// log10(x * pow(10, sdk.Precision)).
+func char(x sdk.Dec) int {
 	if x.IsZero() {
 		panic("cannot calculate log10 for 0")
 	}
 	return len(x.BigInt().Text(10)) - 1
 }
 
-// pow10 returns pow(10, n - sdk.Precision)
+// pow10 returns pow(10, n - sdk.Precision).
 func pow10(n int) sdk.Dec {
 	x := big.NewInt(10)
 	x.Exp(x, big.NewInt(int64(n)), nil)
@@ -63,7 +64,7 @@ func pow10(n int) sdk.Dec {
 }
 
 func UpTick(tick sdk.Dec, prec int) sdk.Dec {
-	l := log10f(tick)
+	l := char(tick)
 	return tick.Add(pow10(l - prec))
 }
 
@@ -88,7 +89,7 @@ func IsPow10(x sdk.Dec) bool {
 }
 
 func DownTick(tick sdk.Dec, prec int) sdk.Dec {
-	l := log10f(tick)
+	l := char(tick)
 	var d sdk.Dec
 	if IsPow10(tick) {
 		d = pow10(l - prec - 1)
