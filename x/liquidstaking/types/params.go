@@ -24,6 +24,7 @@ var (
 
 	// Const variables
 
+	// TODO: params
 	MinimumStakingAmount = sdk.NewInt(1000000)
 
 	//LiquidStakingProxyAcc = farmingtypes.DeriveAddress(farmingtypes.AddressType20Bytes, ModuleName, "LiquidStakingProxyAcc")
