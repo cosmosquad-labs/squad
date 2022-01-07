@@ -97,20 +97,20 @@ func (ops PoolOperations) Withdraw(pc sdk.Int, feeRate sdk.Dec) (x, y sdk.Int) {
 	return
 }
 
-func (ops PoolOperations) OrderBook() OrderBook {
-	var ob OrderBook
-
-	for _, req := range ops.Pool.SwapRequests() {
-		ob.Add(Order{
-			Orderer:         req.GetRequester(),
-			Direction:       req.Direction,
-			Price:           req.Price,
-			RemainingAmount: req.RemainingAmount,
-			ReceivedAmount:  sdk.ZeroInt(),
-		})
-	}
-
-	// TODO: add orders from the pool - first need to determine tick size and range
-
-	return ob
-}
+//func (ops PoolOperations) OrderBook() OrderBook {
+//	var ob OrderBook
+//
+//	for _, req := range ops.Pool.SwapRequests() {
+//		ob.Add(Order{
+//			Orderer:         req.GetRequester(),
+//			Direction:       req.Direction,
+//			Price:           req.Price,
+//			RemainingAmount: req.RemainingAmount,
+//			ReceivedAmount:  sdk.ZeroInt(),
+//		})
+//	}
+//
+//	// TODO: add orders from the pool - first need to determine tick size and range
+//
+//	return ob
+//}

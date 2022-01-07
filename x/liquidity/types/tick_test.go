@@ -11,7 +11,7 @@ import (
 
 var tickPrec = int(types.DefaultTickPrecision)
 
-func Test_fitTick(t *testing.T) {
+func TestPriceToTick(t *testing.T) {
 	for _, tc := range []struct {
 		price    sdk.Dec
 		expected sdk.Dec
@@ -98,6 +98,20 @@ func TestDownTick(t *testing.T) {
 	} {
 		t.Run("", func(t *testing.T) {
 			require.True(sdk.DecEq(t, tc.expected, types.DownTick(tc.price, tc.prec)))
+		})
+	}
+}
+
+func TestLowestTick(t *testing.T) {
+	for _, tc := range []struct {
+		prec     int
+		expected sdk.Dec
+	}{
+		{0, sdk.NewDecWithPrec(1, 18)},
+		{tickPrec, sdk.NewDecWithPrec(1, 15)},
+	} {
+		t.Run("", func(t *testing.T) {
+			require.True(sdk.DecEq(t, tc.expected, types.LowestTick(tc.prec)))
 		})
 	}
 }

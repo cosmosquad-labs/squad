@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"math"
 	"math/big"
 
@@ -92,12 +91,13 @@ func DownTick(tick sdk.Dec, prec int) sdk.Dec {
 	l := log10f(tick)
 	var d sdk.Dec
 	if IsPow10(tick) {
-		if l == prec {
-			panic(fmt.Sprintf("%s is the lowest tick", tick))
-		}
 		d = pow10(l - prec - 1)
 	} else {
 		d = pow10(l - prec)
 	}
 	return tick.Sub(d)
+}
+
+func LowestTick(prec int) sdk.Dec {
+	return sdk.NewDecWithPrec(1, int64(sdk.Precision-prec))
 }
