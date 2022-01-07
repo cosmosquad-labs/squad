@@ -4,12 +4,16 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+var _ OrderSource = (*mergedOrderSource)(nil)
+
 type OrderSource interface {
 	AmountGTE(price sdk.Dec) sdk.Int
 	AmountLTE(price sdk.Dec) sdk.Int
-	Orders(tick sdk.Dec) []*Order
-	UpTick(tick sdk.Dec, prec int) (res sdk.Dec, found bool)
-	DownTick(tick sdk.Dec, prec int) (res sdk.Dec, found bool)
+	Orders(price sdk.Dec) []Order
+	UpTick(price sdk.Dec, prec int) (tick sdk.Dec, found bool)
+	DownTick(price sdk.Dec, prec int) (tick sdk.Dec, found bool)
+	//HighestTick(prec int) (res sdk.Dec, found bool)
+	//LowestTick(prec int) (res sdk.Dec, found bool)
 }
 
 type mergedOrderSource struct {
@@ -32,30 +36,30 @@ func (mos *mergedOrderSource) AmountLTE(price sdk.Dec) sdk.Int {
 	return amt
 }
 
-func (mos *mergedOrderSource) Orders(tick sdk.Dec) []*Order {
-	var os []*Order
+func (mos *mergedOrderSource) Orders(price sdk.Dec) []Order {
+	var os []Order
 	for _, source := range mos.sources {
-		os = append(os, source.Orders(tick)...)
+		os = append(os, source.Orders(price)...)
 	}
 	return os
 }
 
-func (mos *mergedOrderSource) UpTick(tick sdk.Dec, prec int) (res sdk.Dec, found bool) {
+func (mos *mergedOrderSource) UpTick(price sdk.Dec, prec int) (tick sdk.Dec, found bool) {
 	for _, source := range mos.sources {
-		t, f := source.UpTick(tick, prec)
-		if f && (res.IsNil() || t.LT(res)) {
-			res = t
+		t, f := source.UpTick(price, prec)
+		if f && (tick.IsNil() || t.LT(tick)) {
+			tick = t
 			found = true
 		}
 	}
 	return
 }
 
-func (mos *mergedOrderSource) DownTick(tick sdk.Dec, prec int) (res sdk.Dec, found bool) {
+func (mos *mergedOrderSource) DownTick(price sdk.Dec, prec int) (tick sdk.Dec, found bool) {
 	for _, source := range mos.sources {
-		t, f := source.DownTick(tick, prec)
-		if f && (res.IsNil() || t.GT(res)) {
-			res = t
+		t, f := source.DownTick(price, prec)
+		if f && (tick.IsNil() || t.GT(tick)) {
+			tick = t
 			found = true
 		}
 	}
@@ -66,31 +70,39 @@ func MergeOrderSources(sources ...OrderSource) OrderSource {
 	return &mergedOrderSource{sources: sources}
 }
 
-type OrderBook struct {
-	prec  int // price tick precision
+type MatchEngine struct {
 	buys  OrderSource
 	sells OrderSource
+	prec  int // price tick precision
 }
 
-func (ob OrderBook) EstimatedPriceDirection(lastPrice sdk.Dec) PriceDirection {
-	if ob.buys.AmountGTE(lastPrice).ToDec().GTE(lastPrice.MulInt(ob.sells.AmountLTE(lastPrice))) {
+func NewMatchEngine(buys, sells OrderSource, prec int) *MatchEngine {
+	return &MatchEngine{
+		buys:  buys,
+		sells: sells,
+		prec:  prec,
+	}
+}
+
+func (eng *MatchEngine) EstimatedPriceDirection(lastPrice sdk.Dec) PriceDirection {
+	if eng.buys.AmountGTE(lastPrice).ToDec().GTE(lastPrice.MulInt(eng.sells.AmountLTE(lastPrice))) {
 		return PriceIncreasing
 	}
 	return PriceDecreasing
 }
 
-func (ob OrderBook) SwapPrice(lastPrice sdk.Dec) sdk.Dec {
-	dir := ob.EstimatedPriceDirection(lastPrice)
+func (eng *MatchEngine) SwapPrice(lastPrice sdk.Dec) sdk.Dec {
+	dir := eng.EstimatedPriceDirection(lastPrice)
 
-	os := MergeOrderSources(ob.buys, ob.sells) // temporary order source just for ticks
-	curTick := PriceToTick(lastPrice, ob.prec)
+	os := MergeOrderSources(eng.buys, eng.sells) // temporary order source just for ticks
+	curPrice := PriceToTick(lastPrice, eng.prec)
 	// TODO: use PriceToUpTick for PriceIncreasing
-	lowestTick := LowestTick(ob.prec)
+	lowestPrice := LowestTick(eng.prec)
 
-	swapPrice := curTick
+	swapPrice := curPrice
 	for {
-		ba := ob.buys.AmountGTE(curTick)
-		sa := curTick.MulInt(ob.sells.AmountLTE(curTick)).TruncateInt()
+		ba := eng.buys.AmountGTE(curPrice)
+		sa := curPrice.MulInt(eng.sells.AmountLTE(curPrice)).TruncateInt()
 
 		var next sdk.Dec
 		var found bool
@@ -100,22 +112,26 @@ func (ob OrderBook) SwapPrice(lastPrice sdk.Dec) sdk.Dec {
 				return swapPrice
 			}
 			// TODO: check if there is no uptick?
-			next, found = os.UpTick(curTick, ob.prec)
+			next, found = os.UpTick(curPrice, eng.prec)
 		case PriceDecreasing:
 			if ba.GT(sa) {
 				return swapPrice
 			}
 
-			if curTick.Equal(lowestTick) {
-				return curTick
+			if curPrice.Equal(lowestPrice) {
+				return curPrice
 			}
 
-			next, found = os.DownTick(curTick, ob.prec)
+			next, found = os.DownTick(curPrice, eng.prec)
 		}
 		if !found {
-			return curTick
+			return curPrice
 		}
-		swapPrice = curTick
-		curTick = next
+		swapPrice = curPrice
+		curPrice = next
 	}
+}
+
+func (eng *MatchEngine) Match(lastPrice sdk.Dec) {
+
 }
