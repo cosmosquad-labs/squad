@@ -96,7 +96,11 @@ func (eng *MatchEngine) SwapPrice(lastPrice sdk.Dec) sdk.Dec {
 
 	os := MergeOrderSources(eng.buys, eng.sells) // temporary order source just for ticks
 	curPrice := PriceToTick(lastPrice, eng.prec)
-	// TODO: use PriceToUpTick for PriceIncreasing
+	if dir == PriceIncreasing {
+		if curPrice.LT(lastPrice) {
+			curPrice = UpTick(curPrice, eng.prec)
+		}
+	}
 	lowestPrice := LowestTick(eng.prec)
 
 	swapPrice := curPrice
