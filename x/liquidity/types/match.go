@@ -4,60 +4,60 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-//// MatchOrders matches two order groups at given price.
-//func MatchOrders(a, b Orders, price sdk.Dec) {
-//	amtA := a.RemainingAmount()
-//	amtB := b.RemainingAmount()
-//	daA := a.DemandingAmount(price)
-//	daB := b.DemandingAmount(price)
-//
-//	var sos, bos Orders // smaller orders, bigger orders
-//	// Remaining amount and demanding amount of smaller orders and bigger orders.
-//	var sa, ba, sda sdk.Int
-//	if amtA.LTE(daB) { // a is smaller than(or equal to) b
-//		if daA.GT(amtB) { // sanity check TODO: remove
-//			panic(fmt.Sprintf("%s > %s!", daA, amtB))
-//		}
-//		sos, bos = a, b
-//		sa, ba = amtA, amtB
-//		sda = daA
-//	} else { // b is smaller than a
-//		if daB.GT(amtA) { // sanity check TODO: remove
-//			panic(fmt.Sprintf("%s > %s!", daB, amtA))
-//		}
-//		sos, bos = b, a
-//		sa, ba = amtB, amtA
-//		sda = daB
-//	}
-//
-//	if sa.IsZero() || ba.IsZero() { // TODO: need more zero value checks?
-//		return
-//	}
-//
-//	for _, order := range sos {
-//		proportion := order.RemainingAmount.ToDec().QuoTruncate(sa.ToDec()) // RemainingAmount / sa
-//		order.RemainingAmount = sdk.ZeroInt()
-//		var in sdk.Int
-//		if sa.Equal(ba) {
-//			in = ba.ToDec().MulTruncate(proportion).TruncateInt() // ba * proportion
-//		} else {
-//			in = sda.ToDec().MulTruncate(proportion).TruncateInt() // sda * proportion
-//		}
-//		order.ReceivedAmount = order.ReceivedAmount.Add(in)
-//	}
-//
-//	for _, order := range bos {
-//		proportion := order.RemainingAmount.ToDec().QuoTruncate(ba.ToDec()) // RemainingAmount / ba
-//		if sa.Equal(ba) {
-//			order.RemainingAmount = sdk.ZeroInt()
-//		} else {
-//			out := sda.ToDec().MulTruncate(proportion).TruncateInt() // sda * proportion
-//			order.RemainingAmount = order.RemainingAmount.Sub(out)
-//		}
-//		in := sa.ToDec().MulTruncate(proportion).TruncateInt() // sa * proportion
-//		order.ReceivedAmount = order.ReceivedAmount.Add(in)
-//	}
-//}
+// MatchOrders matches two order groups at given price.
+func MatchOrders(buyOrders, sellOrders Orders, price sdk.Dec) {
+	buyAmount := buyOrders.RemainingAmount()
+	sellAmount := sellOrders.RemainingAmount()
+
+	if buyAmount.IsZero() || sellAmount.IsZero() {
+		return
+	}
+
+	matchAll := false
+	sellDemandAmount := price.MulInt(sellAmount).TruncateInt()
+	if buyAmount.Equal(sellDemandAmount) {
+		matchAll = true
+	}
+	buyDemandAmount := buyAmount.ToDec().QuoTruncate(price).TruncateInt()
+
+	var smallerOrders, biggerOrders Orders
+	var smallerAmount, biggerAmount sdk.Int
+	var smallerDemandAmount sdk.Int
+	switch {
+	case buyAmount.LT(sellDemandAmount):
+		smallerOrders, biggerOrders = buyOrders, sellOrders
+		smallerAmount, biggerAmount = buyAmount, sellAmount
+		smallerDemandAmount = buyDemandAmount
+	case buyAmount.GT(sellDemandAmount):
+		smallerOrders, biggerOrders = sellOrders, buyOrders
+		smallerAmount, biggerAmount = sellAmount, buyAmount
+		smallerDemandAmount = sellDemandAmount
+	}
+
+	for _, order := range smallerOrders {
+		proportion := order.RemainingAmount().ToDec().QuoInt(smallerAmount)
+		if matchAll {
+			order.SetRemainingAmount(sdk.ZeroInt())
+		} else {
+			out := proportion.MulInt(smallerAmount).TruncateInt()
+			order.SetRemainingAmount(order.RemainingAmount().Sub(out))
+		}
+		in := proportion.MulInt(smallerDemandAmount).TruncateInt()
+		order.SetReceivedAmount(order.ReceivedAmount().Add(in))
+	}
+
+	for _, order := range biggerOrders {
+		proportion := order.RemainingAmount().ToDec().QuoInt(biggerAmount)
+		if matchAll {
+			order.SetRemainingAmount(sdk.ZeroInt())
+		} else {
+			out := proportion.MulInt(smallerDemandAmount).TruncateInt()
+			order.SetRemainingAmount(order.RemainingAmount().Sub(out))
+		}
+		in := proportion.MulInt(smallerAmount).TruncateInt()
+		order.SetReceivedAmount(order.ReceivedAmount().Add(in))
+	}
+}
 
 type MatchEngine struct {
 	buys  OrderSource
