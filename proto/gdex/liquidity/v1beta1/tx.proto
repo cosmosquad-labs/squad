@@ -76,7 +76,8 @@ message MsgSwapBatch {
   string orderer = 1;
 
   // coin specifies the offer coin that the orderer offers to swap with
-  cosmos.base.v1beta1.Coin coin = 2;
+  cosmos.base.v1beta1.Coin coin = 2
+      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];
 
   // demand_coin_denom specifies the coin denom that is exchanged during the swap request; it must match the denom in
   // the pool
