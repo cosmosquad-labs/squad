@@ -109,6 +109,14 @@ func NewMatchEngine(buys, sells OrderSource, prec int) *MatchEngine {
 	}
 }
 
+func (eng *MatchEngine) Matchable() bool {
+	highestBuyPrice, found := eng.buys.HighestTick(eng.prec)
+	if !found {
+		return false
+	}
+	return eng.sells.AmountLTE(highestBuyPrice).IsPositive()
+}
+
 func (eng *MatchEngine) EstimatedPriceDirection(lastPrice sdk.Dec) PriceDirection {
 	if eng.buys.AmountGTE(lastPrice).ToDec().GTE(lastPrice.MulInt(eng.sells.AmountLTE(lastPrice))) {
 		return PriceIncreasing
@@ -168,5 +176,7 @@ func (eng *MatchEngine) SwapPrice(lastPrice sdk.Dec) sdk.Dec {
 }
 
 func (eng *MatchEngine) Match(lastPrice sdk.Dec) {
-
+	if !eng.Matchable() {
+		return
+	}
 }
