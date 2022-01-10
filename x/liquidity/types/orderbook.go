@@ -16,6 +16,16 @@ const (
 	PriceDecreasing
 )
 
+type Order interface {
+	Orderer() sdk.AccAddress
+	Direction() SwapDirection
+	Price() sdk.Dec
+	RemainingAmount() sdk.Int
+	SetRemainingAmount(amount sdk.Int)
+	ReceivedAmount() sdk.Int
+	SetReceivedAmount(amount sdk.Int)
+}
+
 type Orders []Order
 
 func (orders Orders) RemainingAmount() sdk.Int {
@@ -193,76 +203,94 @@ func (ob OrderBook) OrderSource(dir SwapDirection) OrderSource {
 //	return da
 //}
 //
-//// MatchOrders matches two order groups at given price.
-//func MatchOrders(a, b Orders, price sdk.Dec) {
-//	amtA := a.RemainingAmount()
-//	amtB := b.RemainingAmount()
-//	daA := a.DemandingAmount(price)
-//	daB := b.DemandingAmount(price)
-//
-//	var sos, bos Orders // smaller orders, bigger orders
-//	// Remaining amount and demanding amount of smaller orders and bigger orders.
-//	var sa, ba, sda sdk.Int
-//	if amtA.LTE(daB) { // a is smaller than(or equal to) b
-//		if daA.GT(amtB) { // sanity check TODO: remove
-//			panic(fmt.Sprintf("%s > %s!", daA, amtB))
-//		}
-//		sos, bos = a, b
-//		sa, ba = amtA, amtB
-//		sda = daA
-//	} else { // b is smaller than a
-//		if daB.GT(amtA) { // sanity check TODO: remove
-//			panic(fmt.Sprintf("%s > %s!", daB, amtA))
-//		}
-//		sos, bos = b, a
-//		sa, ba = amtB, amtA
-//		sda = daB
-//	}
-//
-//	if sa.IsZero() || ba.IsZero() { // TODO: need more zero value checks?
-//		return
-//	}
-//
-//	for _, order := range sos {
-//		proportion := order.RemainingAmount.ToDec().QuoTruncate(sa.ToDec()) // RemainingAmount / sa
-//		order.RemainingAmount = sdk.ZeroInt()
-//		var in sdk.Int
-//		if sa.Equal(ba) {
-//			in = ba.ToDec().MulTruncate(proportion).TruncateInt() // ba * proportion
-//		} else {
-//			in = sda.ToDec().MulTruncate(proportion).TruncateInt() // sda * proportion
-//		}
-//		order.ReceivedAmount = order.ReceivedAmount.Add(in)
-//	}
-//
-//	for _, order := range bos {
-//		proportion := order.RemainingAmount.ToDec().QuoTruncate(ba.ToDec()) // RemainingAmount / ba
-//		if sa.Equal(ba) {
-//			order.RemainingAmount = sdk.ZeroInt()
-//		} else {
-//			out := sda.ToDec().MulTruncate(proportion).TruncateInt() // sda * proportion
-//			order.RemainingAmount = order.RemainingAmount.Sub(out)
-//		}
-//		in := sa.ToDec().MulTruncate(proportion).TruncateInt() // sa * proportion
-//		order.ReceivedAmount = order.ReceivedAmount.Add(in)
-//	}
-//}
 
-//// Order represents a swap order, which is made by a user or a pool.
-//type Order struct {
-//	Orderer         sdk.AccAddress
-//	Direction       SwapDirection
-//	Price           sdk.Dec
-//	RemainingAmount sdk.Int
-//	ReceivedAmount  sdk.Int
-//}
+var _ OrderSource = (*mergedOrderSource)(nil)
 
-type Order interface {
-	Orderer() sdk.AccAddress
-	Direction() SwapDirection
-	Price() sdk.Dec
-	RemainingAmount() sdk.Int
-	SetRemainingAmount(amount sdk.Int)
-	ReceivedAmount() sdk.Int
-	SetReceivedAmount(amount sdk.Int)
+// OrderSource defines a source of orders which can be an order book or
+// a pool.
+// TODO: omit prec parameter?
+type OrderSource interface {
+	AmountGTE(price sdk.Dec) sdk.Int
+	AmountLTE(price sdk.Dec) sdk.Int
+	Orders(price sdk.Dec) []Order
+	UpTick(price sdk.Dec, prec int) (tick sdk.Dec, found bool)
+	DownTick(price sdk.Dec, prec int) (tick sdk.Dec, found bool)
+	HighestTick(prec int) (tick sdk.Dec, found bool)
+	LowestTick(prec int) (tick sdk.Dec, found bool)
+}
+
+type mergedOrderSource struct {
+	sources []OrderSource
+}
+
+func (mos *mergedOrderSource) AmountGTE(price sdk.Dec) sdk.Int {
+	amt := sdk.ZeroInt()
+	for _, source := range mos.sources {
+		amt = amt.Add(source.AmountGTE(price))
+	}
+	return amt
+}
+
+func (mos *mergedOrderSource) AmountLTE(price sdk.Dec) sdk.Int {
+	amt := sdk.ZeroInt()
+	for _, source := range mos.sources {
+		amt = amt.Add(source.AmountLTE(price))
+	}
+	return amt
+}
+
+func (mos *mergedOrderSource) Orders(price sdk.Dec) []Order {
+	var os []Order
+	for _, source := range mos.sources {
+		os = append(os, source.Orders(price)...)
+	}
+	return os
+}
+
+func (mos *mergedOrderSource) UpTick(price sdk.Dec, prec int) (tick sdk.Dec, found bool) {
+	for _, source := range mos.sources {
+		t, f := source.UpTick(price, prec)
+		if f && (tick.IsNil() || t.LT(tick)) {
+			tick = t
+			found = true
+		}
+	}
+	return
+}
+
+func (mos *mergedOrderSource) DownTick(price sdk.Dec, prec int) (tick sdk.Dec, found bool) {
+	for _, source := range mos.sources {
+		t, f := source.DownTick(price, prec)
+		if f && (tick.IsNil() || t.GT(tick)) {
+			tick = t
+			found = true
+		}
+	}
+	return
+}
+
+func (mos *mergedOrderSource) HighestTick(prec int) (tick sdk.Dec, found bool) {
+	for _, source := range mos.sources {
+		t, f := source.HighestTick(prec)
+		if f && (tick.IsNil() || t.GT(tick)) {
+			tick = t
+			found = true
+		}
+	}
+	return
+}
+
+func (mos *mergedOrderSource) LowestTick(prec int) (tick sdk.Dec, found bool) {
+	for _, source := range mos.sources {
+		t, f := source.LowestTick(prec)
+		if f && (tick.IsNil() || t.LT(tick)) {
+			tick = t
+			found = true
+		}
+	}
+	return
+}
+
+func MergeOrderSources(sources ...OrderSource) OrderSource {
+	return &mergedOrderSource{sources: sources}
 }
