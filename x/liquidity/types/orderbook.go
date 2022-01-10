@@ -3,10 +3,11 @@ package types
 import (
 	"fmt"
 	"sort"
-	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
+
+var _ OrderSource = (*OrderBookTicks)(nil)
 
 type PriceDirection int
 
@@ -26,52 +27,121 @@ func (orders Orders) RemainingAmount() sdk.Int {
 }
 
 type OrderBookTick struct {
-	price sdk.Dec
-	buys  Orders
-	sells Orders
+	price  sdk.Dec
+	orders Orders
 }
 
 func NewOrderBookTick(order Order) *OrderBookTick {
-	tick := &OrderBookTick{
-		price: order.Price(),
+	return &OrderBookTick{
+		price:  order.Price(),
+		orders: Orders{order},
 	}
-	switch order.Direction() {
-	case SwapDirectionBuy:
-		tick.buys = append(tick.buys, order)
-	case SwapDirectionSell:
-		tick.sells = append(tick.sells, order)
-	}
+}
 
-	return tick
+type OrderBookTicks []*OrderBookTick
+
+func (ticks OrderBookTicks) FindPrice(price sdk.Dec) (i int, exact bool) {
+	var prices []sdk.Dec
+	for _, tick := range ticks {
+		prices = append(prices, tick.price)
+	}
+	i = sort.Search(len(prices), func(i int) bool {
+		return prices[i].LT(price)
+	})
+	if i < len(prices) && prices[i].Equal(price) {
+		exact = true
+	}
+	return
+}
+
+func (ticks *OrderBookTicks) AddOrder(order Order) {
+	i, exact := ticks.FindPrice(order.Price())
+	if exact {
+		(*ticks)[i].orders = append((*ticks)[i].orders, order)
+	} else {
+		if i < len(*ticks) {
+			// Insert a new order book tick at index i.
+			*ticks = append((*ticks)[:i], append([]*OrderBookTick{NewOrderBookTick(order)}, (*ticks)[i:]...)...)
+		} else {
+			// Append a new order group at the end.
+			*ticks = append(*ticks, NewOrderBookTick(order))
+		}
+	}
+}
+
+func (ticks OrderBookTicks) AmountGTE(price sdk.Dec) sdk.Int {
+	i, exact := ticks.FindPrice(price)
+	if !exact {
+		i--
+	}
+	amount := sdk.ZeroInt()
+	for ; i >= 0; i-- {
+		amount = amount.Add(ticks[i].orders.RemainingAmount())
+	}
+	return amount
+}
+
+func (ticks OrderBookTicks) AmountLTE(price sdk.Dec) sdk.Int {
+	i, _ := ticks.FindPrice(price)
+	amount := sdk.ZeroInt()
+	for ; i < len(ticks); i++ {
+		amount = amount.Add(ticks[i].orders.RemainingAmount())
+	}
+	return amount
+}
+
+func (ticks OrderBookTicks) Orders(price sdk.Dec) []Order {
+	i, exact := ticks.FindPrice(price)
+	if !exact {
+		return nil
+	}
+	return ticks[i].orders
+}
+
+func (ticks OrderBookTicks) UpTick(price sdk.Dec, _ int) (tick sdk.Dec, found bool) {
+	i, _ := ticks.FindPrice(price)
+	if i == 0 {
+		return
+	}
+	return ticks[i-1].price, true
+}
+
+func (ticks OrderBookTicks) DownTick(price sdk.Dec, _ int) (tick sdk.Dec, found bool) {
+	i, exact := ticks.FindPrice(price)
+	if !exact {
+		i--
+	}
+	if i >= len(ticks)-1 {
+		return
+	}
+	return ticks[i+1].price, true
+}
+
+func (ticks OrderBookTicks) HighestTick(_ int) (tick sdk.Dec, found bool) {
+	if len(ticks) == 0 {
+		return
+	}
+	return ticks[0].price, true
+}
+
+func (ticks OrderBookTicks) LowestTick(_ int) (tick sdk.Dec, found bool) {
+	if len(ticks) == 0 {
+		return
+	}
+	return ticks[len(ticks)-1].price, true
 }
 
 type OrderBook struct {
-	ticks []*OrderBookTick
+	buys  OrderBookTicks
+	sells OrderBookTicks
 }
 
 func (ob OrderBook) AddOrder(order Order) {
-	var prices []sdk.Dec
-	for _, tick := range ob.ticks {
-		prices = append(prices, tick.price)
-	}
-	i := sort.Search(len(prices), func(i int) bool {
-		return prices[i].LT(order.Price())
-	})
-	if i < len(prices) {
-		if prices[i].Equal(order.Price()) {
-			switch order.Direction() {
-			case SwapDirectionBuy:
-				ob.ticks[i].buys = append(ob.ticks[i].buys, order)
-			case SwapDirectionSell:
-				ob.ticks[i].sells = append(ob.ticks[i].sells, order)
-			}
-		} else {
-			// Insert a new order group at index i.
-			ob.ticks = append(ob.ticks[:i], append([]*OrderBookTick{NewOrderBookTick(order)}, ob.ticks[i:]...)...)
-		}
-	} else {
-		// Append a new order group at the end.
-		ob.ticks = append(ob.ticks, NewOrderBookTick(order))
+	switch order.Direction() {
+	case SwapDirectionBuy:
+		ob.buys.AddOrder(order)
+	case SwapDirectionSell:
+		ob.sells.AddOrder(order)
 	}
 }
 
@@ -81,61 +151,29 @@ func (ob OrderBook) AddOrders(orders ...Order) {
 	}
 }
 
-func (ob OrderBook) AmountGTE(price sdk.Dec) sdk.Int {
-	return sdk.ZeroInt()
-}
-
-func (ob OrderBook) AmountLTE(price sdk.Dec) sdk.Int {
-	return sdk.ZeroInt()
-}
-
-func (ob OrderBook) Orders(price sdk.Dec) []Order {
-	return nil
-}
-
-func (ob OrderBook) UpTick(price sdk.Dec, prec int) (tick sdk.Dec, found bool) {
-	return sdk.ZeroDec(), false
-}
-
-func (ob OrderBook) DownTick(price sdk.Dec, prec int) (tick sdk.Dec, found bool) {
-	return sdk.ZeroDec(), false
-}
-
-func (ob OrderBook) String() string {
-	lines := []string{
-		"+-----buy------+----------price-----------+-----sell-----+",
+func (ob OrderBook) OrderSource(dir SwapDirection) OrderSource {
+	switch dir {
+	case SwapDirectionBuy:
+		return ob.buys
+	case SwapDirectionSell:
+		return ob.sells
+	default:
+		panic(fmt.Sprintf("unknown swap direction: %v", dir))
 	}
-	for _, tick := range ob.ticks {
-		lines = append(lines,
-			fmt.Sprintf("| %12s | %24s | %-12s |",
-				tick.buys.RemainingAmount(), tick.price.String(), tick.sells.RemainingAmount()))
-	}
-	lines = append(lines, "+--------------+--------------------------+--------------+")
-	return strings.Join(lines, "\n")
 }
 
-//func (ob OrderBook) HighestPriceXToYItemIndex(start int) (idx int, found bool) {
-//	for i := start; i < len(ob); i++ {
-//		if len(ob[i].XToYOrders) > 0 {
-//			idx = i
-//			found = true
-//			return
-//		}
+//func (ob OrderBook) String() string {
+//	lines := []string{
+//		"+-----buy------+----------price-----------+-----sell-----+",
 //	}
-//	return
-//}
-//
-//func (ob OrderBook) LowestPriceYToXItemIndex(start int) (idx int, found bool) {
-//	for i := start; i >= 0; i-- {
-//		if len(ob[i].YToXOrders) > 0 {
-//			idx = i
-//			found = true
-//			return
-//		}
+//	for _, tick := range ob.ticks {
+//		lines = append(lines,
+//			fmt.Sprintf("| %12s | %24s | %-12s |",
+//				tick.buys.RemainingAmount(), tick.price.String(), tick.sells.RemainingAmount()))
 //	}
-//	return
+//	lines = append(lines, "+--------------+--------------------------+--------------+")
+//	return strings.Join(lines, "\n")
 //}
-//
 
 //// DemandingAmount returns total demanding amount of orders at given price.
 //// Demanding amount is the amount of coins these orders want to receive.
@@ -224,7 +262,7 @@ type Order interface {
 	Direction() SwapDirection
 	Price() sdk.Dec
 	RemainingAmount() sdk.Int
-	SubRemainingAmount(amount sdk.Int)
+	SetRemainingAmount(amount sdk.Int)
 	ReceivedAmount() sdk.Int
-	AddReceivedAmount(amount sdk.Int)
+	SetReceivedAmount(amount sdk.Int)
 }
