@@ -4,6 +4,7 @@ import (
 	time "time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 var (
@@ -39,7 +40,15 @@ func (msg MsgCreatePool) Route() string { return RouterKey }
 func (msg MsgCreatePool) Type() string { return TypeMsgCreatePool }
 
 func (msg MsgCreatePool) ValidateBasic() error {
-	// TODO : not implemented yet
+	if _, err := sdk.AccAddressFromBech32(msg.Creator); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address: %v", err)
+	}
+	if err := msg.DepositCoins.Validate(); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid deposit coins: %v", err)
+	}
+	if len(msg.DepositCoins) != ReserveCoinNum {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid number of deposit coin")
+	}
 	return nil
 }
 
@@ -81,7 +90,15 @@ func (msg MsgDepositBatch) Route() string { return RouterKey }
 func (msg MsgDepositBatch) Type() string { return TypeMsgDepositBatch }
 
 func (msg MsgDepositBatch) ValidateBasic() error {
-	// TODO: not implemented yet
+	if _, err := sdk.AccAddressFromBech32(msg.Depositor); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid depositor address: %v", err)
+	}
+	if err := msg.Coins.Validate(); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid deposit coins: %v", err)
+	}
+	if len(msg.Coins) != ReserveCoinNum {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid number of deposit coin")
+	}
 	return nil
 }
 
@@ -123,7 +140,15 @@ func (msg MsgWithdrawBatch) Route() string { return RouterKey }
 func (msg MsgWithdrawBatch) Type() string { return TypeMsgWithdrawBatch }
 
 func (msg MsgWithdrawBatch) ValidateBasic() error {
-	// TODO: not implenmented yet
+	if _, err := sdk.AccAddressFromBech32(msg.Withdrawer); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid withdrawer address: %v", err)
+	}
+	if err := msg.PoolCoin.Validate(); err != nil {
+		return err
+	}
+	if !msg.PoolCoin.IsPositive() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "pool coin must be positive")
+	}
 	return nil
 }
 
@@ -169,7 +194,22 @@ func (msg MsgSwapBatch) Route() string { return RouterKey }
 func (msg MsgSwapBatch) Type() string { return TypeMsgSwapBatch }
 
 func (msg MsgSwapBatch) ValidateBasic() error {
-	// TODO: not implemented yet
+	if _, err := sdk.AccAddressFromBech32(msg.Orderer); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid orderer address: %v", err)
+	}
+	if err := msg.Coin.Validate(); err != nil {
+		return err
+	}
+	if !msg.Coin.IsPositive() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "offer coin must be positive")
+	}
+	if !msg.Price.IsPositive() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "price must be positive")
+	}
+	if !msg.Coin.Amount.GTE(MinOfferCoinAmount) {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "offer coin is less than minimum offer coin amount")
+	}
+	// TODO: anything to validate for OrderLifeSpan?
 	return nil
 }
 
@@ -209,7 +249,9 @@ func (msg MsgCancelSwapBatch) Route() string { return RouterKey }
 func (msg MsgCancelSwapBatch) Type() string { return TypeMsgCancelSwapBatch }
 
 func (msg MsgCancelSwapBatch) ValidateBasic() error {
-	// TODO: not implemented yet
+	if _, err := sdk.AccAddressFromBech32(msg.Orderer); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid orderer address: %v", err)
+	}
 	return nil
 }
 

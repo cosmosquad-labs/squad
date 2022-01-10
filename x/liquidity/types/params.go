@@ -17,6 +17,9 @@ var (
 	DefaultInitialPoolCoinSupply        = sdk.NewInt(1_000_000_000_000)
 	DefaultBatchSize             uint32 = 1
 	DefaultTickPrecision         uint32 = 3
+
+	ReserveCoinNum     int = 2
+	MinOfferCoinAmount     = sdk.NewInt(100) // This value can be modified in the future
 )
 
 var _ paramstypes.ParamSet = (*Params)(nil)
