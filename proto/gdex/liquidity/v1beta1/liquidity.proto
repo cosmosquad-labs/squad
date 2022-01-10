@@ -60,7 +60,7 @@ message DepositRequest {
   // depositor specifies the bech32-encoded address that makes a deposit to the pool
   string depositor = 4;
 
-  // coins specifies the depositing coins
+  // coins specifies the two depositing coins
   repeated cosmos.base.v1beta1.Coin coins = 5
       [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
 }

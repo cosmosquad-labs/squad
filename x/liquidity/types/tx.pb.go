@@ -34,9 +34,11 @@ var _ = time.Kitchen
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// MsgCreatePool defines ...
+// MsgCreatePool defines an SDK message for creating a pool.
 type MsgCreatePool struct {
-	Creator      string                                   `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	// creator specifies the bech32-encoded address that is the pool creator
+	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	// deposit_coins specifies the two depositing coins
 	DepositCoins github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=deposit_coins,json=depositCoins,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"deposit_coins"`
 }
 
@@ -73,7 +75,7 @@ func (m *MsgCreatePool) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgCreatePool proto.InternalMessageInfo
 
-// MsgCreatePoolResponse defines ...
+// MsgCreatePoolResponse defines the Msg/CreatePool response type.
 type MsgCreatePoolResponse struct {
 }
 
@@ -110,11 +112,14 @@ func (m *MsgCreatePoolResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgCreatePoolResponse proto.InternalMessageInfo
 
-// MsgDepositBatch defines ...
+// MsgDepositBatch defines an SDK message for depositing coins to the pool
 type MsgDepositBatch struct {
-	Depositor string                                   `protobuf:"bytes,1,opt,name=depositor,proto3" json:"depositor,omitempty"`
-	PoolId    uint64                                   `protobuf:"varint,2,opt,name=pool_id,json=poolId,proto3" json:"pool_id,omitempty"`
-	Coins     github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=coins,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"coins"`
+	// depositor specifies the bech32-encoded address that makes a deposit to the pool
+	Depositor string `protobuf:"bytes,1,opt,name=depositor,proto3" json:"depositor,omitempty"`
+	// pool_id specifies the pool id
+	PoolId uint64 `protobuf:"varint,2,opt,name=pool_id,json=poolId,proto3" json:"pool_id,omitempty"`
+	// coins specifies the two depositing coins
+	Coins github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=coins,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"coins"`
 }
 
 func (m *MsgDepositBatch) Reset()         { *m = MsgDepositBatch{} }
@@ -150,7 +155,7 @@ func (m *MsgDepositBatch) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgDepositBatch proto.InternalMessageInfo
 
-// MsgDepositBatchResponse defines ...
+// MsgDepositBatchResponse defines the Msg/DepositBatch response type.
 type MsgDepositBatchResponse struct {
 }
 
@@ -187,11 +192,14 @@ func (m *MsgDepositBatchResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgDepositBatchResponse proto.InternalMessageInfo
 
-// MsgWithdrawBatch defines ...
+// MsgWithdrawBatch defines an SDK message for withdrawing pool coin from the pool
 type MsgWithdrawBatch struct {
-	Withdrawer string     `protobuf:"bytes,1,opt,name=withdrawer,proto3" json:"withdrawer,omitempty"`
-	PoolId     uint64     `protobuf:"varint,2,opt,name=pool_id,json=poolId,proto3" json:"pool_id,omitempty"`
-	PoolCoin   types.Coin `protobuf:"bytes,3,opt,name=pool_coin,json=poolCoin,proto3" json:"pool_coin"`
+	// withdrawer specifies the bech32-encoded address that withdraws pool coin from the pool
+	Withdrawer string `protobuf:"bytes,1,opt,name=withdrawer,proto3" json:"withdrawer,omitempty"`
+	// pool_id specifies the pool id
+	PoolId uint64 `protobuf:"varint,2,opt,name=pool_id,json=poolId,proto3" json:"pool_id,omitempty"`
+	// pool_coin specifies the pool coin that is a proof of liquidity provider for the pool
+	PoolCoin types.Coin `protobuf:"bytes,3,opt,name=pool_coin,json=poolCoin,proto3" json:"pool_coin"`
 }
 
 func (m *MsgWithdrawBatch) Reset()         { *m = MsgWithdrawBatch{} }
@@ -227,7 +235,7 @@ func (m *MsgWithdrawBatch) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgWithdrawBatch proto.InternalMessageInfo
 
-// MsgWithdrawBatchResponse defines ...
+// MsgWithdrawBatchResponse defines the Msg/WithdrawBatch response type.
 type MsgWithdrawBatchResponse struct {
 }
 
@@ -264,13 +272,19 @@ func (m *MsgWithdrawBatchResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgWithdrawBatchResponse proto.InternalMessageInfo
 
-// MsgSwapBatch defines ...
+// MsgSwapBatch defines an SDK message for swapping X coin to Y coin from the pool
 type MsgSwapBatch struct {
-	Orderer         string                                 `protobuf:"bytes,1,opt,name=orderer,proto3" json:"orderer,omitempty"`
-	Coin            *types.Coin                            `protobuf:"bytes,2,opt,name=coin,proto3" json:"coin,omitempty"`
-	DemandCoinDenom string                                 `protobuf:"bytes,3,opt,name=demand_coin_denom,json=demandCoinDenom,proto3" json:"demand_coin_denom,omitempty"`
-	Price           github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,4,opt,name=price,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"price"`
-	OrderLifespan   time.Duration                          `protobuf:"bytes,5,opt,name=order_lifespan,json=orderLifespan,proto3,stdduration" json:"order_lifespan"`
+	// orderer specifies the bech32-encoded address that makes an order to swap from the pool
+	Orderer string `protobuf:"bytes,1,opt,name=orderer,proto3" json:"orderer,omitempty"`
+	// coin specifies the offer coin that the orderer offers to swap with
+	Coin *types.Coin `protobuf:"bytes,2,opt,name=coin,proto3" json:"coin,omitempty"`
+	// demand_coin_denom specifies the coin denom that is exchanged during the swap request; it must match the denom in
+	// the pool
+	DemandCoinDenom string `protobuf:"bytes,3,opt,name=demand_coin_denom,json=demandCoinDenom,proto3" json:"demand_coin_denom,omitempty"`
+	// price specifies ...
+	Price github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,4,opt,name=price,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"price"`
+	// order_lifespan specifies the order lifespan
+	OrderLifespan time.Duration `protobuf:"bytes,5,opt,name=order_lifespan,json=orderLifespan,proto3,stdduration" json:"order_lifespan"`
 }
 
 func (m *MsgSwapBatch) Reset()         { *m = MsgSwapBatch{} }
@@ -306,7 +320,7 @@ func (m *MsgSwapBatch) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgSwapBatch proto.InternalMessageInfo
 
-// MsgSwapBatchResponse defines ...
+// MsgSwapBatchResponse defines the Msg/SwapBatch response type.
 type MsgSwapBatchResponse struct {
 }
 
@@ -343,6 +357,84 @@ func (m *MsgSwapBatchResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgSwapBatchResponse proto.InternalMessageInfo
 
+// MsgCancelSwapBatch defines an SDK message for cancelling a swap request
+type MsgCancelSwapBatch struct {
+	// swap_request_id specifies the swap request id
+	SwapRequestId uint64 `protobuf:"varint,1,opt,name=swap_request_id,json=swapRequestId,proto3" json:"swap_request_id,omitempty"`
+	// orderer specifies the bech32-encoded address that makes an order to swap from the pool
+	Orderer string `protobuf:"bytes,2,opt,name=orderer,proto3" json:"orderer,omitempty"`
+}
+
+func (m *MsgCancelSwapBatch) Reset()         { *m = MsgCancelSwapBatch{} }
+func (m *MsgCancelSwapBatch) String() string { return proto.CompactTextString(m) }
+func (*MsgCancelSwapBatch) ProtoMessage()    {}
+func (*MsgCancelSwapBatch) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e6b82ea04fd8aad3, []int{8}
+}
+func (m *MsgCancelSwapBatch) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgCancelSwapBatch) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgCancelSwapBatch.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgCancelSwapBatch) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCancelSwapBatch.Merge(m, src)
+}
+func (m *MsgCancelSwapBatch) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgCancelSwapBatch) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCancelSwapBatch.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgCancelSwapBatch proto.InternalMessageInfo
+
+// MsgCancelSwapBatchResponse defines the Msg/CancelSwapBatch response type.
+type MsgCancelSwapBatchResponse struct {
+}
+
+func (m *MsgCancelSwapBatchResponse) Reset()         { *m = MsgCancelSwapBatchResponse{} }
+func (m *MsgCancelSwapBatchResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgCancelSwapBatchResponse) ProtoMessage()    {}
+func (*MsgCancelSwapBatchResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e6b82ea04fd8aad3, []int{9}
+}
+func (m *MsgCancelSwapBatchResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgCancelSwapBatchResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgCancelSwapBatchResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgCancelSwapBatchResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCancelSwapBatchResponse.Merge(m, src)
+}
+func (m *MsgCancelSwapBatchResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgCancelSwapBatchResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCancelSwapBatchResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgCancelSwapBatchResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*MsgCreatePool)(nil), "gdex.liquidity.v1beta1.MsgCreatePool")
 	proto.RegisterType((*MsgCreatePoolResponse)(nil), "gdex.liquidity.v1beta1.MsgCreatePoolResponse")
@@ -352,53 +444,59 @@ func init() {
 	proto.RegisterType((*MsgWithdrawBatchResponse)(nil), "gdex.liquidity.v1beta1.MsgWithdrawBatchResponse")
 	proto.RegisterType((*MsgSwapBatch)(nil), "gdex.liquidity.v1beta1.MsgSwapBatch")
 	proto.RegisterType((*MsgSwapBatchResponse)(nil), "gdex.liquidity.v1beta1.MsgSwapBatchResponse")
+	proto.RegisterType((*MsgCancelSwapBatch)(nil), "gdex.liquidity.v1beta1.MsgCancelSwapBatch")
+	proto.RegisterType((*MsgCancelSwapBatchResponse)(nil), "gdex.liquidity.v1beta1.MsgCancelSwapBatchResponse")
 }
 
 func init() { proto.RegisterFile("gdex/liquidity/v1beta1/tx.proto", fileDescriptor_e6b82ea04fd8aad3) }
 
 var fileDescriptor_e6b82ea04fd8aad3 = []byte{
-	// 641 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0xcb, 0x6e, 0xd3, 0x40,
-	0x14, 0x8d, 0x93, 0xf4, 0x91, 0x4b, 0x43, 0xc1, 0x2a, 0xad, 0x6b, 0x21, 0x27, 0x8a, 0x78, 0x44,
-	0x88, 0x7a, 0xda, 0xb2, 0x65, 0x95, 0x66, 0x03, 0x22, 0x12, 0x32, 0x0b, 0x24, 0x36, 0x91, 0xe3,
-	0x99, 0x4e, 0x46, 0x4d, 0x3c, 0xc6, 0x33, 0xa1, 0xed, 0x27, 0xb0, 0x63, 0x83, 0x84, 0xc4, 0x8a,
-	0x2d, 0xfc, 0x48, 0x97, 0x5d, 0x22, 0x16, 0x2d, 0xb4, 0x3f, 0x82, 0x66, 0xfc, 0xa8, 0x53, 0x41,
-	0xc8, 0x82, 0x95, 0x73, 0xe7, 0x9e, 0x33, 0xe7, 0x1c, 0xe7, 0x5e, 0x43, 0x83, 0x62, 0x72, 0x84,
-	0x46, 0xec, 0xed, 0x84, 0x61, 0x26, 0x8f, 0xd1, 0xbb, 0x9d, 0x01, 0x91, 0xfe, 0x0e, 0x92, 0x47,
-	0x6e, 0x14, 0x73, 0xc9, 0xcd, 0x75, 0x05, 0x70, 0x73, 0x80, 0x9b, 0x02, 0xec, 0x35, 0xca, 0x29,
-	0xd7, 0x10, 0xa4, 0x7e, 0x25, 0x68, 0xdb, 0x09, 0xb8, 0x18, 0x73, 0x81, 0x06, 0xbe, 0x20, 0xf9,
-	0x5d, 0x01, 0x67, 0x61, 0xd6, 0xa7, 0x9c, 0xd3, 0x11, 0x41, 0xba, 0x1a, 0x4c, 0xf6, 0x11, 0x9e,
-	0xc4, 0xbe, 0x64, 0x3c, 0xed, 0xb7, 0x3e, 0x1b, 0x50, 0xef, 0x09, 0xba, 0x17, 0x13, 0x5f, 0x92,
-	0x97, 0x9c, 0x8f, 0x4c, 0x0b, 0x96, 0x02, 0x55, 0xf1, 0xd8, 0x32, 0x9a, 0x46, 0xbb, 0xe6, 0x65,
-	0xa5, 0x19, 0x41, 0x1d, 0x93, 0x88, 0x0b, 0x26, 0xfb, 0x4a, 0x41, 0x58, 0xe5, 0x66, 0xa5, 0x7d,
-	0x63, 0x77, 0xd3, 0x4d, 0x3c, 0xb8, 0xca, 0x43, 0x66, 0xd7, 0xdd, 0xe3, 0x2c, 0xec, 0x6c, 0x9f,
-	0x9c, 0x35, 0x4a, 0x5f, 0xcf, 0x1b, 0x6d, 0xca, 0xe4, 0x70, 0x32, 0x70, 0x03, 0x3e, 0x46, 0xa9,
-	0xe1, 0xe4, 0xb1, 0x25, 0xf0, 0x01, 0x92, 0xc7, 0x11, 0x11, 0x9a, 0x20, 0xbc, 0x95, 0x54, 0x41,
-	0x57, 0xad, 0x0d, 0xb8, 0x33, 0x65, 0xce, 0x23, 0x22, 0xe2, 0xa1, 0x20, 0xad, 0x6f, 0x06, 0xac,
-	0xf6, 0x04, 0xed, 0x26, 0xe0, 0x8e, 0x2f, 0x83, 0xa1, 0x79, 0x17, 0x6a, 0x29, 0x39, 0xb7, 0x7e,
-	0x75, 0x60, 0x6e, 0xc0, 0x52, 0xc4, 0xf9, 0xa8, 0xcf, 0xb0, 0x55, 0x6e, 0x1a, 0xed, 0xaa, 0xb7,
-	0xa8, 0xca, 0x67, 0xd8, 0xf4, 0x61, 0x21, 0x49, 0x53, 0xf9, 0xff, 0x69, 0x92, 0x9b, 0x5b, 0x9b,
-	0xb0, 0x71, 0xcd, 0x6c, 0x1e, 0xe4, 0xbd, 0x01, 0xb7, 0x7a, 0x82, 0xbe, 0x66, 0x72, 0x88, 0x63,
-	0xff, 0x30, 0x49, 0xe2, 0x00, 0x1c, 0xa6, 0x07, 0x24, 0x8b, 0x52, 0x38, 0xf9, 0x7b, 0x96, 0xa7,
-	0x50, 0xd3, 0x0d, 0x25, 0x6b, 0x55, 0x9a, 0xc6, 0xec, 0x3c, 0x55, 0x95, 0xc7, 0x5b, 0x56, 0x0c,
-	0x55, 0xb7, 0x6c, 0xb0, 0xae, 0x5b, 0xc9, 0x7d, 0x7e, 0x2c, 0xc3, 0x4a, 0x4f, 0xd0, 0x57, 0x87,
-	0x7e, 0x94, 0x78, 0xb4, 0x60, 0x89, 0xc7, 0x98, 0xc4, 0xb9, 0xc1, 0xac, 0x34, 0xb7, 0xa0, 0xaa,
-	0xf5, 0xcb, 0xff, 0xd0, 0xf7, 0x34, 0xcc, 0x7c, 0x04, 0xb7, 0x31, 0x19, 0xfb, 0x21, 0xd6, 0xae,
-	0xfb, 0x98, 0x84, 0x7c, 0xac, 0xbd, 0xd7, 0xbc, 0xd5, 0xa4, 0xa1, 0xc0, 0x5d, 0x75, 0x6c, 0x76,
-	0x61, 0x21, 0x8a, 0x59, 0x40, 0xac, 0xaa, 0xea, 0x77, 0x5c, 0x15, 0xe0, 0xc7, 0x59, 0xe3, 0xc1,
-	0x1c, 0x7f, 0x48, 0x97, 0x04, 0x5e, 0x42, 0x36, 0x9f, 0xc3, 0x4d, 0xed, 0xb5, 0x3f, 0x62, 0xfb,
-	0x44, 0x44, 0x7e, 0x68, 0x2d, 0xa4, 0x56, 0x93, 0x65, 0x71, 0xb3, 0x65, 0x71, 0xbb, 0xe9, 0xb2,
-	0x74, 0x96, 0x95, 0xd2, 0xa7, 0xf3, 0x86, 0xe1, 0xd5, 0x35, 0xf5, 0x45, 0xca, 0x6c, 0xad, 0xc3,
-	0x5a, 0xf1, 0xb5, 0x64, 0xef, 0x6b, 0xf7, 0x4b, 0x05, 0x2a, 0x3d, 0x41, 0xcd, 0x01, 0x40, 0x61,
-	0xb7, 0xee, 0xbb, 0x7f, 0x5e, 0x6e, 0x77, 0x6a, 0xca, 0xed, 0xad, 0xb9, 0x60, 0x99, 0x96, 0x39,
-	0x84, 0x95, 0xa9, 0x45, 0x78, 0x38, 0x83, 0x5e, 0x04, 0xda, 0x68, 0x4e, 0x60, 0xae, 0x74, 0x00,
-	0xf5, 0xe9, 0x49, 0x6d, 0xcf, 0xb8, 0x61, 0x0a, 0x69, 0x6f, 0xcf, 0x8b, 0xcc, 0xc5, 0xfa, 0x50,
-	0xbb, 0x1a, 0xb7, 0x7b, 0x33, 0xe8, 0x39, 0xca, 0x7e, 0x3c, 0x0f, 0x2a, 0x13, 0xe8, 0xf4, 0x4e,
-	0x7e, 0x39, 0xa5, 0x93, 0x0b, 0xc7, 0x38, 0xbd, 0x70, 0x8c, 0x9f, 0x17, 0x8e, 0xf1, 0xe1, 0xd2,
-	0x29, 0x9d, 0x5e, 0x3a, 0xa5, 0xef, 0x97, 0x4e, 0xe9, 0x0d, 0x2a, 0x0c, 0x95, 0x24, 0x21, 0x26,
-	0xf1, 0x98, 0x85, 0x12, 0xed, 0xfb, 0xea, 0x49, 0x51, 0xf1, 0x1b, 0xae, 0x27, 0x6c, 0xb0, 0xa8,
-	0xc7, 0xe6, 0xc9, 0xef, 0x00, 0x00, 0x00, 0xff, 0xff, 0xbf, 0x96, 0x3a, 0xf7, 0xe2, 0x05, 0x00,
-	0x00,
+	// 708 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x55, 0xcd, 0x6e, 0xd3, 0x4a,
+	0x14, 0x8e, 0x93, 0xf4, 0x27, 0xe7, 0x36, 0x37, 0xf7, 0x5a, 0xbd, 0xad, 0x6b, 0x55, 0x4e, 0x64,
+	0x5d, 0x4a, 0x54, 0x51, 0xbb, 0x2d, 0x5b, 0x56, 0x69, 0x36, 0x45, 0x44, 0x42, 0x46, 0x02, 0x89,
+	0x4d, 0xe4, 0x78, 0xa6, 0xce, 0xa8, 0x89, 0xc7, 0xf5, 0x4c, 0x48, 0xfb, 0x08, 0xec, 0x58, 0x80,
+	0x84, 0xc4, 0x1b, 0xc0, 0x8b, 0x74, 0xd9, 0x25, 0x62, 0xd1, 0x42, 0xfb, 0x22, 0x68, 0xc6, 0x3f,
+	0xb5, 0x0b, 0x84, 0x2c, 0x58, 0x39, 0xe7, 0x9c, 0xef, 0xcc, 0xf7, 0x9d, 0x33, 0xfe, 0x62, 0x68,
+	0xfa, 0x08, 0x9f, 0xda, 0x23, 0x72, 0x32, 0x21, 0x88, 0xf0, 0x33, 0xfb, 0xd5, 0xde, 0x00, 0x73,
+	0x77, 0xcf, 0xe6, 0xa7, 0x56, 0x18, 0x51, 0x4e, 0xd5, 0x35, 0x01, 0xb0, 0x32, 0x80, 0x95, 0x00,
+	0xf4, 0x55, 0x9f, 0xfa, 0x54, 0x42, 0x6c, 0xf1, 0x2b, 0x46, 0xeb, 0x86, 0x47, 0xd9, 0x98, 0x32,
+	0x7b, 0xe0, 0x32, 0x9c, 0x9d, 0xe5, 0x51, 0x12, 0xa4, 0x75, 0x9f, 0x52, 0x7f, 0x84, 0x6d, 0x19,
+	0x0d, 0x26, 0x47, 0x36, 0x9a, 0x44, 0x2e, 0x27, 0x34, 0xa9, 0x9b, 0x1f, 0x14, 0xa8, 0xf7, 0x98,
+	0x7f, 0x10, 0x61, 0x97, 0xe3, 0xa7, 0x94, 0x8e, 0x54, 0x0d, 0x96, 0x3c, 0x11, 0xd1, 0x48, 0x53,
+	0x5a, 0x4a, 0xbb, 0xe6, 0xa4, 0xa1, 0x1a, 0x42, 0x1d, 0xe1, 0x90, 0x32, 0xc2, 0xfb, 0x82, 0x81,
+	0x69, 0xe5, 0x56, 0xa5, 0xfd, 0xd7, 0xfe, 0x86, 0x15, 0x6b, 0xb0, 0x84, 0x86, 0x54, 0xae, 0x75,
+	0x40, 0x49, 0xd0, 0xd9, 0x3d, 0xbf, 0x6c, 0x96, 0x3e, 0x5e, 0x35, 0xdb, 0x3e, 0xe1, 0xc3, 0xc9,
+	0xc0, 0xf2, 0xe8, 0xd8, 0x4e, 0x04, 0xc7, 0x8f, 0x1d, 0x86, 0x8e, 0x6d, 0x7e, 0x16, 0x62, 0x26,
+	0x1b, 0x98, 0xb3, 0x92, 0x30, 0xc8, 0xc8, 0x5c, 0x87, 0xff, 0x0a, 0xe2, 0x1c, 0xcc, 0x42, 0x1a,
+	0x30, 0x6c, 0x7e, 0x52, 0xa0, 0xd1, 0x63, 0x7e, 0x37, 0x06, 0x77, 0x5c, 0xee, 0x0d, 0xd5, 0x4d,
+	0xa8, 0x25, 0xcd, 0x99, 0xf4, 0xdb, 0x84, 0xba, 0x0e, 0x4b, 0x21, 0xa5, 0xa3, 0x3e, 0x41, 0x5a,
+	0xb9, 0xa5, 0xb4, 0xab, 0xce, 0xa2, 0x08, 0x0f, 0x91, 0xea, 0xc2, 0x42, 0x3c, 0x4d, 0xe5, 0xcf,
+	0x4f, 0x13, 0x9f, 0x6c, 0x6e, 0xc0, 0xfa, 0x1d, 0xb1, 0xd9, 0x20, 0xaf, 0x15, 0xf8, 0xa7, 0xc7,
+	0xfc, 0x17, 0x84, 0x0f, 0x51, 0xe4, 0x4e, 0xe3, 0x49, 0x0c, 0x80, 0x69, 0x92, 0xc0, 0xe9, 0x28,
+	0xb9, 0xcc, 0xaf, 0x67, 0x79, 0x04, 0x35, 0x59, 0x10, 0xb4, 0x5a, 0xa5, 0xa5, 0xcc, 0x9e, 0xa7,
+	0x2a, 0xe6, 0x71, 0x96, 0x45, 0x87, 0x88, 0x4d, 0x1d, 0xb4, 0xbb, 0x52, 0x32, 0x9d, 0xef, 0xca,
+	0xb0, 0xd2, 0x63, 0xfe, 0xb3, 0xa9, 0x1b, 0xc6, 0x1a, 0x35, 0x58, 0xa2, 0x11, 0xc2, 0x51, 0x26,
+	0x30, 0x0d, 0xd5, 0x1d, 0xa8, 0x4a, 0xfe, 0xf2, 0x6f, 0xf8, 0x1d, 0x09, 0x53, 0xb7, 0xe1, 0x5f,
+	0x84, 0xc7, 0x6e, 0x80, 0xa4, 0xea, 0x3e, 0xc2, 0x01, 0x1d, 0x4b, 0xed, 0x35, 0xa7, 0x11, 0x17,
+	0x04, 0xb8, 0x2b, 0xd2, 0x6a, 0x17, 0x16, 0xc2, 0x88, 0x78, 0x58, 0xab, 0x8a, 0x7a, 0xc7, 0x12,
+	0x03, 0x7c, 0xb9, 0x6c, 0x6e, 0xcd, 0x71, 0x21, 0x5d, 0xec, 0x39, 0x71, 0xb3, 0xfa, 0x18, 0xfe,
+	0x96, 0x5a, 0xfb, 0x23, 0x72, 0x84, 0x59, 0xe8, 0x06, 0xda, 0x42, 0x22, 0x35, 0x36, 0x8b, 0x95,
+	0x9a, 0xc5, 0xea, 0x26, 0x66, 0xe9, 0x2c, 0x0b, 0xa6, 0xf7, 0x57, 0x4d, 0xc5, 0xa9, 0xcb, 0xd6,
+	0x27, 0x49, 0xa7, 0xb9, 0x06, 0xab, 0xf9, 0xb5, 0x64, 0xfb, 0x7a, 0x0e, 0xaa, 0x78, 0x73, 0xdd,
+	0xc0, 0xc3, 0xa3, 0xdb, 0xa5, 0x6d, 0x41, 0x83, 0x4d, 0xdd, 0xb0, 0x1f, 0xe1, 0x93, 0x09, 0x66,
+	0x5c, 0x5c, 0xa0, 0x22, 0x2f, 0xb0, 0x2e, 0xd2, 0x4e, 0x9c, 0x3d, 0x44, 0xf9, 0xe5, 0x96, 0x0b,
+	0xcb, 0x35, 0x37, 0x41, 0xff, 0xf1, 0xdc, 0x94, 0x75, 0xff, 0x6d, 0x15, 0x2a, 0x3d, 0xe6, 0xab,
+	0x03, 0x80, 0x9c, 0xa3, 0xef, 0x59, 0x3f, 0xff, 0x4b, 0xb1, 0x0a, 0xde, 0xd2, 0x77, 0xe6, 0x82,
+	0xa5, 0x5c, 0xea, 0x10, 0x56, 0x0a, 0xf6, 0xbb, 0x3f, 0xa3, 0x3d, 0x0f, 0xd4, 0xed, 0x39, 0x81,
+	0x19, 0xd3, 0x31, 0xd4, 0x8b, 0xfe, 0x68, 0xcf, 0x38, 0xa1, 0x80, 0xd4, 0x77, 0xe7, 0x45, 0x66,
+	0x64, 0x7d, 0xa8, 0xdd, 0xde, 0xd7, 0xff, 0x33, 0xda, 0x33, 0x94, 0xfe, 0x60, 0x1e, 0x54, 0x46,
+	0x70, 0x02, 0x8d, 0xbb, 0xaf, 0xc5, 0xf6, 0xac, 0xcd, 0x17, 0xb1, 0xfa, 0xfe, 0xfc, 0xd8, 0x94,
+	0xb2, 0xd3, 0x3b, 0xff, 0x66, 0x94, 0xce, 0xaf, 0x0d, 0xe5, 0xe2, 0xda, 0x50, 0xbe, 0x5e, 0x1b,
+	0xca, 0x9b, 0x1b, 0xa3, 0x74, 0x71, 0x63, 0x94, 0x3e, 0xdf, 0x18, 0xa5, 0x97, 0x76, 0xce, 0x3d,
+	0x1c, 0x07, 0x08, 0x47, 0x63, 0x12, 0x70, 0xfb, 0xc8, 0x15, 0x4f, 0xdf, 0xce, 0x7f, 0xac, 0xa4,
+	0x95, 0x06, 0x8b, 0xd2, 0x1f, 0x0f, 0xbf, 0x07, 0x00, 0x00, 0xff, 0xff, 0xda, 0x85, 0xfe, 0x2b,
+	0xcb, 0x06, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -413,14 +511,16 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
-	// CreatePool defines ...
+	// CreatePool defines a method for creating a pool
 	CreatePool(ctx context.Context, in *MsgCreatePool, opts ...grpc.CallOption) (*MsgCreatePoolResponse, error)
-	// DepositBatch defines ...
+	// DepositBatch defines a method for depositing coins to the pool
 	DepositBatch(ctx context.Context, in *MsgDepositBatch, opts ...grpc.CallOption) (*MsgDepositBatchResponse, error)
-	// WithdrawBatch defines ...
+	// WithdrawBatch defines a method for withdrawing pool coin from the pool
 	WithdrawBatch(ctx context.Context, in *MsgWithdrawBatch, opts ...grpc.CallOption) (*MsgWithdrawBatchResponse, error)
-	// SwapBatch defines ...
+	// SwapBatch defines a method for swapping X coin to Y coin from the pool
 	SwapBatch(ctx context.Context, in *MsgSwapBatch, opts ...grpc.CallOption) (*MsgSwapBatchResponse, error)
+	// CancelSwapBatch defines a method for cancelling a swap request
+	CancelSwapBatch(ctx context.Context, in *MsgCancelSwapBatch, opts ...grpc.CallOption) (*MsgCancelSwapBatchResponse, error)
 }
 
 type msgClient struct {
@@ -467,16 +567,27 @@ func (c *msgClient) SwapBatch(ctx context.Context, in *MsgSwapBatch, opts ...grp
 	return out, nil
 }
 
+func (c *msgClient) CancelSwapBatch(ctx context.Context, in *MsgCancelSwapBatch, opts ...grpc.CallOption) (*MsgCancelSwapBatchResponse, error) {
+	out := new(MsgCancelSwapBatchResponse)
+	err := c.cc.Invoke(ctx, "/gdex.liquidity.v1beta1.Msg/CancelSwapBatch", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
-	// CreatePool defines ...
+	// CreatePool defines a method for creating a pool
 	CreatePool(context.Context, *MsgCreatePool) (*MsgCreatePoolResponse, error)
-	// DepositBatch defines ...
+	// DepositBatch defines a method for depositing coins to the pool
 	DepositBatch(context.Context, *MsgDepositBatch) (*MsgDepositBatchResponse, error)
-	// WithdrawBatch defines ...
+	// WithdrawBatch defines a method for withdrawing pool coin from the pool
 	WithdrawBatch(context.Context, *MsgWithdrawBatch) (*MsgWithdrawBatchResponse, error)
-	// SwapBatch defines ...
+	// SwapBatch defines a method for swapping X coin to Y coin from the pool
 	SwapBatch(context.Context, *MsgSwapBatch) (*MsgSwapBatchResponse, error)
+	// CancelSwapBatch defines a method for cancelling a swap request
+	CancelSwapBatch(context.Context, *MsgCancelSwapBatch) (*MsgCancelSwapBatchResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -494,6 +605,9 @@ func (*UnimplementedMsgServer) WithdrawBatch(ctx context.Context, req *MsgWithdr
 }
 func (*UnimplementedMsgServer) SwapBatch(ctx context.Context, req *MsgSwapBatch) (*MsgSwapBatchResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SwapBatch not implemented")
+}
+func (*UnimplementedMsgServer) CancelSwapBatch(ctx context.Context, req *MsgCancelSwapBatch) (*MsgCancelSwapBatchResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CancelSwapBatch not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -572,6 +686,24 @@ func _Msg_SwapBatch_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_CancelSwapBatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgCancelSwapBatch)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).CancelSwapBatch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gdex.liquidity.v1beta1.Msg/CancelSwapBatch",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).CancelSwapBatch(ctx, req.(*MsgCancelSwapBatch))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "gdex.liquidity.v1beta1.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -591,6 +723,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SwapBatch",
 			Handler:    _Msg_SwapBatch_Handler,
+		},
+		{
+			MethodName: "CancelSwapBatch",
+			Handler:    _Msg_CancelSwapBatch_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -894,6 +1030,64 @@ func (m *MsgSwapBatchResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgCancelSwapBatch) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgCancelSwapBatch) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgCancelSwapBatch) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Orderer) > 0 {
+		i -= len(m.Orderer)
+		copy(dAtA[i:], m.Orderer)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Orderer)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.SwapRequestId != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.SwapRequestId))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgCancelSwapBatchResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgCancelSwapBatchResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgCancelSwapBatchResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -1017,6 +1211,31 @@ func (m *MsgSwapBatch) Size() (n int) {
 }
 
 func (m *MsgSwapBatchResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgCancelSwapBatch) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.SwapRequestId != 0 {
+		n += 1 + sovTx(uint64(m.SwapRequestId))
+	}
+	l = len(m.Orderer)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgCancelSwapBatchResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1810,6 +2029,157 @@ func (m *MsgSwapBatchResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgSwapBatchResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgCancelSwapBatch) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgCancelSwapBatch: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgCancelSwapBatch: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SwapRequestId", wireType)
+			}
+			m.SwapRequestId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SwapRequestId |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Orderer", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Orderer = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgCancelSwapBatchResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgCancelSwapBatchResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgCancelSwapBatchResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

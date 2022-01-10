@@ -192,7 +192,7 @@ type DepositRequest struct {
 	MsgHeight int64 `protobuf:"varint,3,opt,name=msg_height,json=msgHeight,proto3" json:"msg_height,omitempty"`
 	// depositor specifies the bech32-encoded address that makes a deposit to the pool
 	Depositor string `protobuf:"bytes,4,opt,name=depositor,proto3" json:"depositor,omitempty"`
-	// coins specifies the depositing coins
+	// coins specifies the two depositing coins
 	Coins github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,5,rep,name=coins,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"coins"`
 }
 
