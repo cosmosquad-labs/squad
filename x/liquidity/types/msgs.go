@@ -184,7 +184,7 @@ func NewMsgSwapBatch(
 	coin sdk.Coin,
 	demandCoinDenom string,
 	price sdk.Dec,
-	orderLifeSpan time.Duration,
+	orderLifespan time.Duration,
 ) *MsgSwapBatch {
 	return &MsgSwapBatch{
 		Orderer:         orderer.String(),
