@@ -8,6 +8,7 @@ import (
 var (
 	_ PoolI = (*PoolInfo)(nil)
 	// TODO: add RangedPoolInfo for v2
+	_ OrderSource = (*PoolOrderSource)(nil)
 )
 
 func (pool Pool) GetReserveAddress() sdk.AccAddress {
@@ -50,6 +51,187 @@ func (info PoolInfo) Price() sdk.Dec {
 		panic("pool price is not defined for a depleted pool")
 	}
 	return info.RX.ToDec().Quo(info.RY.ToDec())
+}
+
+type PoolOrderSource struct {
+	RX, RY        sdk.Int
+	PoolPrice     sdk.Dec
+	Direction     SwapDirection
+	TickPrecision int
+	// TODO: need a tick cache?
+}
+
+func NewPoolOrderSource(pool PoolI, dir SwapDirection, prec int) OrderSource {
+	rx, ry := pool.Balance()
+	return &PoolOrderSource{
+		RX:            rx,
+		RY:            ry,
+		PoolPrice:     pool.Price(),
+		Direction:     dir,
+		TickPrecision: prec,
+	}
+}
+
+func (os PoolOrderSource) ProvidableX(price sdk.Dec) sdk.Int {
+	if price.GTE(os.PoolPrice) {
+		return sdk.ZeroInt()
+	}
+	return os.RX.ToDec().Sub(price.MulInt(os.RY)).TruncateInt()
+}
+
+func (os PoolOrderSource) ProvidableY(price sdk.Dec) sdk.Int {
+	if price.LTE(os.PoolPrice) {
+		return sdk.ZeroInt()
+	}
+	return price.MulInt(os.RY).Sub(os.RX.ToDec()).Quo(price).TruncateInt()
+}
+
+func (os PoolOrderSource) ProvidableXOnTick(price sdk.Dec) sdk.Int {
+	if price.GTE(os.PoolPrice) {
+		return sdk.ZeroInt()
+	}
+	return os.ProvidableX(price).Sub(os.ProvidableX(UpTick(price, os.TickPrecision)))
+}
+
+func (os PoolOrderSource) ProvidableYOnTick(price sdk.Dec) sdk.Int {
+	if price.LTE(os.PoolPrice) {
+		return sdk.ZeroInt()
+	}
+	return os.ProvidableY(price).Sub(os.ProvidableY(DownTick(price, os.TickPrecision)))
+}
+
+func (os PoolOrderSource) AmountGTE(price sdk.Dec) sdk.Int {
+	amount := sdk.ZeroInt()
+	switch os.Direction {
+	case SwapDirectionBuy:
+		for price.LT(os.PoolPrice) {
+			px := os.ProvidableXOnTick(price)
+			if px.IsZero() { // TODO: will it happen?
+				break
+			}
+			amount = amount.Add(px)
+			price = UpTick(price, os.TickPrecision)
+		}
+	case SwapDirectionSell:
+		for price.GT(os.PoolPrice) {
+			py := os.ProvidableYOnTick(price)
+			if py.IsZero() {
+				break
+			}
+			amount = amount.Add(py)
+			price = UpTick(price, os.TickPrecision)
+		}
+	}
+	return amount
+}
+
+func (os PoolOrderSource) AmountLTE(price sdk.Dec) sdk.Int {
+	amount := sdk.ZeroInt()
+	switch os.Direction {
+	case SwapDirectionBuy:
+		for price.LT(os.PoolPrice) {
+			px := os.ProvidableXOnTick(price)
+			if px.IsZero() {
+				break
+			}
+			amount = amount.Add(px)
+			price = DownTick(price, os.TickPrecision)
+		}
+	case SwapDirectionSell:
+		for price.GT(os.PoolPrice) {
+			py := os.ProvidableYOnTick(price)
+			if py.IsZero() { // TODO: will it happen?
+				break
+			}
+			amount = amount.Add(py)
+			price = DownTick(price, os.TickPrecision)
+		}
+	}
+	return amount
+}
+
+func (os PoolOrderSource) Orders(price sdk.Dec) Orders {
+	panic("not implemented")
+	return nil
+}
+
+func (os PoolOrderSource) UpTick(price sdk.Dec, prec int) (tick sdk.Dec, found bool) {
+	switch os.Direction {
+	case SwapDirectionBuy:
+		price = UpTick(price, prec)
+		if price.GTE(os.PoolPrice) {
+			return
+		}
+		px := os.ProvidableXOnTick(price)
+		if px.IsZero() {
+			return
+		}
+		found = true
+	case SwapDirectionSell:
+		price = UpTick(price, prec)
+		if price.LTE(os.PoolPrice) {
+			return
+		}
+		py := os.ProvidableYOnTick(price)
+		if py.IsZero() {
+			return
+		}
+		found = true
+	}
+	return
+}
+
+func (os PoolOrderSource) DownTick(price sdk.Dec, prec int) (tick sdk.Dec, found bool) {
+	switch os.Direction {
+	case SwapDirectionBuy:
+		price = DownTick(price, prec)
+		if price.GTE(os.PoolPrice) {
+			return
+		}
+		px := os.ProvidableXOnTick(price)
+		if px.IsZero() {
+			return
+		}
+		found = true
+	case SwapDirectionSell:
+		price = DownTick(price, prec)
+		if price.LTE(os.PoolPrice) {
+			return
+		}
+		py := os.ProvidableYOnTick(price)
+		if py.IsZero() {
+			return
+		}
+		found = true
+	}
+	return
+}
+
+func (os PoolOrderSource) HighestTick(prec int) (tick sdk.Dec, found bool) {
+	switch os.Direction {
+	case SwapDirectionBuy:
+		tick = PriceToTick(os.PoolPrice, prec)
+		if os.PoolPrice.Equal(tick) {
+			tick = DownTick(tick, prec)
+		}
+		found = true
+	case SwapDirectionSell:
+		// TODO: is it possible to calculate?
+		panic("not implemented")
+	}
+	return
+}
+
+func (os PoolOrderSource) LowestTick(prec int) (tick sdk.Dec, found bool) {
+	switch os.Direction {
+	case SwapDirectionBuy:
+		// TODO: is it possible to calculate?
+		panic("not implemented")
+	case SwapDirectionSell:
+		tick = UpTick(PriceToTick(os.PoolPrice, prec), prec)
+		found = true
+	}
+	return
 }
 
 func IsDepletedPool(pool PoolI) bool {
