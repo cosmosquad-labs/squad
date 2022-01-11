@@ -78,12 +78,12 @@ func (msg MsgCreatePool) GetCreator() sdk.AccAddress {
 // NewMsgDepositBatch creates a new MsgDepositBatch.
 func NewMsgDepositBatch(
 	depositor sdk.AccAddress,
-	poolID uint64,
+	poolId uint64,
 	depositCoins sdk.Coins,
 ) *MsgDepositBatch {
 	return &MsgDepositBatch{
 		Depositor: depositor.String(),
-		PoolId:    poolID,
+		PoolId:    poolId,
 		Coins:     depositCoins,
 	}
 }
@@ -131,12 +131,12 @@ func (msg MsgDepositBatch) GetDepositor() sdk.AccAddress {
 // NewMsgWithdrawBatch creates a new MsgWithdrawBatch.
 func NewMsgWithdrawBatch(
 	withdrawer sdk.AccAddress,
-	poolID uint64,
+	poolId uint64,
 	poolCoin sdk.Coin,
 ) *MsgWithdrawBatch {
 	return &MsgWithdrawBatch{
 		Withdrawer: withdrawer.String(),
-		PoolId:     poolID,
+		PoolId:     poolId,
 		PoolCoin:   poolCoin,
 	}
 }
