@@ -58,11 +58,30 @@ func (k Keeper) GetNextPairIdWithUpdate(ctx sdk.Context) uint64 {
 	return id
 }
 
-// SetPairId sets the global pair id counter.
+// SetPairId stores the global pair id counter.
 func (k Keeper) SetPairId(ctx sdk.Context, id uint64) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&gogotypes.UInt64Value{Value: id})
 	store.Set(types.PairIdKey, bz)
+}
+
+// SetPair stores the particular pair.
+func (k Keeper) SetPair(ctx sdk.Context, pair types.Pair) {
+	store := ctx.KVStore(k.storeKey)
+	b := types.MustMarshalPair(k.cdc, pair)
+	store.Set(types.GetPairKey(pair.Id), b)
+}
+
+// SetPairDenom stores the particular denom pair.
+func (k Keeper) SetPairDenom(ctx sdk.Context, denomA string, denomB string, pairId uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.GetPairIndexKey(denomA, denomB, pairId), []byte{})
+}
+
+// SetReversePairDenom stores the particular denom pair in reverse order.
+func (k Keeper) SetReversePairDenom(ctx sdk.Context, denomB string, denomA string, pairId uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.GetReversePairIndexKey(denomB, denomA, pairId), []byte{})
 }
 
 // IterateAllPairs iterates over all the stored pairs and performs a callback function.
@@ -75,6 +94,38 @@ func (k Keeper) IterateAllPairs(ctx sdk.Context, cb func(pair types.Pair) (stop 
 
 	for ; iterator.Valid(); iterator.Next() {
 		pair := types.MustUnmarshalPair(k.cdc, iterator.Value())
+		if cb(pair) {
+			break
+		}
+	}
+}
+
+// TODO: add test code to verify this function
+func (k Keeper) IteratePairsByDenom(ctx sdk.Context, denom string, cb func(pair types.Pair) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+
+	iterator := sdk.KVStorePrefixIterator(store, types.GetPairIndexByDenomKey(denom))
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		_, pairId := types.ParsePairByDenomIndexKey(iterator.Key())
+		pair, _ := k.GetPair(ctx, pairId)
+		if cb(pair) {
+			break
+		}
+	}
+}
+
+// TODO: add test code to verify this function
+func (k Keeper) IterateReversePairsByDenom(ctx sdk.Context, denom string, cb func(pair types.Pair) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+
+	iterator := sdk.KVStorePrefixIterator(store, types.GetReversePairIndexByDenomKey(denom))
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		_, pairId := types.ParseReversePairByDenomIndexKey(iterator.Key())
+		pair, _ := k.GetPair(ctx, pairId)
 		if cb(pair) {
 			break
 		}

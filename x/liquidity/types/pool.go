@@ -104,6 +104,12 @@ func WithdrawFromPool(pool PoolI, pc sdk.Int, feeRate sdk.Dec) (x, y sdk.Int) {
 	return
 }
 
+// MustMarshalPool returns the pool bytes.
+// It throws panic if it fails.
+func MustMarshalPool(cdc codec.BinaryCodec, pool Pool) []byte {
+	return cdc.MustMarshal(&pool)
+}
+
 // MustUnmarshalPool return the unmarshaled pool from bytes.
 // It throws panic if it fails.
 func MustUnmarshalPool(cdc codec.BinaryCodec, value []byte) Pool {

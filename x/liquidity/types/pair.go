@@ -2,6 +2,12 @@ package types
 
 import "github.com/cosmos/cosmos-sdk/codec"
 
+// MustMarshalPair returns the pair bytes.
+// It throws panic if it fails.
+func MustMarshalPair(cdc codec.BinaryCodec, pair Pair) []byte {
+	return cdc.MustMarshal(&pair)
+}
+
 // MustUnmarshalPair return the unmarshaled pair from bytes.
 // It throws panic if it fails.
 func MustUnmarshalPair(cdc codec.BinaryCodec, value []byte) Pair {

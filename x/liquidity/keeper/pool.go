@@ -58,11 +58,18 @@ func (k Keeper) GetNextPoolIdWithUpdate(ctx sdk.Context) uint64 {
 	return id
 }
 
-// SetPoolId sets the global pool id counter.
+// SetPoolId stores the global pool id counter.
 func (k Keeper) SetPoolId(ctx sdk.Context, id uint64) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&gogotypes.UInt64Value{Value: id})
 	store.Set(types.PoolIdKey, bz)
+}
+
+// SetPool stores the particular pool.
+func (k Keeper) SetPool(ctx sdk.Context, pool types.Pool) {
+	store := ctx.KVStore(k.storeKey)
+	b := types.MustMarshalPool(k.cdc, pool)
+	store.Set(types.GetPoolKey(pool.Id), b)
 }
 
 // IterateAllPools iterates over all the stored pools and performs a callback function.
@@ -80,3 +87,18 @@ func (k Keeper) IterateAllPools(ctx sdk.Context, cb func(pool types.Pool) (stop 
 		}
 	}
 }
+
+// func (k Keeper) IteratePoolsByPair(ctx sdk.Context, denom string, cb func(pair types.Pair) (stop bool)) {
+// 	store := ctx.KVStore(k.storeKey)
+
+// 	iterator := sdk.KVStorePrefixIterator(store, types.GetPairIndexByDenomKey(denom))
+// 	defer iterator.Close()
+
+// 	for ; iterator.Valid(); iterator.Next() {
+// 		_, pairId := types.ParsePairByDenomIndexKey(iterator.Key())
+// 		pair, _ := k.GetPair(ctx, pairId)
+// 		if cb(pair) {
+// 			break
+// 		}
+// 	}
+// }
