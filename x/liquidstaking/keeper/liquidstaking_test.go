@@ -38,7 +38,9 @@ func (suite *KeeperTestSuite) TestLiquidStaking() {
 	suite.Require().False(found)
 
 	proxyAccDel1, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, types.LiquidStakingProxyAcc, valOpers[0])
+	suite.Require().True(found)
 	proxyAccDel2, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, types.LiquidStakingProxyAcc, valOpers[1])
+	suite.Require().True(found)
 	proxyAccDel3, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, types.LiquidStakingProxyAcc, valOpers[2])
 	suite.Require().True(found)
 	suite.Require().Equal(proxyAccDel1.Shares, stakingAmt.ToDec().QuoInt64(3).TruncateDec())
@@ -66,8 +68,11 @@ func (suite *KeeperTestSuite) TestLiquidStaking() {
 	suite.Require().Equal(balanceBeginUBD.Amount, balanceBeforeUBD.Amount)
 
 	proxyAccDel1, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, types.LiquidStakingProxyAcc, valOpers[0])
+	suite.Require().True(found)
 	proxyAccDel2, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, types.LiquidStakingProxyAcc, valOpers[1])
+	suite.Require().True(found)
 	proxyAccDel3, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, types.LiquidStakingProxyAcc, valOpers[2])
+	suite.Require().True(found)
 	suite.Require().Equal(stakingAmt.Sub(ubdAmt.Amount).ToDec(), proxyAccDel1.Shares.Add(proxyAccDel2.Shares).Add(proxyAccDel3.Shares))
 
 	suite.ctx = suite.ctx.WithBlockHeight(200).WithBlockTime(ubdTime.Add(1))
