@@ -25,31 +25,31 @@ type PoolI interface {
 }
 
 type PoolInfo struct {
-	rx, ry sdk.Int
-	ps     sdk.Int
+	RX, RY sdk.Int
+	PS     sdk.Int
 }
 
 func NewPoolInfo(rx, ry, ps sdk.Int) PoolInfo {
 	return PoolInfo{
-		rx: rx,
-		ry: ry,
-		ps: ps,
+		RX: rx,
+		RY: ry,
+		PS: ps,
 	}
 }
 
 func (info PoolInfo) Balance() (rx, ry sdk.Int) {
-	return info.rx, info.ry
+	return info.RX, info.RY
 }
 
 func (info PoolInfo) PoolCoinSupply() sdk.Int {
-	return info.ps
+	return info.PS
 }
 
 func (info PoolInfo) Price() sdk.Dec {
-	if info.rx.IsZero() || info.ry.IsZero() {
+	if info.RX.IsZero() || info.RY.IsZero() {
 		panic("pool price is not defined for a depleted pool")
 	}
-	return info.rx.ToDec().Quo(info.ry.ToDec())
+	return info.RX.ToDec().Quo(info.RY.ToDec())
 }
 
 func IsDepletedPool(pool PoolI) bool {

@@ -10,7 +10,7 @@ import (
 
 var (
 	_ OrderSource = (*OrderBookTicks)(nil)
-	_ OrderSource = (*mergedOrderSource)(nil)
+	_ OrderSource = (*MergedOrderSources)(nil)
 )
 
 type PriceDirection int
@@ -51,14 +51,14 @@ func (orders Orders) RemainingAmount() sdk.Int {
 }
 
 type OrderBookTick struct {
-	price  sdk.Dec
-	orders Orders
+	Price  sdk.Dec
+	Orders Orders
 }
 
 func NewOrderBookTick(order *Order) *OrderBookTick {
 	return &OrderBookTick{
-		price:  order.Price,
-		orders: Orders{order},
+		Price:  order.Price,
+		Orders: Orders{order},
 	}
 }
 
@@ -67,7 +67,7 @@ type OrderBookTicks []*OrderBookTick
 func (ticks OrderBookTicks) FindPrice(price sdk.Dec) (i int, exact bool) {
 	var prices []sdk.Dec
 	for _, tick := range ticks {
-		prices = append(prices, tick.price)
+		prices = append(prices, tick.Price)
 	}
 	i = sort.Search(len(prices), func(i int) bool {
 		return prices[i].LTE(price)
@@ -81,7 +81,7 @@ func (ticks OrderBookTicks) FindPrice(price sdk.Dec) (i int, exact bool) {
 func (ticks *OrderBookTicks) AddOrder(order *Order) {
 	i, exact := ticks.FindPrice(order.Price)
 	if exact {
-		(*ticks)[i].orders = append((*ticks)[i].orders, order)
+		(*ticks)[i].Orders = append((*ticks)[i].Orders, order)
 	} else {
 		if i < len(*ticks) {
 			// Insert a new order book tick at index i.
@@ -100,7 +100,7 @@ func (ticks OrderBookTicks) AmountGTE(price sdk.Dec) sdk.Int {
 	}
 	amount := sdk.ZeroInt()
 	for ; i >= 0; i-- {
-		amount = amount.Add(ticks[i].orders.RemainingAmount())
+		amount = amount.Add(ticks[i].Orders.RemainingAmount())
 	}
 	return amount
 }
@@ -109,7 +109,7 @@ func (ticks OrderBookTicks) AmountLTE(price sdk.Dec) sdk.Int {
 	i, _ := ticks.FindPrice(price)
 	amount := sdk.ZeroInt()
 	for ; i < len(ticks); i++ {
-		amount = amount.Add(ticks[i].orders.RemainingAmount())
+		amount = amount.Add(ticks[i].Orders.RemainingAmount())
 	}
 	return amount
 }
@@ -119,7 +119,7 @@ func (ticks OrderBookTicks) Orders(price sdk.Dec) Orders {
 	if !exact {
 		return nil
 	}
-	return ticks[i].orders
+	return ticks[i].Orders
 }
 
 func (ticks OrderBookTicks) UpTick(price sdk.Dec, _ int) (tick sdk.Dec, found bool) {
@@ -127,7 +127,7 @@ func (ticks OrderBookTicks) UpTick(price sdk.Dec, _ int) (tick sdk.Dec, found bo
 	if i == 0 {
 		return
 	}
-	return ticks[i-1].price, true
+	return ticks[i-1].Price, true
 }
 
 func (ticks OrderBookTicks) DownTick(price sdk.Dec, _ int) (tick sdk.Dec, found bool) {
@@ -138,41 +138,41 @@ func (ticks OrderBookTicks) DownTick(price sdk.Dec, _ int) (tick sdk.Dec, found 
 	if i >= len(ticks)-1 {
 		return
 	}
-	return ticks[i+1].price, true
+	return ticks[i+1].Price, true
 }
 
 func (ticks OrderBookTicks) HighestTick(_ int) (tick sdk.Dec, found bool) {
 	if len(ticks) == 0 {
 		return
 	}
-	return ticks[0].price, true
+	return ticks[0].Price, true
 }
 
 func (ticks OrderBookTicks) LowestTick(_ int) (tick sdk.Dec, found bool) {
 	if len(ticks) == 0 {
 		return
 	}
-	return ticks[len(ticks)-1].price, true
+	return ticks[len(ticks)-1].Price, true
 }
 
 type OrderBook struct {
-	buys  OrderBookTicks
-	sells OrderBookTicks
+	BuyTicks  OrderBookTicks
+	SellTicks OrderBookTicks
 }
 
 func NewOrderBook() *OrderBook {
 	return &OrderBook{
-		buys:  OrderBookTicks{},
-		sells: OrderBookTicks{},
+		BuyTicks:  OrderBookTicks{},
+		SellTicks: OrderBookTicks{},
 	}
 }
 
 func (ob *OrderBook) AddOrder(order *Order) {
 	switch order.Direction {
 	case SwapDirectionBuy:
-		ob.buys.AddOrder(order)
+		ob.BuyTicks.AddOrder(order)
 	case SwapDirectionSell:
-		ob.sells.AddOrder(order)
+		ob.SellTicks.AddOrder(order)
 	}
 }
 
@@ -185,16 +185,16 @@ func (ob *OrderBook) AddOrders(orders ...*Order) {
 func (ob OrderBook) OrderSource(dir SwapDirection) OrderSource {
 	switch dir {
 	case SwapDirectionBuy:
-		return ob.buys
+		return ob.BuyTicks
 	case SwapDirectionSell:
-		return ob.sells
+		return ob.SellTicks
 	default:
 		panic(fmt.Sprintf("unknown swap direction: %v", dir))
 	}
 }
 
 func (ob OrderBook) String() string {
-	os := MergeOrderSources(ob.buys, ob.sells)
+	os := MergeOrderSources(ob.BuyTicks, ob.SellTicks)
 	price, found := os.HighestTick(0)
 	if !found {
 		return "<nil>"
@@ -205,7 +205,9 @@ func (ob OrderBook) String() string {
 	for {
 		lines = append(lines,
 			fmt.Sprintf("| %12s | %24s | %-12s |",
-				ob.buys.Orders(price).RemainingAmount(), price.String(), ob.sells.Orders(price).RemainingAmount()))
+				ob.BuyTicks.Orders(price).RemainingAmount(),
+				price.String(),
+				ob.SellTicks.Orders(price).RemainingAmount()))
 
 		price, found = os.DownTick(price, 0)
 		if !found {
@@ -229,36 +231,36 @@ type OrderSource interface {
 	LowestTick(prec int) (tick sdk.Dec, found bool)
 }
 
-type mergedOrderSource struct {
-	sources []OrderSource
+type MergedOrderSources struct {
+	Sources []OrderSource
 }
 
-func (mos *mergedOrderSource) AmountGTE(price sdk.Dec) sdk.Int {
+func (os *MergedOrderSources) AmountGTE(price sdk.Dec) sdk.Int {
 	amt := sdk.ZeroInt()
-	for _, source := range mos.sources {
+	for _, source := range os.Sources {
 		amt = amt.Add(source.AmountGTE(price))
 	}
 	return amt
 }
 
-func (mos *mergedOrderSource) AmountLTE(price sdk.Dec) sdk.Int {
+func (os *MergedOrderSources) AmountLTE(price sdk.Dec) sdk.Int {
 	amt := sdk.ZeroInt()
-	for _, source := range mos.sources {
+	for _, source := range os.Sources {
 		amt = amt.Add(source.AmountLTE(price))
 	}
 	return amt
 }
 
-func (mos *mergedOrderSource) Orders(price sdk.Dec) Orders {
-	var os Orders
-	for _, source := range mos.sources {
-		os = append(os, source.Orders(price)...)
+func (os *MergedOrderSources) Orders(price sdk.Dec) Orders {
+	var orders Orders
+	for _, source := range os.Sources {
+		orders = append(orders, source.Orders(price)...)
 	}
-	return os
+	return orders
 }
 
-func (mos *mergedOrderSource) UpTick(price sdk.Dec, prec int) (tick sdk.Dec, found bool) {
-	for _, source := range mos.sources {
+func (os *MergedOrderSources) UpTick(price sdk.Dec, prec int) (tick sdk.Dec, found bool) {
+	for _, source := range os.Sources {
 		t, f := source.UpTick(price, prec)
 		if f && (tick.IsNil() || t.LT(tick)) {
 			tick = t
@@ -268,8 +270,8 @@ func (mos *mergedOrderSource) UpTick(price sdk.Dec, prec int) (tick sdk.Dec, fou
 	return
 }
 
-func (mos *mergedOrderSource) DownTick(price sdk.Dec, prec int) (tick sdk.Dec, found bool) {
-	for _, source := range mos.sources {
+func (os *MergedOrderSources) DownTick(price sdk.Dec, prec int) (tick sdk.Dec, found bool) {
+	for _, source := range os.Sources {
 		t, f := source.DownTick(price, prec)
 		if f && (tick.IsNil() || t.GT(tick)) {
 			tick = t
@@ -279,8 +281,8 @@ func (mos *mergedOrderSource) DownTick(price sdk.Dec, prec int) (tick sdk.Dec, f
 	return
 }
 
-func (mos *mergedOrderSource) HighestTick(prec int) (tick sdk.Dec, found bool) {
-	for _, source := range mos.sources {
+func (os *MergedOrderSources) HighestTick(prec int) (tick sdk.Dec, found bool) {
+	for _, source := range os.Sources {
 		t, f := source.HighestTick(prec)
 		if f && (tick.IsNil() || t.GT(tick)) {
 			tick = t
@@ -290,8 +292,8 @@ func (mos *mergedOrderSource) HighestTick(prec int) (tick sdk.Dec, found bool) {
 	return
 }
 
-func (mos *mergedOrderSource) LowestTick(prec int) (tick sdk.Dec, found bool) {
-	for _, source := range mos.sources {
+func (os *MergedOrderSources) LowestTick(prec int) (tick sdk.Dec, found bool) {
+	for _, source := range os.Sources {
 		t, f := source.LowestTick(prec)
 		if f && (tick.IsNil() || t.LT(tick)) {
 			tick = t
@@ -302,5 +304,5 @@ func (mos *mergedOrderSource) LowestTick(prec int) (tick sdk.Dec, found bool) {
 }
 
 func MergeOrderSources(sources ...OrderSource) OrderSource {
-	return &mergedOrderSource{sources: sources}
+	return &MergedOrderSources{Sources: sources}
 }

@@ -4,6 +4,138 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+type MatchEngine struct {
+	BuyOrderSource  OrderSource
+	SellOrderSource OrderSource
+	TickPrecision   int // price tick precision
+}
+
+func NewMatchEngine(buys, sells OrderSource, prec int) *MatchEngine {
+	return &MatchEngine{
+		BuyOrderSource:  buys,
+		SellOrderSource: sells,
+		TickPrecision:   prec,
+	}
+}
+
+func (engine *MatchEngine) Matchable() bool {
+	highestBuyPrice, found := engine.BuyOrderSource.HighestTick(engine.TickPrecision)
+	if !found {
+		return false
+	}
+	return engine.SellOrderSource.AmountLTE(highestBuyPrice).IsPositive()
+}
+
+func (engine *MatchEngine) EstimatedPriceDirection(lastPrice sdk.Dec) PriceDirection {
+	buyAmount := engine.BuyOrderSource.AmountGTE(lastPrice)
+	sellAmount := engine.SellOrderSource.AmountLTE(lastPrice)
+	if buyAmount.ToDec().GTE(lastPrice.MulInt(sellAmount)) {
+		return PriceIncreasing
+	}
+	return PriceDecreasing
+}
+
+// SwapPrice assumes that the last price is fit in tick.
+func (engine *MatchEngine) SwapPrice(lastPrice sdk.Dec) sdk.Dec {
+	dir := engine.EstimatedPriceDirection(lastPrice)
+	tickSource := MergeOrderSources(engine.BuyOrderSource, engine.SellOrderSource) // temporary order source just for ticks
+
+	buysCache := map[int]sdk.Int{}
+	buyAmountGTE := func(i int) sdk.Int {
+		ba, ok := buysCache[i]
+		if !ok {
+			ba = engine.BuyOrderSource.AmountGTE(TickFromIndex(i, engine.TickPrecision))
+			buysCache[i] = ba
+		}
+		return ba
+	}
+	sellsCache := map[int]sdk.Int{}
+	sellAmountLTE := func(i int) sdk.Int {
+		sa, ok := sellsCache[i]
+		if !ok {
+			sa = engine.SellOrderSource.AmountLTE(TickFromIndex(i, engine.TickPrecision))
+			sellsCache[i] = sa
+		}
+		return sa
+	}
+
+	currentPrice := lastPrice
+	for {
+		i := TickToIndex(currentPrice, engine.TickPrecision)
+		ba := buyAmountGTE(i)
+		sa := sellAmountLTE(i)
+		hba := buyAmountGTE(i + 1)
+		lsa := sellAmountLTE(i - 1)
+
+		if currentPrice.MulInt(sa).TruncateInt().GTE(hba) && ba.GTE(currentPrice.MulInt(lsa).TruncateInt()) {
+			return currentPrice
+		}
+
+		if dir == PriceIncreasing && hba.IsZero() || dir == PriceDecreasing && lsa.IsZero() {
+			return currentPrice
+		}
+
+		var nextPrice sdk.Dec
+		var found bool
+		switch dir {
+		case PriceIncreasing:
+			nextPrice, found = tickSource.UpTick(currentPrice, engine.TickPrecision)
+		case PriceDecreasing:
+			nextPrice, found = tickSource.DownTick(currentPrice, engine.TickPrecision)
+		}
+		if !found {
+			return currentPrice
+		}
+		currentPrice = nextPrice
+	}
+}
+
+func (engine *MatchEngine) Match(lastPrice sdk.Dec) {
+	if !engine.Matchable() {
+		return
+	}
+
+	swapPrice := engine.SwapPrice(lastPrice)
+	buyPrice, _ := engine.BuyOrderSource.HighestTick(engine.TickPrecision)
+	sellPrice, _ := engine.SellOrderSource.LowestTick(engine.TickPrecision)
+
+	ob := NewOrderBook()
+
+	for {
+		buyOrders := ob.BuyTicks.Orders(buyPrice)
+		if len(buyOrders) == 0 {
+			ob.AddOrders(engine.BuyOrderSource.Orders(buyPrice)...)
+			buyOrders = ob.BuyTicks.Orders(buyPrice)
+		}
+		sellOrders := ob.SellTicks.Orders(sellPrice)
+		if len(sellOrders) == 0 {
+			ob.AddOrders(engine.SellOrderSource.Orders(sellPrice)...)
+			sellOrders = ob.SellTicks.Orders(sellPrice)
+		}
+
+		MatchOrders(buyOrders, sellOrders, swapPrice)
+
+		if buyPrice.Equal(swapPrice) && sellPrice.Equal(swapPrice) {
+			break
+		}
+
+		if buyOrders.RemainingAmount().IsZero() {
+			var found bool
+			buyPrice, found = engine.BuyOrderSource.DownTick(buyPrice, engine.TickPrecision)
+			if !found {
+				break
+			}
+		}
+		if sellOrders.RemainingAmount().IsZero() {
+			var found bool
+			sellPrice, found = engine.SellOrderSource.UpTick(sellPrice, engine.TickPrecision)
+			if !found {
+				break
+			}
+		}
+	}
+}
+
 // MatchOrders matches two order groups at given price.
 func MatchOrders(buyOrders, sellOrders Orders, price sdk.Dec) {
 	buyAmount := buyOrders.RemainingAmount()
@@ -50,135 +182,5 @@ func MatchOrders(buyOrders, sellOrders Orders, price sdk.Dec) {
 		}
 		in := proportion.MulInt(smallerAmount).TruncateInt()
 		order.ReceivedAmount = order.ReceivedAmount.Add(in)
-	}
-}
-
-type MatchEngine struct {
-	buys  OrderSource
-	sells OrderSource
-	prec  int // price tick precision
-}
-
-func NewMatchEngine(buys, sells OrderSource, prec int) *MatchEngine {
-	return &MatchEngine{
-		buys:  buys,
-		sells: sells,
-		prec:  prec,
-	}
-}
-
-func (eng *MatchEngine) Matchable() bool {
-	highestBuyPrice, found := eng.buys.HighestTick(eng.prec)
-	if !found {
-		return false
-	}
-	return eng.sells.AmountLTE(highestBuyPrice).IsPositive()
-}
-
-func (eng *MatchEngine) EstimatedPriceDirection(lastPrice sdk.Dec) PriceDirection {
-	if eng.buys.AmountGTE(lastPrice).ToDec().GTE(lastPrice.MulInt(eng.sells.AmountLTE(lastPrice))) {
-		return PriceIncreasing
-	}
-	return PriceDecreasing
-}
-
-// SwapPrice assumes that the last price is fit in tick.
-func (eng *MatchEngine) SwapPrice(lastPrice sdk.Dec) sdk.Dec {
-	dir := eng.EstimatedPriceDirection(lastPrice)
-	os := MergeOrderSources(eng.buys, eng.sells) // temporary order source just for ticks
-
-	buysCache := map[int]sdk.Int{}
-	buyAmountGTE := func(i int) sdk.Int {
-		ba, ok := buysCache[i]
-		if !ok {
-			ba = eng.buys.AmountGTE(TickFromIndex(i, eng.prec))
-			buysCache[i] = ba
-		}
-		return ba
-	}
-	sellsCache := map[int]sdk.Int{}
-	sellAmountLTE := func(i int) sdk.Int {
-		sa, ok := sellsCache[i]
-		if !ok {
-			sa = eng.sells.AmountLTE(TickFromIndex(i, eng.prec))
-			sellsCache[i] = sa
-		}
-		return sa
-	}
-
-	currentPrice := lastPrice
-	for {
-		i := TickToIndex(currentPrice, eng.prec)
-		ba := buyAmountGTE(i)
-		sa := sellAmountLTE(i)
-		hba := buyAmountGTE(i + 1)
-		lsa := sellAmountLTE(i - 1)
-
-		if currentPrice.MulInt(sa).TruncateInt().GTE(hba) && ba.GTE(currentPrice.MulInt(lsa).TruncateInt()) {
-			return currentPrice
-		}
-
-		if dir == PriceIncreasing && hba.IsZero() || dir == PriceDecreasing && lsa.IsZero() {
-			return currentPrice
-		}
-
-		var nextPrice sdk.Dec
-		var found bool
-		switch dir {
-		case PriceIncreasing:
-			nextPrice, found = os.UpTick(currentPrice, eng.prec)
-		case PriceDecreasing:
-			nextPrice, found = os.DownTick(currentPrice, eng.prec)
-		}
-		if !found {
-			return currentPrice
-		}
-		currentPrice = nextPrice
-	}
-}
-
-func (eng *MatchEngine) Match(lastPrice sdk.Dec) {
-	if !eng.Matchable() {
-		return
-	}
-
-	swapPrice := eng.SwapPrice(lastPrice)
-	buyPrice, _ := eng.buys.HighestTick(eng.prec)
-	sellPrice, _ := eng.sells.LowestTick(eng.prec)
-
-	ob := NewOrderBook()
-
-	for {
-		buyOrders := ob.buys.Orders(buyPrice)
-		if len(buyOrders) == 0 {
-			ob.AddOrders(eng.buys.Orders(buyPrice)...)
-			buyOrders = ob.buys.Orders(buyPrice)
-		}
-		sellOrders := ob.sells.Orders(sellPrice)
-		if len(sellOrders) == 0 {
-			ob.AddOrders(eng.sells.Orders(sellPrice)...)
-			sellOrders = ob.sells.Orders(sellPrice)
-		}
-
-		MatchOrders(buyOrders, sellOrders, swapPrice)
-
-		if buyPrice.Equal(swapPrice) && sellPrice.Equal(swapPrice) {
-			break
-		}
-
-		if buyOrders.RemainingAmount().IsZero() {
-			var found bool
-			buyPrice, found = eng.buys.DownTick(buyPrice, eng.prec)
-			if !found {
-				break
-			}
-		}
-		if sellOrders.RemainingAmount().IsZero() {
-			var found bool
-			sellPrice, found = eng.sells.UpTick(sellPrice, eng.prec)
-			if !found {
-				break
-			}
-		}
 	}
 }
