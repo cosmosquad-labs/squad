@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -101,4 +102,21 @@ func WithdrawFromPool(pool PoolI, pc sdk.Int, feeRate sdk.Dec) (x, y sdk.Int) {
 	y = ry.ToDec().MulTruncate(proportion).MulTruncate(multiplier).TruncateInt() // ry * proportion * multiplier
 
 	return
+}
+
+// MustUnmarshalPool return the unmarshaled pool from bytes.
+// It throws panic if it fails.
+func MustUnmarshalPool(cdc codec.BinaryCodec, value []byte) Pool {
+	pool, err := UnmarshalPool(cdc, value)
+	if err != nil {
+		panic(err)
+	}
+
+	return pool
+}
+
+// UnmarshalPool returns the pool from bytes.
+func UnmarshalPool(cdc codec.BinaryCodec, value []byte) (pool Pool, err error) {
+	err = cdc.Unmarshal(value, &pool)
+	return pool, err
 }
