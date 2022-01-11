@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/tendermint/farming/x/liquidity/types"
+	"github.com/crescent-network/crescent/x/liquidity/types"
 )
 
 type msgServer struct {
