@@ -124,6 +124,10 @@ func (eng *MatchEngine) SwapPrice(lastPrice sdk.Dec) sdk.Dec {
 			return currentPrice
 		}
 
+		if dir == PriceIncreasing && hba.IsZero() || dir == PriceDecreasing && lsa.IsZero() {
+			return currentPrice
+		}
+
 		var nextPrice sdk.Dec
 		var found bool
 		switch dir {
