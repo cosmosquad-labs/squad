@@ -2,6 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/address"
 )
 
 const (
@@ -40,19 +41,44 @@ func GetPairKey(pairId uint64) []byte {
 	return append(PairKeyPrefix, sdk.Uint64ToBigEndian(pairId)...)
 }
 
-// GetPairIndexKey returns the store key ...
+// GetPairIndexKey returns the index key to retrieve denomB that is used to iterate pairs.
 func GetPairIndexKey(denomA string, denomB string) []byte {
 	return append(append(PairIndexKeyPrefix, LengthPrefixString(denomA)...), LengthPrefixString(denomB)...)
 }
 
-// GetReversePairIndexKey returns the store key ...
+// GetReversePairIndexKey returns the index key to retrieve denomA that is used to iterate pairs.
 func GetReversePairIndexKey(denomB string, denomA string) []byte {
-	return append(append(PairIndexKeyPrefix, LengthPrefixString(denomB)...), LengthPrefixString(denomA)...)
+	return append(append(ReversePairIndexKeyPrefix, LengthPrefixString(denomB)...), LengthPrefixString(denomA)...)
 }
 
 // GetPoolKey returns the store key to retrieve pool object from the pool id.
 func GetPoolKey(poolId uint64) []byte {
-	return append(PairKeyPrefix, sdk.Uint64ToBigEndian(poolId)...)
+	return append(PoolKeyPrefix, sdk.Uint64ToBigEndian(poolId)...)
+}
+
+// GetPoolByReserveAccIndexKey returns the index key to retrieve poolIds to that is used to iterate pools.
+func GetPoolByReserveAccIndexKey(reserveAcc sdk.AccAddress, poolId uint64) []byte {
+	return append(append(PoolByReverveAccIndexKeyPrefix, address.MustLengthPrefix(reserveAcc)...), sdk.Uint64ToBigEndian(poolId)...)
+}
+
+// GetPoolsByPairIndexKey returns the index key to retrieve pool id that is used to iterate pools.
+func GetPoolsByPairIndexKey(pairId uint64, poolId uint64) []byte {
+	return append(append(PoolByPairIndexKeyPrefix, sdk.Uint64ToBigEndian(pairId)...), sdk.Uint64ToBigEndian(poolId)...)
+}
+
+// GetDepositRequestKey returns the store key to retrieve deposit request object from the pool id and request id.
+func GetDepositRequestKey(poolId uint64, id uint64) []byte {
+	return append(append(DepositRequestKeyPrefix, sdk.Uint64ToBigEndian(poolId)...), sdk.Uint64ToBigEndian(id)...)
+}
+
+// GetWithdrawRequestKey returns the store key to retrieve withdaw request object from the pool id and request id
+func GetWithdrawRequestKey(poolId uint64, id uint64) []byte {
+	return append(append(WithdrawRequestKeyPrefix, sdk.Uint64ToBigEndian(poolId)...), sdk.Uint64ToBigEndian(id)...)
+}
+
+// GetSwapRequestKey returns the store key to retrieve deposit swap object from the pool id and request id
+func GetSwapRequestKey(poolId uint64, id uint64) []byte {
+	return append(append(SwapRequestKeyPrefix, sdk.Uint64ToBigEndian(poolId)...), sdk.Uint64ToBigEndian(id)...)
 }
 
 // LengthPrefixString returns length-prefixed bytes representation
