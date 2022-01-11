@@ -7,7 +7,7 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
-const ReserveCoinNum int = 2
+const ReserveCoinNum = 2
 
 var (
 	KeyInitialPoolCoinSupply = []byte("InitialPoolCoinSupply")
