@@ -90,12 +90,13 @@ func (engine *MatchEngine) SwapPrice(lastPrice sdk.Dec) sdk.Dec {
 	}
 }
 
-func (engine *MatchEngine) Match(lastPrice sdk.Dec) {
+func (engine *MatchEngine) Match(lastPrice sdk.Dec) (swapPrice sdk.Dec, matched bool) {
 	if !engine.Matchable() {
 		return
 	}
+	matched = true
 
-	swapPrice := engine.SwapPrice(lastPrice)
+	swapPrice = engine.SwapPrice(lastPrice)
 	buyPrice, _ := engine.BuyOrderSource.HighestTick(engine.TickPrecision)
 	sellPrice, _ := engine.SellOrderSource.LowestTick(engine.TickPrecision)
 
@@ -134,6 +135,8 @@ func (engine *MatchEngine) Match(lastPrice sdk.Dec) {
 			}
 		}
 	}
+
+	return
 }
 
 // MatchOrders matches two order groups at given price.
