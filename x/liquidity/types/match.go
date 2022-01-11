@@ -90,7 +90,7 @@ func (engine *MatchEngine) SwapPrice(lastPrice sdk.Dec) sdk.Dec {
 	}
 }
 
-func (engine *MatchEngine) Match(lastPrice sdk.Dec) (swapPrice sdk.Dec, matched bool) {
+func (engine *MatchEngine) Match(lastPrice sdk.Dec) (orderBook *OrderBook, swapPrice sdk.Dec, matched bool) {
 	if !engine.Matchable() {
 		return
 	}
@@ -100,18 +100,18 @@ func (engine *MatchEngine) Match(lastPrice sdk.Dec) (swapPrice sdk.Dec, matched 
 	buyPrice, _ := engine.BuyOrderSource.HighestTick(engine.TickPrecision)
 	sellPrice, _ := engine.SellOrderSource.LowestTick(engine.TickPrecision)
 
-	ob := NewOrderBook()
+	orderBook = NewOrderBook()
 
 	for {
-		buyOrders := ob.BuyTicks.Orders(buyPrice)
+		buyOrders := orderBook.BuyTicks.Orders(buyPrice)
 		if len(buyOrders) == 0 {
-			ob.AddOrders(engine.BuyOrderSource.Orders(buyPrice)...)
-			buyOrders = ob.BuyTicks.Orders(buyPrice)
+			orderBook.AddOrders(engine.BuyOrderSource.Orders(buyPrice)...)
+			buyOrders = orderBook.BuyTicks.Orders(buyPrice)
 		}
-		sellOrders := ob.SellTicks.Orders(sellPrice)
+		sellOrders := orderBook.SellTicks.Orders(sellPrice)
 		if len(sellOrders) == 0 {
-			ob.AddOrders(engine.SellOrderSource.Orders(sellPrice)...)
-			sellOrders = ob.SellTicks.Orders(sellPrice)
+			orderBook.AddOrders(engine.SellOrderSource.Orders(sellPrice)...)
+			sellOrders = orderBook.SellTicks.Orders(sellPrice)
 		}
 
 		MatchOrders(buyOrders, sellOrders, swapPrice)
