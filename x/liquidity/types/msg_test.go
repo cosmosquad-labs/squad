@@ -194,7 +194,7 @@ func TestMsgWithdrawBatch(t *testing.T) {
 }
 
 func TestMsgSwapBatch(t *testing.T) {
-	orderLifeSpan := 20 * time.Second
+	orderLifespan := 20 * time.Second
 
 	testCases := []struct {
 		expErr string
@@ -207,7 +207,7 @@ func TestMsgSwapBatch(t *testing.T) {
 				sdk.NewInt64Coin("denom2", 100_000_000),
 				"denom1",
 				sdk.MustNewDecFromStr("1.0"),
-				orderLifeSpan,
+				orderLifespan,
 			),
 		},
 		{
@@ -217,7 +217,7 @@ func TestMsgSwapBatch(t *testing.T) {
 				sdk.NewInt64Coin("denom2", 100_000_000),
 				"denom1",
 				sdk.MustNewDecFromStr("1.0"),
-				orderLifeSpan,
+				orderLifespan,
 			),
 		},
 		{
@@ -227,7 +227,7 @@ func TestMsgSwapBatch(t *testing.T) {
 				sdk.NewInt64Coin("denom2", 0),
 				"denom1",
 				sdk.MustNewDecFromStr("1.0"),
-				orderLifeSpan,
+				orderLifespan,
 			),
 		},
 		{
@@ -237,7 +237,7 @@ func TestMsgSwapBatch(t *testing.T) {
 				sdk.NewInt64Coin("denom2", 100_000_000),
 				"denom2",
 				sdk.MustNewDecFromStr("1.0"),
-				orderLifeSpan,
+				orderLifespan,
 			),
 		},
 	}

@@ -191,7 +191,7 @@ func NewMsgSwapBatch(
 		Coin:            coin,
 		DemandCoinDenom: demandCoinDenom,
 		Price:           price,
-		OrderLifespan:   orderLifeSpan,
+		OrderLifespan:   orderLifespan,
 	}
 }
 
