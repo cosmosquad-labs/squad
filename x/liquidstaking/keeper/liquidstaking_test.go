@@ -17,9 +17,9 @@ func (suite *KeeperTestSuite) TestLiquidStaking() {
 	suite.ctx = suite.ctx.WithBlockHeight(100).WithBlockTime(types.MustParseRFC3339("2022-03-01T00:00:00Z"))
 	params := suite.keeper.GetParams(suite.ctx)
 	params.WhitelistedValidators = []types.WhitelistedValidator{
-		{valOpers[0].String(), sdk.OneDec()},
-		{valOpers[1].String(), sdk.OneDec()},
-		{valOpers[2].String(), sdk.OneDec()},
+		{ValidatorAddress: valOpers[0].String(), Weight: sdk.OneDec()},
+		{ValidatorAddress: valOpers[1].String(), Weight: sdk.OneDec()},
+		{ValidatorAddress: valOpers[2].String(), Weight: sdk.OneDec()},
 	}
 	params.UnstakeFeeRate = sdk.ZeroDec()
 	suite.keeper.SetParams(suite.ctx, params)
@@ -95,10 +95,10 @@ func (suite *KeeperTestSuite) TestLiquidStakingGov() {
 	// v1, v2, v3, v4
 	vals, valOpers := suite.CreateValidators([]int64{10000000, 10000000, 10000000, 10000000, 10000000})
 	params.WhitelistedValidators = []types.WhitelistedValidator{
-		{valOpers[0].String(), sdk.MustNewDecFromStr("0.25")},
-		{valOpers[1].String(), sdk.MustNewDecFromStr("0.25")},
-		{valOpers[2].String(), sdk.MustNewDecFromStr("0.25")},
-		{valOpers[3].String(), sdk.MustNewDecFromStr("0.25")},
+		{ValidatorAddress: valOpers[0].String(), Weight: sdk.MustNewDecFromStr("0.25")},
+		{ValidatorAddress: valOpers[1].String(), Weight: sdk.MustNewDecFromStr("0.25")},
+		{ValidatorAddress: valOpers[2].String(), Weight: sdk.MustNewDecFromStr("0.25")},
+		{ValidatorAddress: valOpers[3].String(), Weight: sdk.MustNewDecFromStr("0.25")},
 	}
 	suite.keeper.SetParams(suite.ctx, params)
 	suite.ctx = suite.ctx.WithBlockHeight(100).WithBlockTime(types.MustParseRFC3339("2022-03-01T00:00:00Z"))
@@ -138,10 +138,13 @@ func (suite *KeeperTestSuite) TestLiquidStakingGov() {
 	proposal.Status = govtypes.StatusVotingPeriod
 	suite.app.GovKeeper.SetProposal(suite.ctx, proposal)
 
-	suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, vals[0], govtypes.NewNonSplitVoteOption(govtypes.OptionYes))
-	suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, vals[1], govtypes.NewNonSplitVoteOption(govtypes.OptionYes))
+	err = suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, vals[0], govtypes.NewNonSplitVoteOption(govtypes.OptionYes))
+	suite.Require().NoError(err)
+	err = suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, vals[1], govtypes.NewNonSplitVoteOption(govtypes.OptionYes))
+	suite.Require().NoError(err)
 	//suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, vals[2], govtypes.NewNonSplitVoteOption(govtypes.OptionNo))
-	suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, vals[3], govtypes.NewNonSplitVoteOption(govtypes.OptionNo))
+	err = suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, vals[3], govtypes.NewNonSplitVoteOption(govtypes.OptionNo))
+	suite.Require().NoError(err)
 
 	err = suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, delB, govtypes.NewNonSplitVoteOption(govtypes.OptionNo))
 	suite.Require().NoError(err)
@@ -240,7 +243,7 @@ func (suite *KeeperTestSuite) TestLiquidStakingGov2() {
 
 	vals, valOpers := suite.CreateValidators([]int64{10000000})
 	params.WhitelistedValidators = []types.WhitelistedValidator{
-		{valOpers[0].String(), sdk.MustNewDecFromStr("0.25")},
+		{ValidatorAddress: valOpers[0].String(), Weight: sdk.MustNewDecFromStr("0.25")},
 	}
 	suite.keeper.SetParams(suite.ctx, params)
 	suite.ctx = suite.ctx.WithBlockHeight(100).WithBlockTime(types.MustParseRFC3339("2022-03-01T00:00:00Z"))
