@@ -78,14 +78,10 @@ func NewOrderBookTick(order *Order) *OrderBookTick {
 type OrderBookTicks []*OrderBookTick
 
 func (ticks OrderBookTicks) FindPrice(price sdk.Dec) (i int, exact bool) {
-	var prices []sdk.Dec
-	for _, tick := range ticks {
-		prices = append(prices, tick.Price)
-	}
-	i = sort.Search(len(prices), func(i int) bool {
-		return prices[i].LTE(price)
+	i = sort.Search(len(ticks), func(i int) bool {
+		return ticks[i].Price.LTE(price)
 	})
-	if i < len(prices) && prices[i].Equal(price) {
+	if i < len(ticks) && ticks[i].Price.Equal(price) {
 		exact = true
 	}
 	return
@@ -103,6 +99,12 @@ func (ticks *OrderBookTicks) AddOrder(order *Order) {
 			// Append a new order group at the end.
 			*ticks = append(*ticks, NewOrderBookTick(order))
 		}
+	}
+}
+
+func (ticks *OrderBookTicks) AddOrders(orders ...*Order) {
+	for _, order := range orders {
+		ticks.AddOrder(order)
 	}
 }
 
