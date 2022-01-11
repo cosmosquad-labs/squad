@@ -23,39 +23,33 @@ func MatchOrders(buyOrders, sellOrders Orders, price sdk.Dec) {
 	var smallerOrders, biggerOrders Orders
 	var smallerAmount, biggerAmount sdk.Int
 	var smallerDemandAmount sdk.Int
-	switch {
-	case buyAmount.LT(sellDemandAmount):
+	if buyAmount.LTE(sellDemandAmount) { // Note that we use LTE here.
 		smallerOrders, biggerOrders = buyOrders, sellOrders
 		smallerAmount, biggerAmount = buyAmount, sellAmount
 		smallerDemandAmount = buyDemandAmount
-	case buyAmount.GT(sellDemandAmount):
+	} else {
 		smallerOrders, biggerOrders = sellOrders, buyOrders
 		smallerAmount, biggerAmount = sellAmount, buyAmount
 		smallerDemandAmount = sellDemandAmount
 	}
 
 	for _, order := range smallerOrders {
-		proportion := order.RemainingAmount().ToDec().QuoInt(smallerAmount)
-		if matchAll {
-			order.SetRemainingAmount(sdk.ZeroInt())
-		} else {
-			out := proportion.MulInt(smallerAmount).TruncateInt()
-			order.SetRemainingAmount(order.RemainingAmount().Sub(out))
-		}
+		proportion := order.RemainingAmount.ToDec().QuoInt(smallerAmount)
+		order.RemainingAmount = sdk.ZeroInt()
 		in := proportion.MulInt(smallerDemandAmount).TruncateInt()
-		order.SetReceivedAmount(order.ReceivedAmount().Add(in))
+		order.ReceivedAmount = order.ReceivedAmount.Add(in)
 	}
 
 	for _, order := range biggerOrders {
-		proportion := order.RemainingAmount().ToDec().QuoInt(biggerAmount)
+		proportion := order.RemainingAmount.ToDec().QuoInt(biggerAmount)
 		if matchAll {
-			order.SetRemainingAmount(sdk.ZeroInt())
+			order.RemainingAmount = sdk.ZeroInt()
 		} else {
 			out := proportion.MulInt(smallerDemandAmount).TruncateInt()
-			order.SetRemainingAmount(order.RemainingAmount().Sub(out))
+			order.RemainingAmount = order.RemainingAmount.Sub(out)
 		}
 		in := proportion.MulInt(smallerAmount).TruncateInt()
-		order.SetReceivedAmount(order.ReceivedAmount().Add(in))
+		order.ReceivedAmount = order.ReceivedAmount.Add(in)
 	}
 }
 
@@ -146,5 +140,45 @@ func (eng *MatchEngine) SwapPrice(lastPrice sdk.Dec) sdk.Dec {
 func (eng *MatchEngine) Match(lastPrice sdk.Dec) {
 	if !eng.Matchable() {
 		return
+	}
+
+	swapPrice := eng.SwapPrice(lastPrice)
+	buyPrice, _ := eng.buys.HighestTick(eng.prec)
+	sellPrice, _ := eng.sells.LowestTick(eng.prec)
+
+	ob := NewOrderBook()
+
+	for {
+		buyOrders := ob.buys.Orders(buyPrice)
+		if len(buyOrders) == 0 {
+			ob.AddOrders(eng.buys.Orders(buyPrice)...)
+			buyOrders = ob.buys.Orders(buyPrice)
+		}
+		sellOrders := ob.sells.Orders(sellPrice)
+		if len(sellOrders) == 0 {
+			ob.AddOrders(eng.sells.Orders(sellPrice)...)
+			sellOrders = ob.sells.Orders(sellPrice)
+		}
+
+		MatchOrders(buyOrders, sellOrders, swapPrice)
+
+		if buyPrice.Equal(swapPrice) && sellPrice.Equal(swapPrice) {
+			break
+		}
+
+		if buyOrders.RemainingAmount().IsZero() {
+			var found bool
+			buyPrice, found = eng.buys.DownTick(buyPrice, eng.prec)
+			if !found {
+				break
+			}
+		}
+		if sellOrders.RemainingAmount().IsZero() {
+			var found bool
+			sellPrice, found = eng.sells.UpTick(sellPrice, eng.prec)
+			if !found {
+				break
+			}
+		}
 	}
 }
