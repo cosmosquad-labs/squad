@@ -46,6 +46,9 @@ func (msg MsgCreatePool) ValidateBasic() error {
 	if err := msg.DepositCoins.Validate(); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid deposit coins: %v", err)
 	}
+	if !msg.DepositCoins.IsAllPositive() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "deposit coins must be positive")
+	}
 	if len(msg.DepositCoins) != ReserveCoinNum {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid number of deposit coin")
 	}
@@ -95,6 +98,9 @@ func (msg MsgDepositBatch) ValidateBasic() error {
 	}
 	if err := msg.Coins.Validate(); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid deposit coins: %v", err)
+	}
+	if !msg.Coins.IsAllPositive() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "deposit coins must be positive")
 	}
 	if len(msg.Coins) != ReserveCoinNum {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid number of deposit coin")
@@ -209,7 +215,9 @@ func (msg MsgSwapBatch) ValidateBasic() error {
 	if !msg.Coin.Amount.GTE(MinOfferCoinAmount) {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "offer coin is less than minimum offer coin amount")
 	}
-	// TODO: anything to validate for OrderLifeSpan?
+	if msg.Coin.Denom == msg.DemandCoinDenom {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid demand coin denom")
+	}
 	return nil
 }
 
@@ -225,7 +233,7 @@ func (msg MsgSwapBatch) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
-func (msg MsgSwapBatch) GetSwapOrderer() sdk.AccAddress {
+func (msg MsgSwapBatch) GetOrderer() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.Orderer)
 	if err != nil {
 		panic(err)
@@ -265,4 +273,12 @@ func (msg MsgCancelSwapBatch) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{addr}
+}
+
+func (msg MsgCancelSwapBatch) GetOrderer() sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(msg.Orderer)
+	if err != nil {
+		panic(err)
+	}
+	return addr
 }
