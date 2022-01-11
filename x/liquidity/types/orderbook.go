@@ -40,6 +40,19 @@ func NewOrder(orderer sdk.AccAddress, dir SwapDirection, price sdk.Dec, amount s
 	}
 }
 
+// OrderSource defines a source of orders which can be an order book or
+// a pool.
+// TODO: omit prec parameter?
+type OrderSource interface {
+	AmountGTE(price sdk.Dec) sdk.Int
+	AmountLTE(price sdk.Dec) sdk.Int
+	Orders(price sdk.Dec) Orders
+	UpTick(price sdk.Dec, prec int) (tick sdk.Dec, found bool)
+	DownTick(price sdk.Dec, prec int) (tick sdk.Dec, found bool)
+	HighestTick(prec int) (tick sdk.Dec, found bool)
+	LowestTick(prec int) (tick sdk.Dec, found bool)
+}
+
 type Orders []*Order
 
 func (orders Orders) RemainingAmount() sdk.Int {
@@ -218,21 +231,12 @@ func (ob OrderBook) String() string {
 	return strings.Join(lines, "\n")
 }
 
-// OrderSource defines a source of orders which can be an order book or
-// a pool.
-// TODO: omit prec parameter?
-type OrderSource interface {
-	AmountGTE(price sdk.Dec) sdk.Int
-	AmountLTE(price sdk.Dec) sdk.Int
-	Orders(price sdk.Dec) Orders
-	UpTick(price sdk.Dec, prec int) (tick sdk.Dec, found bool)
-	DownTick(price sdk.Dec, prec int) (tick sdk.Dec, found bool)
-	HighestTick(prec int) (tick sdk.Dec, found bool)
-	LowestTick(prec int) (tick sdk.Dec, found bool)
-}
-
 type MergedOrderSources struct {
 	Sources []OrderSource
+}
+
+func MergeOrderSources(sources ...OrderSource) OrderSource {
+	return &MergedOrderSources{Sources: sources}
 }
 
 func (os *MergedOrderSources) AmountGTE(price sdk.Dec) sdk.Int {
@@ -301,8 +305,4 @@ func (os *MergedOrderSources) LowestTick(prec int) (tick sdk.Dec, found bool) {
 		}
 	}
 	return
-}
-
-func MergeOrderSources(sources ...OrderSource) OrderSource {
-	return &MergedOrderSources{Sources: sources}
 }
