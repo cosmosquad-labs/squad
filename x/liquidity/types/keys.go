@@ -78,6 +78,11 @@ func GetPoolsByPairIndexKey(pairId uint64, poolId uint64) []byte {
 	return append(append(PoolByPairIndexKeyPrefix, sdk.Uint64ToBigEndian(pairId)...), sdk.Uint64ToBigEndian(poolId)...)
 }
 
+// GetPoolsByPairKey returns the store key to retrieve pool id to iterate pools.
+func GetPoolsByPairKey(pairId uint64) []byte {
+	return append(PoolByPairIndexKeyPrefix, sdk.Uint64ToBigEndian(pairId)...)
+}
+
 // GetDepositRequestKey returns the store key to retrieve deposit request object from the pool id and request id.
 func GetDepositRequestKey(poolId uint64, id uint64) []byte {
 	return append(append(DepositRequestKeyPrefix, sdk.Uint64ToBigEndian(poolId)...), sdk.Uint64ToBigEndian(id)...)
@@ -115,6 +120,16 @@ func ParseReversePairByDenomIndexKey(key []byte) (denomA string, pairId uint64) 
 	denomALen := key[2+denomBLen]
 	denomA = string(key[3+denomBLen : 3+denomBLen+denomALen])
 	pairId = sdk.BigEndianToUint64(key[3+denomBLen+denomALen:])
+	return
+}
+
+// ParsePoolsByPairIndexKey parses a pool id by the index key.
+func ParsePoolsByPairIndexKey(key []byte) (poolId uint64) {
+	if !bytes.HasPrefix(key, PoolByPairIndexKeyPrefix) {
+		panic("key does not have proper prefix")
+	}
+	bytesLen := 8
+	poolId = sdk.BigEndianToUint64(key[1+bytesLen:])
 	return
 }
 

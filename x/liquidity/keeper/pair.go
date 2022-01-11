@@ -100,7 +100,8 @@ func (k Keeper) IterateAllPairs(ctx sdk.Context, cb func(pair types.Pair) (stop 
 	}
 }
 
-// TODO: add test code to verify this function
+// IteratePairsByDenom iterates over all the stored pairs by particular denomination and
+// performs a callback function. Stops iteration when callback returns true.
 func (k Keeper) IteratePairsByDenom(ctx sdk.Context, denom string, cb func(pair types.Pair) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 
@@ -116,7 +117,8 @@ func (k Keeper) IteratePairsByDenom(ctx sdk.Context, denom string, cb func(pair 
 	}
 }
 
-// TODO: add test code to verify this function
+// IterateAllPairs iterates over all the stored pairs by reverse demoniation and
+// performs a callback function. Stops iteration when callback returns true.
 func (k Keeper) IterateReversePairsByDenom(ctx sdk.Context, denom string, cb func(pair types.Pair) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 

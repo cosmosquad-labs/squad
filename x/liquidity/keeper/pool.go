@@ -72,6 +72,12 @@ func (k Keeper) SetPool(ctx sdk.Context, pool types.Pool) {
 	store.Set(types.GetPoolKey(pool.Id), b)
 }
 
+// SetPoolByPair stores a pool by pair.
+func (k Keeper) SetPoolByPair(ctx sdk.Context, pairId uint64, poolId uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.GetPoolsByPairIndexKey(pairId, poolId), []byte{})
+}
+
 // IterateAllPools iterates over all the stored pools and performs a callback function.
 // Stops iteration when callback returns true.
 func (k Keeper) IterateAllPools(ctx sdk.Context, cb func(pool types.Pool) (stop bool)) {
@@ -88,17 +94,19 @@ func (k Keeper) IterateAllPools(ctx sdk.Context, cb func(pool types.Pool) (stop 
 	}
 }
 
-// func (k Keeper) IteratePoolsByPair(ctx sdk.Context, denom string, cb func(pair types.Pair) (stop bool)) {
-// 	store := ctx.KVStore(k.storeKey)
+// IterateAllPools iterates over all the stored pools by the pair and performs a callback function.
+// Stops iteration when callback returns true.
+func (k Keeper) IteratePoolsByPair(ctx sdk.Context, pairId uint64, cb func(pool types.Pool) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
 
-// 	iterator := sdk.KVStorePrefixIterator(store, types.GetPairIndexByDenomKey(denom))
-// 	defer iterator.Close()
+	iterator := sdk.KVStorePrefixIterator(store, types.GetPoolsByPairKey(pairId))
+	defer iterator.Close()
 
-// 	for ; iterator.Valid(); iterator.Next() {
-// 		_, pairId := types.ParsePairByDenomIndexKey(iterator.Key())
-// 		pair, _ := k.GetPair(ctx, pairId)
-// 		if cb(pair) {
-// 			break
-// 		}
-// 	}
-// }
+	for ; iterator.Valid(); iterator.Next() {
+		poolId := types.ParsePoolsByPairIndexKey(iterator.Key())
+		pool, _ := k.GetPool(ctx, poolId)
+		if cb(pool) {
+			break
+		}
+	}
+}
