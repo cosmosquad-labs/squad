@@ -103,6 +103,10 @@ func (engine *MatchEngine) Match(lastPrice sdk.Dec) (orderBook *OrderBook, swapP
 	orderBook = NewOrderBook()
 
 	for {
+		if buyPrice.LT(swapPrice) || sellPrice.GT(swapPrice) {
+			break
+		}
+
 		buyOrders := orderBook.BuyTicks.Orders(buyPrice)
 		if len(buyOrders) == 0 {
 			orderBook.AddOrders(engine.BuyOrderSource.Orders(buyPrice)...)
@@ -112,10 +116,6 @@ func (engine *MatchEngine) Match(lastPrice sdk.Dec) (orderBook *OrderBook, swapP
 		if len(sellOrders) == 0 {
 			orderBook.AddOrders(engine.SellOrderSource.Orders(sellPrice)...)
 			sellOrders = orderBook.SellTicks.Orders(sellPrice)
-		}
-
-		if buyPrice.LT(swapPrice) || sellPrice.GT(swapPrice) {
-			break
 		}
 
 		MatchOrders(buyOrders, sellOrders, swapPrice)
