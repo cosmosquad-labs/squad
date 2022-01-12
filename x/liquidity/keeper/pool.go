@@ -41,6 +41,25 @@ func (k Keeper) GetPool(ctx sdk.Context, id uint64) (pool types.Pool, found bool
 	return pool, true
 }
 
+// GetPoolByReserveAcc returns pool object for the givern reserve account address.
+func (k Keeper) GetPoolByReserveAcc(ctx sdk.Context, reserveAcc sdk.AccAddress) (pool types.Pool, found bool) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.GetPoolByReserveAccKey(reserveAcc)
+
+	value := store.Get(key)
+	if value == nil {
+		return pool, false
+	}
+
+	val := gogotypes.UInt64Value{}
+	err := k.cdc.Unmarshal(value, &val)
+	if err != nil {
+		return pool, false
+	}
+	poolId := val.GetValue()
+	return k.GetPool(ctx, poolId)
+}
+
 // GetAllPools returns all pairs in the store.
 func (k Keeper) GetAllPools(ctx sdk.Context) (pools []types.Pool) {
 	k.IterateAllPools(ctx, func(pool types.Pool) (stop bool) {
@@ -68,12 +87,19 @@ func (k Keeper) SetLastPoolId(ctx sdk.Context, id uint64) {
 // SetPool stores the particular pool.
 func (k Keeper) SetPool(ctx sdk.Context, pool types.Pool) {
 	store := ctx.KVStore(k.storeKey)
-	b := types.MustMarshalPool(k.cdc, pool)
-	store.Set(types.GetPoolKey(pool.Id), b)
+	bz := types.MustMarshalPool(k.cdc, pool)
+	store.Set(types.GetPoolKey(pool.Id), bz)
 }
 
-// SetPoolByPair stores a pool by pair.
-func (k Keeper) SetPoolByPair(ctx sdk.Context, pairId uint64, poolId uint64) {
+// SetPoolByReserveAccKey stores a pool by reserve account index key.
+func (k Keeper) SetPoolByReserveAccKey(ctx sdk.Context, pool types.Pool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&gogotypes.UInt64Value{Value: pool.Id})
+	store.Set(types.GetPoolByReserveAccKey(pool.GetReserveAddress()), bz)
+}
+
+// SetPoolByPairIndexKey stores a pool by pair index key.
+func (k Keeper) SetPoolByPairIndexKey(ctx sdk.Context, pairId uint64, poolId uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetPoolsByPairIndexKey(pairId, poolId), []byte{})
 }
