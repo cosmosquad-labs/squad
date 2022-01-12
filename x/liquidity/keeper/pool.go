@@ -14,13 +14,15 @@ func (k Keeper) GetNextPoolIdWithUpdate(ctx sdk.Context) uint64 {
 }
 
 // CreatePool creates a liquidity pool.
-func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, xCoin, yCoin sdk.Coin) error {
+func (k Keeper) CreatePool(ctx sdk.Context, msg *types.MsgCreatePool) error {
+	creator := msg.GetCreator()
+
 	params := k.GetParams(ctx)
-	if xCoin.Amount.LT(params.MinInitialDepositAmount) || yCoin.Amount.LT(params.MinInitialDepositAmount) {
+	if msg.XCoin.Amount.LT(params.MinInitialDepositAmount) || msg.YCoin.Amount.LT(params.MinInitialDepositAmount) {
 		return types.ErrInsufficientDepositAmount // TODO: more detail error?
 	}
 
-	pair, found := k.GetPairByDenoms(ctx, xCoin.Denom, yCoin.Denom)
+	pair, found := k.GetPairByDenoms(ctx, msg.XCoin.Denom, msg.YCoin.Denom)
 	if found {
 		// If there is a pair with given denoms, check if there is a pool with
 		// the pair.
@@ -42,16 +44,16 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, xCoin, yCoin
 		}
 	} else {
 		// If there is no such pair, create one and store it to the variable.
-		pair = k.CreatePair(ctx, xCoin.Denom, yCoin.Denom)
+		pair = k.CreatePair(ctx, msg.XCoin.Denom, msg.YCoin.Denom)
 	}
 
 	// Create and save the new pool object.
 	poolId := k.GetNextPoolIdWithUpdate(ctx)
-	pool := types.NewPool(poolId, pair.Id, xCoin.Denom, yCoin.Denom)
+	pool := types.NewPool(poolId, pair.Id, msg.XCoin.Denom, msg.YCoin.Denom)
 	k.SetPool(ctx, pool)
 
 	// Send deposit coins to the pool's reserve account.
-	depositCoins := sdk.NewCoins(xCoin, yCoin)
+	depositCoins := sdk.NewCoins(msg.XCoin, msg.YCoin)
 	if err := k.bankKeeper.SendCoins(ctx, creator, pool.GetReserveAddress(), depositCoins); err != nil {
 		return err
 	}
@@ -68,10 +70,18 @@ func (k Keeper) CreatePool(ctx sdk.Context, creator sdk.AccAddress, xCoin, yCoin
 		sdk.NewEvent(
 			types.EventTypeCreatePool,
 			sdk.NewAttribute(types.AttributeKeyCreator, creator.String()),
-			sdk.NewAttribute(types.AttributeKeyXCoin, xCoin.String()),
-			sdk.NewAttribute(types.AttributeKeyYCoin, yCoin.String()),
+			sdk.NewAttribute(types.AttributeKeyXCoin, msg.XCoin.String()),
+			sdk.NewAttribute(types.AttributeKeyYCoin, msg.YCoin.String()),
 		),
 	})
 
 	return nil
+}
+
+func (k Keeper) DepositBatch(ctx sdk.Context, msg *types.MsgDepositBatch) error {
+	panic("not implemented")
+}
+
+func (k Keeper) WithdrawBatch(ctx sdk.Context, msg *types.MsgWithdrawBatch) error {
+	panic("not implemented")
 }
