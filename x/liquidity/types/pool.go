@@ -23,6 +23,20 @@ var (
 	_ OrderSource = (*PoolOrderSource)(nil)
 )
 
+// NewPool returns a new pool object.
+func NewPool(id, pairId uint64, xCoinDenom, yCoinDenom string) Pool {
+	return Pool{
+		Id:                    id,
+		PairId:                pairId,
+		XCoinDenom:            xCoinDenom,
+		YCoinDenom:            yCoinDenom,
+		ReserveAddress:        PoolReserveAcc(id).String(),
+		PoolCoinDenom:         PoolCoinDenom(id),
+		LastDepositRequestId:  0,
+		LastWithdrawRequestId: 0,
+	}
+}
+
 func (pool Pool) GetReserveAddress() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(pool.ReserveAddress)
 	if err != nil {

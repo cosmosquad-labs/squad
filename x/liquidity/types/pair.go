@@ -1,6 +1,19 @@
 package types
 
-import "github.com/cosmos/cosmos-sdk/codec"
+import (
+	"github.com/cosmos/cosmos-sdk/codec"
+)
+
+// NewPair returns a new pair object.
+func NewPair(xCoinDenom, yCoinDenom string) Pair {
+	return Pair{
+		Id:                0, // id not set yet, a keeper will set it
+		XCoinDenom:        xCoinDenom,
+		YCoinDenom:        yCoinDenom,
+		LastSwapRequestId: 0,
+		LastPrice:         nil,
+	}
+}
 
 // MustMarshalPair returns the pair bytes.
 // It throws panic if it fails.
