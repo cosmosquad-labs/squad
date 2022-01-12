@@ -106,7 +106,6 @@ func (engine *MatchEngine) Match(lastPrice sdk.Dec) (orderBook *OrderBook, swapP
 	if !engine.Matchable() {
 		return
 	}
-	matched = true
 
 	swapPrice = engine.SwapPrice(lastPrice)
 	buyPrice, _ := engine.BuyOrderSource.HighestTick()
@@ -131,6 +130,7 @@ func (engine *MatchEngine) Match(lastPrice sdk.Dec) (orderBook *OrderBook, swapP
 		}
 
 		MatchOrders(buyOrders, sellOrders, swapPrice)
+		matched = true
 
 		if buyPrice.Equal(swapPrice) && sellPrice.Equal(swapPrice) {
 			break
