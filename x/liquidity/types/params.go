@@ -8,15 +8,17 @@ import (
 )
 
 var (
-	KeyInitialPoolCoinSupply = []byte("InitialPoolCoinSupply")
-	KeyBatchSize             = []byte("BatchSize")
-	KeyTickPrecision         = []byte("TickPrecision")
+	KeyInitialPoolCoinSupply   = []byte("InitialPoolCoinSupply")
+	KeyBatchSize               = []byte("BatchSize")
+	KeyTickPrecision           = []byte("TickPrecision")
+	KeyMinInitialDepositAmount = []byte("MinInitialDepositAmount")
 )
 
 var (
-	DefaultInitialPoolCoinSupply        = sdk.NewInt(1_000_000_000_000)
-	DefaultBatchSize             uint32 = 1
-	DefaultTickPrecision         uint32 = 3
+	DefaultInitialPoolCoinSupply          = sdk.NewInt(1_000_000_000_000)
+	DefaultBatchSize               uint32 = 1
+	DefaultTickPrecision           uint32 = 3
+	DefaultMinInitialDepositAmount        = sdk.NewInt(1000000)
 
 	MinOfferCoinAmount = sdk.NewInt(100) // This value can be modified in the future
 )
@@ -29,9 +31,10 @@ func ParamKeyTable() paramstypes.KeyTable {
 
 func DefaultParams() Params {
 	return Params{
-		InitialPoolCoinSupply: DefaultInitialPoolCoinSupply,
-		BatchSize:             DefaultBatchSize,
-		TickPrecision:         DefaultTickPrecision,
+		InitialPoolCoinSupply:   DefaultInitialPoolCoinSupply,
+		BatchSize:               DefaultBatchSize,
+		TickPrecision:           DefaultTickPrecision,
+		MinInitialDepositAmount: DefaultMinInitialDepositAmount,
 	}
 }
 
@@ -40,6 +43,7 @@ func (params *Params) ParamSetPairs() paramstypes.ParamSetPairs {
 		paramstypes.NewParamSetPair(KeyInitialPoolCoinSupply, &params.InitialPoolCoinSupply, validateInitialPoolCoinSupply),
 		paramstypes.NewParamSetPair(KeyBatchSize, &params.BatchSize, validateBatchSize),
 		paramstypes.NewParamSetPair(KeyTickPrecision, &params.TickPrecision, validateTickPrecision),
+		paramstypes.NewParamSetPair(KeyMinInitialDepositAmount, &params.MinInitialDepositAmount, validateMinInitialDepositAmount),
 	}
 }
 
@@ -51,6 +55,7 @@ func (params Params) Validate() error {
 		{params.InitialPoolCoinSupply, validateInitialPoolCoinSupply},
 		{params.BatchSize, validateBatchSize},
 		{params.TickPrecision, validateTickPrecision},
+		{params.MinInitialDepositAmount, validateMinInitialDepositAmount},
 	} {
 		if err := field.validateFunc(field.val); err != nil {
 			return err
@@ -90,13 +95,22 @@ func validateBatchSize(i interface{}) error {
 }
 
 func validateTickPrecision(i interface{}) error {
-	v, ok := i.(uint32)
+	_, ok := i.(uint32)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	if v == 0 {
-		return fmt.Errorf("tick precision must be positive: %d", v)
+	return nil
+}
+
+func validateMinInitialDepositAmount(i interface{}) error {
+	v, ok := i.(sdk.Int)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v.IsNegative() {
+		return fmt.Errorf("minimum initial deposit amount must not be negative: %s", v)
 	}
 
 	return nil

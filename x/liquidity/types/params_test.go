@@ -21,25 +21,32 @@ func TestParams_Validate(t *testing.T) {
 			"",
 		},
 		{
-			"negative initial pool coin supply",
+			"negative InitialPoolCoinSupply",
 			func(params *types.Params) {
 				params.InitialPoolCoinSupply = sdk.NewInt(-1)
 			},
 			"initial pool coin supply must be positive: -1",
 		},
 		{
-			"zero initial pool coin supply",
+			"zero InitialPoolCoinSupply",
 			func(params *types.Params) {
 				params.InitialPoolCoinSupply = sdk.ZeroInt()
 			},
 			"initial pool coin supply must be positive: 0",
 		},
 		{
-			"zero batch size",
+			"zero BatchSize",
 			func(params *types.Params) {
 				params.BatchSize = 0
 			},
 			"batch size must be positive: 0",
+		},
+		{
+			"negative MinInitialDepositAmount",
+			func(params *types.Params) {
+				params.MinInitialDepositAmount = sdk.NewInt(-1)
+			},
+			"minimum initial deposit amount must not be negative: -1",
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
