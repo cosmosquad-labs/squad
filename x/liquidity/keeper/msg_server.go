@@ -22,9 +22,11 @@ var _ types.MsgServer = msgServer{}
 
 // CreatePool defines a method to create a liquidity pool.
 func (m msgServer) CreatePool(goCtx context.Context, msg *types.MsgCreatePool) (*types.MsgCreatePoolResponse, error) {
-	_ = sdk.UnwrapSDKContext(goCtx)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// TODO : not implemented yet
+	if err := m.Keeper.CreatePool(ctx, msg.GetCreator(), msg.XCoin, msg.YCoin); err != nil {
+		return nil, err
+	}
 
 	return &types.MsgCreatePoolResponse{}, nil
 }

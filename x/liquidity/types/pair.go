@@ -5,9 +5,9 @@ import (
 )
 
 // NewPair returns a new pair object.
-func NewPair(xCoinDenom, yCoinDenom string) Pair {
+func NewPair(id uint64, xCoinDenom, yCoinDenom string) Pair {
 	return Pair{
-		Id:                0, // id not set yet, a keeper will set it
+		Id:                id,
 		XCoinDenom:        xCoinDenom,
 		YCoinDenom:        yCoinDenom,
 		LastSwapRequestId: 0,

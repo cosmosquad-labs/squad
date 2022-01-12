@@ -22,14 +22,15 @@ const (
 )
 
 var (
-	PairIdKey = []byte{0xa0} // key for the lastest pair id
-	PoolIdKey = []byte{0xa1} // key for the latest pool id
+	LastPairIdKey = []byte{0xa0} // key for the latest pair id
+	LastPoolIdKey = []byte{0xa1} // key for the latest pool id
 
-	PairKeyPrefix      = []byte{0xa5}
-	PairIndexKeyPrefix = []byte{0xa6}
+	PairKeyPrefix            = []byte{0xa5}
+	PairIndexKeyPrefix       = []byte{0xa6}
+	PairLookupIndexKeyPrefix = []byte{0xa7}
 
 	PoolKeyPrefix             = []byte{0xab}
-	PoolByReverveAccKeyPrefix = []byte{0xac}
+	PoolByReserveAccKeyPrefix = []byte{0xac}
 	PoolByPairIndexKeyPrefix  = []byte{0xad}
 
 	DepositRequestKeyPrefix  = []byte{0xb0}
@@ -42,9 +43,14 @@ func GetPairKey(pairId uint64) []byte {
 	return append(PairKeyPrefix, sdk.Uint64ToBigEndian(pairId)...)
 }
 
-// GetPairIndexKey returns the index key to retrieve pair id that is used to iterate pairs.
-func GetPairIndexKey(denomA string, denomB string, pairId uint64) []byte {
-	return append(append(append(PairIndexKeyPrefix, LengthPrefixString(denomA)...), LengthPrefixString(denomB)...), sdk.Uint64ToBigEndian(pairId)...)
+// GetPairIndexKey returns the index key to get a pair by denoms.
+func GetPairIndexKey(denomX, denomY string) []byte {
+	return append(append(PairIndexKeyPrefix, LengthPrefixString(denomX)...), LengthPrefixString(denomY)...)
+}
+
+// GetPairLookupIndexKey returns the index key to lookup pairs with given denoms.
+func GetPairLookupIndexKey(denomA, denomB string, pairId uint64) []byte {
+	return append(append(append(PairLookupIndexKeyPrefix, LengthPrefixString(denomA)...), LengthPrefixString(denomB)...), sdk.Uint64ToBigEndian(pairId)...)
 }
 
 // GetPairByDenomKeyPrefix returns the single denom index key.
@@ -59,11 +65,11 @@ func GetPoolKey(poolId uint64) []byte {
 
 // GetPoolByReserveAccKey returns the index key to retrieve the particular pool.
 func GetPoolByReserveAccKey(reserveAcc sdk.AccAddress) []byte {
-	return append(PoolByReverveAccKeyPrefix, address.MustLengthPrefix(reserveAcc)...)
+	return append(PoolByReserveAccKeyPrefix, address.MustLengthPrefix(reserveAcc)...)
 }
 
 // GetPoolsByPairIndexKey returns the index key to retrieve pool id that is used to iterate pools.
-func GetPoolsByPairIndexKey(pairId uint64, poolId uint64) []byte {
+func GetPoolsByPairIndexKey(pairId, poolId uint64) []byte {
 	return append(append(PoolByPairIndexKeyPrefix, sdk.Uint64ToBigEndian(pairId)...), sdk.Uint64ToBigEndian(poolId)...)
 }
 
@@ -73,23 +79,23 @@ func GetPoolsByPairKey(pairId uint64) []byte {
 }
 
 // GetDepositRequestKey returns the store key to retrieve deposit request object from the pool id and request id.
-func GetDepositRequestKey(poolId uint64, id uint64) []byte {
+func GetDepositRequestKey(poolId, id uint64) []byte {
 	return append(append(DepositRequestKeyPrefix, sdk.Uint64ToBigEndian(poolId)...), sdk.Uint64ToBigEndian(id)...)
 }
 
 // GetWithdrawRequestKey returns the store key to retrieve withdaw request object from the pool id and request id.
-func GetWithdrawRequestKey(poolId uint64, id uint64) []byte {
+func GetWithdrawRequestKey(poolId, id uint64) []byte {
 	return append(append(WithdrawRequestKeyPrefix, sdk.Uint64ToBigEndian(poolId)...), sdk.Uint64ToBigEndian(id)...)
 }
 
 // GetSwapRequestKey returns the store key to retrieve deposit swap object from the pool id and request id.
-func GetSwapRequestKey(poolId uint64, id uint64) []byte {
+func GetSwapRequestKey(poolId, id uint64) []byte {
 	return append(append(SwapRequestKeyPrefix, sdk.Uint64ToBigEndian(poolId)...), sdk.Uint64ToBigEndian(id)...)
 }
 
 // ParsePairByDenomIndexKey parses a pair by denom index key.
 func ParsePairByDenomIndexKey(key []byte) (denomB string, pairId uint64) {
-	if !bytes.HasPrefix(key, PairIndexKeyPrefix) {
+	if !bytes.HasPrefix(key, PairLookupIndexKeyPrefix) {
 		panic("key does not have proper prefix")
 	}
 
