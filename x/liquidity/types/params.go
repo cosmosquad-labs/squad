@@ -18,7 +18,9 @@ var (
 	DefaultBatchSize             uint32 = 1
 	DefaultTickPrecision         uint32 = 3
 
-	MinOfferCoinAmount = sdk.NewInt(100) // This value can be modified in the future
+	// MinOfferCoinAmount is the minimum offer coin amount for a swap request.
+	// Note that this value is indefinitely determined, so it can always be modified in the future
+	MinOfferCoinAmount = sdk.NewInt(100)
 )
 
 var _ paramstypes.ParamSet = (*Params)(nil)
