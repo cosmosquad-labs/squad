@@ -8,8 +8,8 @@ import (
 	"github.com/crescent-network/crescent/x/liquidity/types"
 )
 
-// GetPoolId returns the global pool id counter.
-func (k Keeper) GetPoolId(ctx sdk.Context) uint64 {
+// GetLastPoolId returns the global pool id counter.
+func (k Keeper) GetLastPoolId(ctx sdk.Context) uint64 {
 	var id uint64
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.PoolIdKey)
@@ -53,13 +53,13 @@ func (k Keeper) GetAllPools(ctx sdk.Context) (pools []types.Pool) {
 
 // GetNextPoolIdWithUpdate increments pool id by one and set it.
 func (k Keeper) GetNextPoolIdWithUpdate(ctx sdk.Context) uint64 {
-	id := k.GetPoolId(ctx) + 1
-	k.SetPoolId(ctx, id)
+	id := k.GetLastPoolId(ctx) + 1
+	k.SetLastPoolId(ctx, id)
 	return id
 }
 
-// SetPoolId stores the global pool id counter.
-func (k Keeper) SetPoolId(ctx sdk.Context, id uint64) {
+// SetLastPoolId stores the global pool id counter.
+func (k Keeper) SetLastPoolId(ctx sdk.Context, id uint64) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&gogotypes.UInt64Value{Value: id})
 	store.Set(types.PoolIdKey, bz)

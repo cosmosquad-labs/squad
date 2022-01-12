@@ -8,8 +8,8 @@ import (
 	"github.com/crescent-network/crescent/x/liquidity/types"
 )
 
-// GetPairId returns the global pair id counter.
-func (k Keeper) GetPairId(ctx sdk.Context) uint64 {
+// GetLastPairId returns the global pair id counter.
+func (k Keeper) GetLastPairId(ctx sdk.Context) uint64 {
 	var id uint64
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.PairIdKey)
@@ -53,13 +53,13 @@ func (k Keeper) GetAllPairs(ctx sdk.Context) (pairs []types.Pair) {
 
 // GetNextPairIdWithUpdate increments pair id by one and set it.
 func (k Keeper) GetNextPairIdWithUpdate(ctx sdk.Context) uint64 {
-	id := k.GetPairId(ctx) + 1
-	k.SetPairId(ctx, id)
+	id := k.GetLastPairId(ctx) + 1
+	k.SetLastPairId(ctx, id)
 	return id
 }
 
-// SetPairId stores the global pair id counter.
-func (k Keeper) SetPairId(ctx sdk.Context, id uint64) {
+// SetLastPairId stores the global pair id counter.
+func (k Keeper) SetLastPairId(ctx sdk.Context, id uint64) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&gogotypes.UInt64Value{Value: id})
 	store.Set(types.PairIdKey, bz)
