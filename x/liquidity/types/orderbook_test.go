@@ -10,8 +10,8 @@ import (
 	"github.com/crescent-network/crescent/x/liquidity/types"
 )
 
-func testOrderBookTicks() types.OrderBookTicks {
-	ticks := types.OrderBookTicks{}
+func testOrderBookTicks() *types.OrderBookTicks {
+	ticks := types.NewOrderBookTicks(tickPrec)
 	ticks.AddOrders(
 		newBuyOrder("20.0", 1000),
 		newBuyOrder("19.0", 1000),
@@ -30,7 +30,7 @@ func testOrderBookTicks() types.OrderBookTicks {
 
 func TestOrderBookTicks_FindPrice(t *testing.T) {
 	// An empty order book ticks must return (0, false).
-	i, exact := types.OrderBookTicks{}.FindPrice(newDec("20.0"))
+	i, exact := types.NewOrderBookTicks(tickPrec).FindPrice(newDec("20.0"))
 	require.False(t, exact)
 	require.Equal(t, 0, i)
 
@@ -59,9 +59,9 @@ func TestOrderBookTicks_FindPrice(t *testing.T) {
 }
 
 func TestOrderBookTicks_AddOrder(t *testing.T) {
-	checkSorted := func(ticks types.OrderBookTicks) {
+	checkSorted := func(ticks *types.OrderBookTicks) {
 		require.True(t, sort.SliceIsSorted(ticks, func(i, j int) bool {
-			return ticks[i].Price.GTE(ticks[j].Price)
+			return ticks.Ticks[i].Price.GTE(ticks.Ticks[j].Price)
 		}), "ticks must be sorted")
 	}
 
@@ -97,7 +97,7 @@ func TestOrderBookTicks_AddOrder(t *testing.T) {
 
 func TestOrderBookTicks_AmountGTE(t *testing.T) {
 	// An empty order book ticks
-	require.True(sdk.IntEq(t, sdk.ZeroInt(), types.OrderBookTicks{}.AmountGTE(newDec("20.0"))))
+	require.True(sdk.IntEq(t, sdk.ZeroInt(), types.NewOrderBookTicks(tickPrec).AmountGTE(newDec("20.0"))))
 
 	ticks := testOrderBookTicks()
 
@@ -174,9 +174,9 @@ func TestOrderBookTicks_Orders(t *testing.T) {
 	}
 }
 
-func TestOrderBookTicks_UpTick(t *testing.T) {
+func TestOrderBookTicks_UpTickWithOrders(t *testing.T) {
 	// An empty order book ticks
-	_, found := types.OrderBookTicks{}.UpTick(newDec("0.1"), 0)
+	_, found := types.NewOrderBookTicks(tickPrec).UpTick(newDec("0.1"))
 	require.False(t, found)
 
 	ticks := testOrderBookTicks()
@@ -198,7 +198,7 @@ func TestOrderBookTicks_UpTick(t *testing.T) {
 		{newDec("9.999999999999999999"), newDec("10.0"), true},
 	} {
 		t.Run("", func(t *testing.T) {
-			tick, found := ticks.UpTick(tc.price, 0)
+			tick, found := ticks.UpTickWithOrders(tc.price)
 			require.Equal(t, tc.found, found)
 			if found {
 				require.True(sdk.DecEq(t, tc.tick, tick))
@@ -207,9 +207,9 @@ func TestOrderBookTicks_UpTick(t *testing.T) {
 	}
 }
 
-func TestOrderBookTicks_DownTick(t *testing.T) {
+func TestOrderBookTicks_DownTickWithOrders(t *testing.T) {
 	// An empty order book ticks
-	_, found := types.OrderBookTicks{}.UpTick(newDec("0.1"), 0)
+	_, found := types.NewOrderBookTicks(tickPrec).UpTick(newDec("0.1"))
 	require.False(t, found)
 
 	ticks := testOrderBookTicks()
@@ -232,7 +232,7 @@ func TestOrderBookTicks_DownTick(t *testing.T) {
 		{newDec("9.999999999999999999"), sdk.Dec{}, false},
 	} {
 		t.Run("", func(t *testing.T) {
-			tick, found := ticks.DownTick(tc.price, 0)
+			tick, found := ticks.DownTickWithOrders(tc.price)
 			require.Equal(t, tc.found, found)
 			if found {
 				require.True(sdk.DecEq(t, tc.tick, tick))
@@ -243,22 +243,22 @@ func TestOrderBookTicks_DownTick(t *testing.T) {
 
 func TestOrderBookTicks_HighestTick(t *testing.T) {
 	// An empty order book ticks
-	_, found := types.OrderBookTicks{}.HighestTick(0)
+	_, found := types.OrderBookTicks{}.HighestTick()
 	require.False(t, found)
 
 	ticks := testOrderBookTicks()
-	tick, found := ticks.HighestTick(0)
+	tick, found := ticks.HighestTick()
 	require.True(t, found)
 	require.True(sdk.DecEq(t, newDec("20.0"), tick))
 }
 
 func TestOrderBookTicks_LowestTick(t *testing.T) {
 	// An empty order book ticks
-	_, found := types.OrderBookTicks{}.LowestTick(0)
+	_, found := types.OrderBookTicks{}.LowestTick()
 	require.False(t, found)
 
 	ticks := testOrderBookTicks()
-	tick, found := ticks.LowestTick(0)
+	tick, found := ticks.LowestTick()
 	require.True(t, found)
 	require.True(sdk.DecEq(t, newDec("10.0"), tick))
 }
