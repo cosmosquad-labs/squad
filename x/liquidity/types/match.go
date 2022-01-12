@@ -116,7 +116,8 @@ func (engine *MatchEngine) Match(lastPrice sdk.Dec) (orderBook *OrderBook, swapP
 
 		MatchOrders(buyOrders, sellOrders, swapPrice)
 
-		if buyPrice.Equal(swapPrice) && sellPrice.Equal(swapPrice) {
+		if (buyPrice.Equal(swapPrice) && sellPrice.Equal(swapPrice)) ||
+			buyPrice.LT(swapPrice) || sellPrice.GT(swapPrice) {
 			break
 		}
 
