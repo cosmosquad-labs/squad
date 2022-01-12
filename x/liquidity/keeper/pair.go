@@ -70,18 +70,14 @@ func (k Keeper) SetPair(ctx sdk.Context, pair types.Pair) {
 	store := ctx.KVStore(k.storeKey)
 	bz := types.MustMarshalPair(k.cdc, pair)
 	store.Set(types.GetPairKey(pair.Id), bz)
+	k.SetPairIndex(ctx, pair.XCoinDenom, pair.YCoinDenom, pair.Id)
+	k.SetPairIndex(ctx, pair.YCoinDenom, pair.XCoinDenom, pair.Id)
 }
 
-// SetPairDenom stores the particular denom pair.
-func (k Keeper) SetPairDenom(ctx sdk.Context, denomA string, denomB string, pairId uint64) {
+// SetPairIndex stores the particular denom pair.
+func (k Keeper) SetPairIndex(ctx sdk.Context, denomA string, denomB string, pairId uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetPairIndexKey(denomA, denomB, pairId), []byte{})
-}
-
-// SetReversePairDenom stores the particular denom pair in reverse order.
-func (k Keeper) SetReversePairDenom(ctx sdk.Context, denomB string, denomA string, pairId uint64) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetReversePairIndexKey(denomB, denomA, pairId), []byte{})
 }
 
 // IterateAllPairs iterates over all the stored pairs and performs a callback function.
@@ -89,11 +85,11 @@ func (k Keeper) SetReversePairDenom(ctx sdk.Context, denomB string, denomA strin
 func (k Keeper) IterateAllPairs(ctx sdk.Context, cb func(pair types.Pair) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 
-	iterator := sdk.KVStorePrefixIterator(store, types.PairKeyPrefix)
-	defer iterator.Close()
+	iter := sdk.KVStorePrefixIterator(store, types.PairKeyPrefix)
+	defer iter.Close()
 
-	for ; iterator.Valid(); iterator.Next() {
-		pair := types.MustUnmarshalPair(k.cdc, iterator.Value())
+	for ; iter.Valid(); iter.Next() {
+		pair := types.MustUnmarshalPair(k.cdc, iter.Value())
 		if cb(pair) {
 			break
 		}
@@ -105,28 +101,11 @@ func (k Keeper) IterateAllPairs(ctx sdk.Context, cb func(pair types.Pair) (stop 
 func (k Keeper) IteratePairsByDenom(ctx sdk.Context, denom string, cb func(pair types.Pair) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 
-	iterator := sdk.KVStorePrefixIterator(store, types.GetPairByDenomKey(denom))
-	defer iterator.Close()
+	iter := sdk.KVStorePrefixIterator(store, types.GetPairByDenomKeyPrefix(denom))
+	defer iter.Close()
 
-	for ; iterator.Valid(); iterator.Next() {
-		_, pairId := types.ParsePairByDenomIndexKey(iterator.Key())
-		pair, _ := k.GetPair(ctx, pairId)
-		if cb(pair) {
-			break
-		}
-	}
-}
-
-// IterateAllPairs iterates over all the stored pairs by reverse demoniation and
-// performs a callback function. Stops iteration when callback returns true.
-func (k Keeper) IterateReversePairsByDenom(ctx sdk.Context, denom string, cb func(pair types.Pair) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-
-	iterator := sdk.KVStorePrefixIterator(store, types.GetReversePairByDenomKey(denom))
-	defer iterator.Close()
-
-	for ; iterator.Valid(); iterator.Next() {
-		_, pairId := types.ParseReversePairByDenomIndexKey(iterator.Key())
+	for ; iter.Valid(); iter.Next() {
+		_, pairId := types.ParsePairByDenomIndexKey(iter.Key())
 		pair, _ := k.GetPair(ctx, pairId)
 		if cb(pair) {
 			break

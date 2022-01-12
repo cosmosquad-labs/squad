@@ -109,11 +109,11 @@ func (k Keeper) SetPoolByPairIndexKey(ctx sdk.Context, pairId uint64, poolId uin
 func (k Keeper) IterateAllPools(ctx sdk.Context, cb func(pool types.Pool) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 
-	iterator := sdk.KVStorePrefixIterator(store, types.PoolKeyPrefix)
-	defer iterator.Close()
+	iter := sdk.KVStorePrefixIterator(store, types.PoolKeyPrefix)
+	defer iter.Close()
 
-	for ; iterator.Valid(); iterator.Next() {
-		pool := types.MustUnmarshalPool(k.cdc, iterator.Value())
+	for ; iter.Valid(); iter.Next() {
+		pool := types.MustUnmarshalPool(k.cdc, iter.Value())
 		if cb(pool) {
 			break
 		}
@@ -125,11 +125,11 @@ func (k Keeper) IterateAllPools(ctx sdk.Context, cb func(pool types.Pool) (stop 
 func (k Keeper) IteratePoolsByPair(ctx sdk.Context, pairId uint64, cb func(pool types.Pool) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 
-	iterator := sdk.KVStorePrefixIterator(store, types.GetPoolsByPairKey(pairId))
-	defer iterator.Close()
+	iter := sdk.KVStorePrefixIterator(store, types.GetPoolsByPairKey(pairId))
+	defer iter.Close()
 
-	for ; iterator.Valid(); iterator.Next() {
-		poolId := types.ParsePoolsByPairIndexKey(iterator.Key())
+	for ; iter.Valid(); iter.Next() {
+		poolId := types.ParsePoolsByPairIndexKey(iter.Key())
 		pool, _ := k.GetPool(ctx, poolId)
 		if cb(pool) {
 			break
