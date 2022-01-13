@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/cosmos-sdk/testutil"
+	"github.com/crescent-network/crescent/testutil"
 
 	"github.com/crescent-network/crescent/app/params"
 	"github.com/crescent-network/crescent/x/farming/client/cli"

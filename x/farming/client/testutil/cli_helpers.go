@@ -5,10 +5,10 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/testutil"
-	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankcli "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
+	"github.com/crescent-network/crescent/testutil"
+	clitestutil "github.com/crescent-network/crescent/testutil/cli"
 
 	crescentcli "github.com/crescent-network/crescent/x/farming/client/cli"
 )
