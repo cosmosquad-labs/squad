@@ -25,6 +25,7 @@ var (
 	KeyPoolCreationFee         = []byte("PoolCreationFee")
 	KeyFeeCollectorAddress     = []byte("FeeCollectorAddress")
 	KeyMaxPriceLimitRatio      = []byte("MaxPriceLimitRatio")
+	KeySwapFeeRate             = []byte("SwapFeeRate")
 )
 
 var (
@@ -70,6 +71,7 @@ func (params *Params) ParamSetPairs() paramstypes.ParamSetPairs {
 		paramstypes.NewParamSetPair(KeyPoolCreationFee, &params.PoolCreationFee, validatePoolCreationFee),
 		paramstypes.NewParamSetPair(KeyFeeCollectorAddress, &params.FeeCollectorAddress, validateFeeCollectorAddress),
 		paramstypes.NewParamSetPair(KeyMaxPriceLimitRatio, &params.FeeCollectorAddress, validateMaxPriceLimitRatio),
+		paramstypes.NewParamSetPair(KeySwapFeeRate, &params.SwapFeeRate, validateSwapFeeRate),
 	}
 }
 
@@ -85,6 +87,7 @@ func (params Params) Validate() error {
 		{params.PoolCreationFee, validatePoolCreationFee},
 		{params.FeeCollectorAddress, validateFeeCollectorAddress},
 		{params.MaxPriceLimitRatio, validateMaxPriceLimitRatio},
+		{params.SwapFeeRate, validateSwapFeeRate},
 	} {
 		if err := field.validateFunc(field.val); err != nil {
 			return err
@@ -178,7 +181,20 @@ func validateMaxPriceLimitRatio(i interface{}) error {
 	}
 
 	if v.IsNegative() {
-		return fmt.Errorf("max price diff ratio must not be negative: %s", v)
+		return fmt.Errorf("max price limit ratio must not be negative: %s", v)
+	}
+
+	return nil
+}
+
+func validateSwapFeeRate(i interface{}) error {
+	v, ok := i.(sdk.Dec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v.IsNegative() {
+		return fmt.Errorf("swap fee rate must not be negative: %s", v)
 	}
 
 	return nil

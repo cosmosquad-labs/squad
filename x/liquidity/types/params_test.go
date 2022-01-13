@@ -69,6 +69,13 @@ func TestParams_Validate(t *testing.T) {
 			},
 			"max price diff ratio must not be negative: -1.000000000000000000",
 		},
+		{
+			"negative SwapFeeRate",
+			func(params *types.Params) {
+				params.SwapFeeRate = sdk.NewDec(-1)
+			},
+			"swap fee rate must not be negative: -1.000000000000000000",
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			params := types.DefaultParams()
