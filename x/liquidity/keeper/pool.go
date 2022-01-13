@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/crescent-network/crescent/x/liquidity/types"
 )
@@ -54,8 +55,12 @@ func (k Keeper) CreatePool(ctx sdk.Context, msg *types.MsgCreatePool) error {
 
 	// Send deposit coins to the pool's reserve account.
 	depositCoins := sdk.NewCoins(msg.XCoin, msg.YCoin)
+	// TODO: can we use multi-send?
 	if err := k.bankKeeper.SendCoins(ctx, creator, pool.GetReserveAddress(), depositCoins); err != nil {
 		return err
+	}
+	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, creator, types.ModuleName, params.PoolCreationFee); err != nil {
+		return sdkerrors.Wrap(err, "insufficient pool creation fee")
 	}
 	// Mint and send pool coin to the creator.
 	poolCoin := sdk.NewCoin(pool.PoolCoinDenom, params.InitialPoolCoinSupply)

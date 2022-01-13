@@ -18,6 +18,9 @@ message Params {
 
   string min_initial_deposit_amount = 4
       [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+
+  repeated cosmos.base.v1beta1.Coin pool_creation_fee = 5
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
 }
 
 // Pool defines a basic liquidity pool with no min-price and max-price.

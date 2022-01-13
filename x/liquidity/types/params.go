@@ -7,11 +7,13 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
+// TODO: sort keys
 var (
 	KeyInitialPoolCoinSupply   = []byte("InitialPoolCoinSupply")
 	KeyBatchSize               = []byte("BatchSize")
 	KeyTickPrecision           = []byte("TickPrecision")
 	KeyMinInitialDepositAmount = []byte("MinInitialDepositAmount")
+	KeyPoolCreationFee         = []byte("PoolCreationFee")
 )
 
 var (
@@ -19,6 +21,7 @@ var (
 	DefaultBatchSize               uint32 = 1
 	DefaultTickPrecision           uint32 = 3
 	DefaultMinInitialDepositAmount        = sdk.NewInt(1000000)
+	DefaultPoolCreationFee                = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000)))
 
 	MinOfferCoinAmount = sdk.NewInt(100) // This value can be modified in the future
 )
@@ -35,6 +38,7 @@ func DefaultParams() Params {
 		BatchSize:               DefaultBatchSize,
 		TickPrecision:           DefaultTickPrecision,
 		MinInitialDepositAmount: DefaultMinInitialDepositAmount,
+		PoolCreationFee:         DefaultPoolCreationFee,
 	}
 }
 
@@ -44,6 +48,7 @@ func (params *Params) ParamSetPairs() paramstypes.ParamSetPairs {
 		paramstypes.NewParamSetPair(KeyBatchSize, &params.BatchSize, validateBatchSize),
 		paramstypes.NewParamSetPair(KeyTickPrecision, &params.TickPrecision, validateTickPrecision),
 		paramstypes.NewParamSetPair(KeyMinInitialDepositAmount, &params.MinInitialDepositAmount, validateMinInitialDepositAmount),
+		paramstypes.NewParamSetPair(KeyPoolCreationFee, &params.PoolCreationFee, validatePoolCreationFee),
 	}
 }
 
@@ -56,6 +61,7 @@ func (params Params) Validate() error {
 		{params.BatchSize, validateBatchSize},
 		{params.TickPrecision, validateTickPrecision},
 		{params.MinInitialDepositAmount, validateMinInitialDepositAmount},
+		{params.PoolCreationFee, validatePoolCreationFee},
 	} {
 		if err := field.validateFunc(field.val); err != nil {
 			return err
@@ -111,6 +117,19 @@ func validateMinInitialDepositAmount(i interface{}) error {
 
 	if v.IsNegative() {
 		return fmt.Errorf("minimum initial deposit amount must not be negative: %s", v)
+	}
+
+	return nil
+}
+
+func validatePoolCreationFee(i interface{}) error {
+	v, ok := i.(sdk.Coins)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if err := v.Validate(); err != nil {
+		return fmt.Errorf("invalid pool creation fee: %w", err)
 	}
 
 	return nil
