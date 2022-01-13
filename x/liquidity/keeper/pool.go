@@ -88,8 +88,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, msg *types.MsgCreatePool) error {
 	if err := k.bankKeeper.SendCoins(ctx, creator, pool.GetReserveAddress(), depositCoins); err != nil {
 		return err
 	}
-	// Spend the pool creation fee to the fee collector.
-	// TODO: can we use multi-send?
+	// Send the pool creation fee to the fee collector.
 	feeCollectorAddr, _ := sdk.AccAddressFromBech32(params.FeeCollectorAddress)
 	if err := k.bankKeeper.SendCoins(ctx, creator, feeCollectorAddr, params.PoolCreationFee); err != nil {
 		return sdkerrors.Wrap(err, "insufficient pool creation fee")
@@ -109,6 +108,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, msg *types.MsgCreatePool) error {
 			sdk.NewAttribute(types.AttributeKeyCreator, msg.Creator),
 			sdk.NewAttribute(types.AttributeKeyXCoin, msg.XCoin.String()),
 			sdk.NewAttribute(types.AttributeKeyYCoin, msg.YCoin.String()),
+			sdk.NewAttribute(types.AttributeKeyMintedPoolCoin, poolCoin.String()),
 		),
 	})
 
@@ -158,7 +158,6 @@ func (k Keeper) WithdrawBatch(ctx sdk.Context, msg *types.MsgWithdrawBatch) erro
 		return types.ErrWrongPoolCoinDenom
 	}
 
-	// TODO: send pool coin to the escrow
 	if err := k.bankKeeper.SendCoins(ctx, msg.GetWithdrawer(), types.GlobalEscrowAddr, sdk.NewCoins(msg.PoolCoin)); err != nil {
 		return err
 	}

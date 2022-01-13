@@ -29,9 +29,9 @@ var (
 	PairIndexKeyPrefix       = []byte{0xa6}
 	PairLookupIndexKeyPrefix = []byte{0xa7}
 
-	PoolKeyPrefix             = []byte{0xab}
-	PoolByReserveAccKeyPrefix = []byte{0xac}
-	PoolByPairIndexKeyPrefix  = []byte{0xad}
+	PoolKeyPrefix                  = []byte{0xab}
+	PoolByReserveAccIndexKeyPrefix = []byte{0xac}
+	PoolByPairIndexKeyPrefix       = []byte{0xad}
 
 	DepositRequestKeyPrefix    = []byte{0xb0}
 	WithdrawRequestKeyPrefix   = []byte{0xb1}
@@ -64,9 +64,9 @@ func GetPoolKey(poolId uint64) []byte {
 	return append(PoolKeyPrefix, sdk.Uint64ToBigEndian(poolId)...)
 }
 
-// GetPoolByReserveAccKey returns the index key to retrieve the particular pool.
-func GetPoolByReserveAccKey(reserveAcc sdk.AccAddress) []byte {
-	return append(PoolByReserveAccKeyPrefix, address.MustLengthPrefix(reserveAcc)...)
+// GetPoolByReserveAccIndexKey returns the index key to retrieve the particular pool.
+func GetPoolByReserveAccIndexKey(reserveAcc sdk.AccAddress) []byte {
+	return append(PoolByReserveAccIndexKeyPrefix, address.MustLengthPrefix(reserveAcc)...)
 }
 
 // GetPoolsByPairIndexKey returns the index key to retrieve pool id that is used to iterate pools.
@@ -74,8 +74,8 @@ func GetPoolsByPairIndexKey(pairId, poolId uint64) []byte {
 	return append(append(PoolByPairIndexKeyPrefix, sdk.Uint64ToBigEndian(pairId)...), sdk.Uint64ToBigEndian(poolId)...)
 }
 
-// GetPoolsByPairKey returns the store key to retrieve pool id to iterate pools.
-func GetPoolsByPairKey(pairId uint64) []byte {
+// GetPoolsByPairIndexKeyPrefix returns the store key to retrieve pool id to iterate pools.
+func GetPoolsByPairIndexKeyPrefix(pairId uint64) []byte {
 	return append(PoolByPairIndexKeyPrefix, sdk.Uint64ToBigEndian(pairId)...)
 }
 

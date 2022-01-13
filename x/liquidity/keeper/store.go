@@ -169,7 +169,7 @@ func (k Keeper) GetPool(ctx sdk.Context, id uint64) (pool types.Pool, found bool
 // GetPoolByReserveAcc returns pool object for the givern reserve account address.
 func (k Keeper) GetPoolByReserveAcc(ctx sdk.Context, reserveAcc sdk.AccAddress) (pool types.Pool, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.GetPoolByReserveAccKey(reserveAcc)
+	key := types.GetPoolByReserveAccIndexKey(reserveAcc)
 
 	value := store.Get(key)
 	if value == nil {
@@ -200,19 +200,21 @@ func (k Keeper) SetPool(ctx sdk.Context, pool types.Pool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := types.MustMarshalPool(k.cdc, pool)
 	store.Set(types.GetPoolKey(pool.Id), bz)
+	k.SetPoolByReserveIndex(ctx, pool)
+	k.SetPoolsByPairIndex(ctx, pool)
 }
 
-// SetPoolByReserveAccKey stores a pool by reserve account index key.
-func (k Keeper) SetPoolByReserveAccKey(ctx sdk.Context, pool types.Pool) {
+// SetPoolByReserveIndex stores a pool by reserve account index key.
+func (k Keeper) SetPoolByReserveIndex(ctx sdk.Context, pool types.Pool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&gogotypes.UInt64Value{Value: pool.Id})
-	store.Set(types.GetPoolByReserveAccKey(pool.GetReserveAddress()), bz)
+	store.Set(types.GetPoolByReserveAccIndexKey(pool.GetReserveAddress()), bz)
 }
 
-// SetPoolByPairIndexKey stores a pool by pair index key.
-func (k Keeper) SetPoolByPairIndexKey(ctx sdk.Context, pairId uint64, poolId uint64) {
+// SetPoolsByPairIndex stores a pool by pair index key.
+func (k Keeper) SetPoolsByPairIndex(ctx sdk.Context, pool types.Pool) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetPoolsByPairIndexKey(pairId, poolId), []byte{})
+	store.Set(types.GetPoolsByPairIndexKey(pool.PairId, pool.Id), []byte{})
 }
 
 // IterateAllPools iterates over all the stored pools and performs a callback function.
@@ -236,7 +238,7 @@ func (k Keeper) IterateAllPools(ctx sdk.Context, cb func(pool types.Pool) (stop 
 func (k Keeper) IteratePoolsByPair(ctx sdk.Context, pairId uint64, cb func(pool types.Pool) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 
-	iter := sdk.KVStorePrefixIterator(store, types.GetPoolsByPairKey(pairId))
+	iter := sdk.KVStorePrefixIterator(store, types.GetPoolsByPairIndexKeyPrefix(pairId))
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
