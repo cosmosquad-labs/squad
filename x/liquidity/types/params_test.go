@@ -3,8 +3,9 @@ package types_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/crescent-network/crescent/x/liquidity/types"
 )
@@ -60,14 +61,14 @@ func TestParams_Validate(t *testing.T) {
 			func(params *types.Params) {
 				params.FeeCollectorAddress = "invalidaddr"
 			},
-			"invalid fee collector address: decoding bech32 failed: invalid index of 1",
+			"invalid fee collector address: decoding bech32 failed: invalid separator index -1",
 		},
 		{
 			"negative MaxPriceLimitRatio",
 			func(params *types.Params) {
 				params.MaxPriceLimitRatio = sdk.NewDec(-1)
 			},
-			"max price diff ratio must not be negative: -1.000000000000000000",
+			"max price limit ratio must not be negative: -1.000000000000000000",
 		},
 		{
 			"negative SwapFeeRate",

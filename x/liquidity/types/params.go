@@ -36,6 +36,7 @@ var (
 	DefaultPoolCreationFee                = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000)))
 	DefaultFeeCollectorAddress            = farmingtypes.DeriveAddress(AddressType, ModuleName, "FeeCollector").String()
 	DefaultMaxPriceLimitRatio             = sdk.NewDecWithPrec(1, 1) // 10%
+	DefaultSwapFeeRate                    = sdk.ZeroDec()
 )
 
 var (
@@ -59,6 +60,7 @@ func DefaultParams() Params {
 		PoolCreationFee:         DefaultPoolCreationFee,
 		FeeCollectorAddress:     DefaultFeeCollectorAddress,
 		MaxPriceLimitRatio:      DefaultMaxPriceLimitRatio,
+		SwapFeeRate:             DefaultSwapFeeRate,
 	}
 }
 
