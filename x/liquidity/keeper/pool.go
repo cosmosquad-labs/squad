@@ -88,9 +88,10 @@ func (k Keeper) CreatePool(ctx sdk.Context, msg *types.MsgCreatePool) error {
 	if err := k.bankKeeper.SendCoins(ctx, creator, pool.GetReserveAddress(), depositCoins); err != nil {
 		return err
 	}
-	// Spend the pool creation fee to the module account.
+	// Spend the pool creation fee to the fee collector.
 	// TODO: can we use multi-send?
-	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, creator, types.ModuleName, params.PoolCreationFee); err != nil {
+	feeCollectorAddr, _ := sdk.AccAddressFromBech32(params.FeeCollectorAddress)
+	if err := k.bankKeeper.SendCoins(ctx, creator, feeCollectorAddr, params.PoolCreationFee); err != nil {
 		return sdkerrors.Wrap(err, "insufficient pool creation fee")
 	}
 	// Mint and send pool coin to the creator.
