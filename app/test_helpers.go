@@ -15,8 +15,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/simapp"
 	"github.com/cosmos/cosmos-sdk/simapp/params"
 	store "github.com/cosmos/cosmos-sdk/store/types"
-	"github.com/cosmos/cosmos-sdk/testutil/network"
 	simappparams "github.com/crescent-network/crescent/app/params"
+	"github.com/crescent-network/crescent/testutil/network"
 
 	"github.com/cosmos/cosmos-sdk/std"
 	"github.com/stretchr/testify/require"

@@ -15,8 +15,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	//"github.com/crescent-network/crescent/app/params"
 	"github.com/stretchr/testify/require"
 	tmcfg "github.com/tendermint/tendermint/config"
 	tmflags "github.com/tendermint/tendermint/libs/cli/flags"
@@ -27,6 +25,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 	"google.golang.org/grpc"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -55,20 +54,7 @@ var lock = new(sync.Mutex)
 // creates an ABCI Application to provide to Tendermint.
 type AppConstructor = func(val Validator) servertypes.Application
 
-//// NewAppConstructor returns a new simapp AppConstructor
-//func NewAppConstructor(encodingCfg params.EncodingConfig) AppConstructor {
-//	return func(val Validator) servertypes.Application {
-//		return simapp.NewSimApp(
-//			val.Ctx.Logger, dbm.NewMemDB(), nil, true, make(map[int64]bool), val.Ctx.Config.RootDir, 0,
-//			encodingCfg,
-//			simapp.EmptyAppOptions{},
-//			baseapp.SetPruning(storetypes.NewPruningOptionsFromString(val.AppConfig.Pruning)),
-//			baseapp.SetMinGasPrices(val.AppConfig.MinGasPrices),
-//		)
-//	}
-//}
-
-// NewAppConstructor returns a new network AppConstructor.
+// NewAppConstructor returns a new simapp AppConstructor
 func NewAppConstructor(encodingCfg params.EncodingConfig) AppConstructor {
 	return func(val Validator) servertypes.Application {
 		return simapp.NewSimApp(
@@ -110,7 +96,7 @@ type Config struct {
 // DefaultConfig returns a sane default configuration suitable for nearly all
 // testing requirements.
 func DefaultConfig() Config {
-	encCfg := params.MakeTestEncodingConfig()
+	encCfg := simapp.MakeTestEncodingConfig()
 
 	return Config{
 		Codec:             encCfg.Marshaler,
