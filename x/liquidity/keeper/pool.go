@@ -106,7 +106,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, msg *types.MsgCreatePool) error {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeCreatePool,
-			sdk.NewAttribute(types.AttributeKeyCreator, creator.String()),
+			sdk.NewAttribute(types.AttributeKeyCreator, msg.Creator),
 			sdk.NewAttribute(types.AttributeKeyXCoin, msg.XCoin.String()),
 			sdk.NewAttribute(types.AttributeKeyYCoin, msg.YCoin.String()),
 		),
@@ -119,7 +119,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, msg *types.MsgCreatePool) error {
 func (k Keeper) DepositBatch(ctx sdk.Context, msg *types.MsgDepositBatch) error {
 	pool, found := k.GetPool(ctx, msg.PoolId)
 	if !found {
-		return types.ErrPoolNotFound
+		return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "pool with id %d not found", msg.PoolId)
 	}
 
 	if msg.XCoin.Denom != pool.XCoinDenom || msg.YCoin.Denom != pool.YCoinDenom {
@@ -151,7 +151,7 @@ func (k Keeper) DepositBatch(ctx sdk.Context, msg *types.MsgDepositBatch) error 
 func (k Keeper) WithdrawBatch(ctx sdk.Context, msg *types.MsgWithdrawBatch) error {
 	pool, found := k.GetPool(ctx, msg.PoolId)
 	if !found {
-		return types.ErrPoolNotFound
+		return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "pool with id %d not found", msg.PoolId)
 	}
 
 	if msg.PoolCoin.Denom != pool.PoolCoinDenom {

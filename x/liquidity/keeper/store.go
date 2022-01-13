@@ -305,8 +305,27 @@ func (k Keeper) SetWithdrawRequest(ctx sdk.Context, poolId uint64, req types.Wit
 }
 
 // SetSwapRequest stores swap request for the batch execution.
-func (k Keeper) SetSwapRequest(ctx sdk.Context, poolId uint64, req types.SwapRequest) {
+func (k Keeper) SetSwapRequest(ctx sdk.Context, pairId uint64, req types.SwapRequest) {
 	store := ctx.KVStore(k.storeKey)
 	bz := types.MustMarshaSwapRequest(k.cdc, req)
-	store.Set(types.GetSwapRequestKey(poolId, req.Id), bz)
+	store.Set(types.GetSwapRequestKey(pairId, req.Id), bz)
+}
+
+// DeleteSwapRequest deletes a swap request.
+func (k Keeper) DeleteSwapRequest(ctx sdk.Context, pairId, id uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetSwapRequestKey(pairId, id))
+}
+
+// SetCancelSwapRequest stores types.CancelSwapRequest for the batch execution.
+func (k Keeper) SetCancelSwapRequest(ctx sdk.Context, pairId uint64, req types.CancelSwapRequest) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&req)
+	store.Set(types.GetCancelSwapRequestKey(pairId, req.Id), bz)
+}
+
+// DeleteCancelSwapRequest deletes a cancel swap request.
+func (k Keeper) DeleteCancelSwapRequest(ctx sdk.Context, pairId, id uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetCancelSwapRequestKey(pairId, id))
 }

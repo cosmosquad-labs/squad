@@ -21,12 +21,14 @@ func (pair Pair) GetEscrowAddress() sdk.AccAddress {
 // NewPair returns a new pair object.
 func NewPair(id uint64, xCoinDenom, yCoinDenom string) Pair {
 	return Pair{
-		Id:                id,
-		XCoinDenom:        xCoinDenom,
-		YCoinDenom:        yCoinDenom,
-		EscrowAddress:     PairEscrowAddr(id).String(),
-		LastSwapRequestId: 0,
-		LastPrice:         nil,
+		Id:                      id,
+		XCoinDenom:              xCoinDenom,
+		YCoinDenom:              yCoinDenom,
+		EscrowAddress:           PairEscrowAddr(id).String(),
+		LastSwapRequestId:       0,
+		LastCancelSwapRequestId: 0,
+		LastPrice:               nil,
+		CurrentBatchId:          1,
 	}
 }
 
@@ -44,7 +46,7 @@ func MustMarshalPair(cdc codec.BinaryCodec, pair Pair) []byte {
 	return cdc.MustMarshal(&pair)
 }
 
-// MustUnmarshalPair return the unmarshaled pair from bytes.
+// MustUnmarshalPair return the unmarshalled pair from bytes.
 // It throws panic if it fails.
 func MustUnmarshalPair(cdc codec.BinaryCodec, value []byte) Pair {
 	pair, err := UnmarshalPair(cdc, value)

@@ -13,6 +13,24 @@ func (k Keeper) GetNextPairIdWithUpdate(ctx sdk.Context) uint64 {
 	return id
 }
 
+// GetNextSwapRequestIdWithUpdate increments the pair's last swap request
+// id and returns it.
+func (k Keeper) GetNextSwapRequestIdWithUpdate(ctx sdk.Context, pair types.Pair) uint64 {
+	id := pair.LastSwapRequestId + 1
+	pair.LastSwapRequestId = id
+	k.SetPair(ctx, pair)
+	return id
+}
+
+// GetNextCancelSwapRequestIdWithUpdate increments the pair's last cancel
+// swap request id and returns it.
+func (k Keeper) GetNextCancelSwapRequestIdWithUpdate(ctx sdk.Context, pair types.Pair) uint64 {
+	id := pair.LastCancelSwapRequestId + 1
+	pair.LastCancelSwapRequestId = id
+	k.SetPair(ctx, pair)
+	return id
+}
+
 // CreatePair creates a new pair.
 func (k Keeper) CreatePair(ctx sdk.Context, xCoinDenom, yCoinDenom string) types.Pair {
 	id := k.GetNextPairIdWithUpdate(ctx)
@@ -21,11 +39,8 @@ func (k Keeper) CreatePair(ctx sdk.Context, xCoinDenom, yCoinDenom string) types
 	return pair
 }
 
-// GetNextSwapRequestIdWithUpdate increments the pair's last swap request
-// id and returns it.
-func (k Keeper) GetNextSwapRequestIdWithUpdate(ctx sdk.Context, pair types.Pair) uint64 {
-	id := pair.LastSwapRequestId + 1
-	pair.LastSwapRequestId = id
+// IncrementBatchId increments the pair's current batch id.
+func (k Keeper) IncrementBatchId(ctx sdk.Context, pair types.Pair) {
+	pair.CurrentBatchId++
 	k.SetPair(ctx, pair)
-	return id
 }

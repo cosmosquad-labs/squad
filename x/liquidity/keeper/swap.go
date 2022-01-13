@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/crescent-network/crescent/x/liquidity/types"
 )
@@ -43,6 +44,8 @@ func (k Keeper) SwapBatch(ctx sdk.Context, msg *types.MsgSwapBatch) error {
 	req := types.SwapRequest{
 		Id:              requestId,
 		PairId:          pair.Id,
+		MsgHeight:       ctx.BlockHeight(),
+		BatchId:         pair.CurrentBatchId,
 		Orderer:         msg.Orderer,
 		Direction:       msg.GetDirection(),
 		Price:           msg.Price,
@@ -56,11 +59,32 @@ func (k Keeper) SwapBatch(ctx sdk.Context, msg *types.MsgSwapBatch) error {
 	return nil
 }
 
+// CancelSwapBatch handles types.MsgCancelSwapBatch and stores it.
 func (k Keeper) CancelSwapBatch(ctx sdk.Context, msg *types.MsgCancelSwapBatch) error {
-	_, found := k.GetSwapRequest(ctx, msg.PairId, msg.SwapRequestId)
+	swapReq, found := k.GetSwapRequest(ctx, msg.PairId, msg.SwapRequestId)
 	if !found {
-		return types.ErrSwapRequestNotFound
+		return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "swap request with id %d in pair %d not found", msg.SwapRequestId, msg.PairId)
 	}
 
-	panic("not implemented")
+	if msg.Orderer != swapReq.Orderer {
+		return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "mismatching orderer")
+	}
+
+	pair, found := k.GetPair(ctx, msg.PairId)
+	if !found { // TODO: will it ever happen?
+		return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "pair with id %d not found", msg.PairId)
+	}
+
+	requestId := k.GetNextCancelSwapRequestIdWithUpdate(ctx, pair)
+	req := types.CancelSwapRequest{
+		Id:            requestId,
+		PairId:        msg.PairId,
+		MsgHeight:     ctx.BlockHeight(),
+		Orderer:       msg.Orderer,
+		SwapRequestId: msg.SwapRequestId,
+		BatchId:       pair.CurrentBatchId,
+	}
+	k.SetCancelSwapRequest(ctx, msg.PairId, req)
+
+	return nil
 }
