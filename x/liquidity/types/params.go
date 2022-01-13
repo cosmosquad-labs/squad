@@ -22,6 +22,7 @@ var (
 	KeyTickPrecision           = []byte("TickPrecision")
 	KeyMinInitialDepositAmount = []byte("MinInitialDepositAmount")
 	KeyPoolCreationFee         = []byte("PoolCreationFee")
+	KeyFeeCollectorAddress     = []byte("FeeCollectorAddress")
 )
 
 var (
@@ -30,6 +31,7 @@ var (
 	DefaultTickPrecision           uint32 = 3
 	DefaultMinInitialDepositAmount        = sdk.NewInt(1000000)
 	DefaultPoolCreationFee                = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000)))
+	DefaultFeeCollectorAddress            = farmingtypes.DeriveAddress(AddressType, ModuleName, "FeeCollector").String()
 )
 
 var (
@@ -51,6 +53,7 @@ func DefaultParams() Params {
 		TickPrecision:           DefaultTickPrecision,
 		MinInitialDepositAmount: DefaultMinInitialDepositAmount,
 		PoolCreationFee:         DefaultPoolCreationFee,
+		FeeCollectorAddress:     DefaultFeeCollectorAddress,
 	}
 }
 
@@ -61,6 +64,7 @@ func (params *Params) ParamSetPairs() paramstypes.ParamSetPairs {
 		paramstypes.NewParamSetPair(KeyTickPrecision, &params.TickPrecision, validateTickPrecision),
 		paramstypes.NewParamSetPair(KeyMinInitialDepositAmount, &params.MinInitialDepositAmount, validateMinInitialDepositAmount),
 		paramstypes.NewParamSetPair(KeyPoolCreationFee, &params.PoolCreationFee, validatePoolCreationFee),
+		paramstypes.NewParamSetPair(KeyFeeCollectorAddress, &params.FeeCollectorAddress, validateFeeCollectorAddress),
 	}
 }
 
@@ -74,6 +78,7 @@ func (params Params) Validate() error {
 		{params.TickPrecision, validateTickPrecision},
 		{params.MinInitialDepositAmount, validateMinInitialDepositAmount},
 		{params.PoolCreationFee, validatePoolCreationFee},
+		{params.FeeCollectorAddress, validateFeeCollectorAddress},
 	} {
 		if err := field.validateFunc(field.val); err != nil {
 			return err
@@ -142,6 +147,19 @@ func validatePoolCreationFee(i interface{}) error {
 
 	if err := v.Validate(); err != nil {
 		return fmt.Errorf("invalid pool creation fee: %w", err)
+	}
+
+	return nil
+}
+
+func validateFeeCollectorAddress(i interface{}) error {
+	v, ok := i.(string)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if _, err := sdk.AccAddressFromBech32(v); err != nil {
+		return fmt.Errorf("invalid fee collector address: %w", err)
 	}
 
 	return nil

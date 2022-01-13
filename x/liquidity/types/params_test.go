@@ -48,6 +48,20 @@ func TestParams_Validate(t *testing.T) {
 			},
 			"minimum initial deposit amount must not be negative: -1",
 		},
+		{
+			"invalid PoolCreationFee",
+			func(params *types.Params) {
+				params.PoolCreationFee = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.ZeroInt()}}
+			},
+			"invalid pool creation fee: coin 0stake amount is not positive",
+		},
+		{
+			"invalid FeeCollectorAddress",
+			func(params *types.Params) {
+				params.FeeCollectorAddress = "invalidaddr"
+			},
+			"invalid fee collector address: decoding bech32 failed: invalid index of 1",
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			params := types.DefaultParams()
