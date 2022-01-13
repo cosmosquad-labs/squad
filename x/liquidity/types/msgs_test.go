@@ -259,12 +259,14 @@ func TestMsgCancelSwapBatch(t *testing.T) {
 			types.NewMsgCancelSwapBatch(
 				sdk.AccAddress(crypto.AddressHash([]byte("Orderer"))),
 				uint64(1),
+				uint64(1),
 			),
 		},
 		{
 			"invalid orderer address: empty address string is not allowed: invalid address",
 			types.NewMsgCancelSwapBatch(
 				sdk.AccAddress{},
+				uint64(1),
 				uint64(1),
 			),
 		},

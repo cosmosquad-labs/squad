@@ -57,5 +57,10 @@ func (k Keeper) SwapBatch(ctx sdk.Context, msg *types.MsgSwapBatch) error {
 }
 
 func (k Keeper) CancelSwapBatch(ctx sdk.Context, msg *types.MsgCancelSwapBatch) error {
+	_, found := k.GetSwapRequest(ctx, msg.PairId, msg.SwapRequestId)
+	if !found {
+		return types.ErrSwapRequestNotFound
+	}
+
 	panic("not implemented")
 }

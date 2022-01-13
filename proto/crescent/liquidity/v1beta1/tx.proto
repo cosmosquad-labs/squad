@@ -104,11 +104,14 @@ message MsgSwapBatchResponse {}
 
 // MsgCancelSwapBatch defines an SDK message for cancelling a swap request
 message MsgCancelSwapBatch {
-  // swap_request_id specifies the swap request id
-  uint64 swap_request_id = 1;
-
   // orderer specifies the bech32-encoded address that makes an order to swap from the pool
-  string orderer = 2;
+  string orderer = 1;
+
+  // pair_id specifies the pair id
+  uint64 pair_id = 2;
+
+  // swap_request_id specifies the swap request id
+  uint64 swap_request_id = 3;
 }
 
 // MsgCancelSwapBatchResponse defines the Msg/CancelSwapBatch response type.

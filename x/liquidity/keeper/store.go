@@ -277,9 +277,9 @@ func (k Keeper) GetWithdrawRequest(ctx sdk.Context, poolId, id uint64) (state ty
 }
 
 // GetSwapRequest returns the particular swap request.
-func (k Keeper) GetSwapRequest(ctx sdk.Context, poolId, id uint64) (state types.SwapRequest, found bool) {
+func (k Keeper) GetSwapRequest(ctx sdk.Context, pairId, id uint64) (state types.SwapRequest, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.GetSwapRequestKey(poolId, id)
+	key := types.GetSwapRequestKey(pairId, id)
 
 	value := store.Get(key)
 	if value == nil {

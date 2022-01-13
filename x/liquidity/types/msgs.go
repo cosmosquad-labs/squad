@@ -278,10 +278,12 @@ func (msg MsgSwapBatch) GetDirection() SwapDirection {
 // NewMsgCancelSwapBatch creates a new MsgCancelSwapBatch.
 func NewMsgCancelSwapBatch(
 	orderer sdk.AccAddress,
+	pairId uint64,
 	swapRequestId uint64,
 ) *MsgCancelSwapBatch {
 	return &MsgCancelSwapBatch{
 		SwapRequestId: swapRequestId,
+		PairId:        pairId,
 		Orderer:       orderer.String(),
 	}
 }

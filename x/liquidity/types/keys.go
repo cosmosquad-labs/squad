@@ -83,14 +83,14 @@ func GetDepositRequestKey(poolId, id uint64) []byte {
 	return append(append(DepositRequestKeyPrefix, sdk.Uint64ToBigEndian(poolId)...), sdk.Uint64ToBigEndian(id)...)
 }
 
-// GetWithdrawRequestKey returns the store key to retrieve withdaw request object from the pool id and request id.
+// GetWithdrawRequestKey returns the store key to retrieve withdraw request object from the pool id and request id.
 func GetWithdrawRequestKey(poolId, id uint64) []byte {
 	return append(append(WithdrawRequestKeyPrefix, sdk.Uint64ToBigEndian(poolId)...), sdk.Uint64ToBigEndian(id)...)
 }
 
-// GetSwapRequestKey returns the store key to retrieve deposit swap object from the pool id and request id.
-func GetSwapRequestKey(poolId, id uint64) []byte {
-	return append(append(SwapRequestKeyPrefix, sdk.Uint64ToBigEndian(poolId)...), sdk.Uint64ToBigEndian(id)...)
+// GetSwapRequestKey returns the store key to retrieve swap request object from the pair id and request id.
+func GetSwapRequestKey(pairId, id uint64) []byte {
+	return append(append(SwapRequestKeyPrefix, sdk.Uint64ToBigEndian(pairId)...), sdk.Uint64ToBigEndian(id)...)
 }
 
 // ParsePairByDenomIndexKey parses a pair by denom index key.

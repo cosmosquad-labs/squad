@@ -15,4 +15,5 @@ var (
 	ErrWrongPoolCoinDenom        = sdkerrors.Register(ModuleName, 6, "wrong pool coin denom")
 	ErrInvalidPriceTick          = sdkerrors.Register(ModuleName, 7, "price not fit into ticks")
 	ErrPriceOutOfRange           = sdkerrors.Register(ModuleName, 8, "price out of range limit")
+	ErrSwapRequestNotFound       = sdkerrors.Register(ModuleName, 9, "swap request not found") // TODO: use sdkerrors.NotFound?
 )
