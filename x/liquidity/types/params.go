@@ -5,6 +5,14 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	farmingtypes "github.com/crescent-network/crescent/x/farming/types"
+)
+
+const (
+	PoolReserveAccPrefix = "PoolReserveAcc"
+	AccNameSplitter      = "|"
+	AddressType          = farmingtypes.AddressType32Bytes
 )
 
 // TODO: sort keys
@@ -22,8 +30,12 @@ var (
 	DefaultTickPrecision           uint32 = 3
 	DefaultMinInitialDepositAmount        = sdk.NewInt(1000000)
 	DefaultPoolCreationFee                = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000)))
+)
 
+var (
 	MinOfferCoinAmount = sdk.NewInt(100) // This value can be modified in the future
+
+	GlobalEscrowAddr = farmingtypes.DeriveAddress(AddressType, ModuleName, "GlobalEscrow")
 )
 
 var _ paramstypes.ParamSet = (*Params)(nil)

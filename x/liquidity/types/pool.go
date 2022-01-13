@@ -11,12 +11,6 @@ import (
 	farmingtypes "github.com/crescent-network/crescent/x/farming/types"
 )
 
-const (
-	PoolReserveAccPrefix = "PoolReserveAcc"
-	AccNameSplitter      = "|"
-	ReserveAddressType   = farmingtypes.AddressType32Bytes
-)
-
 var (
 	_ PoolI = (*PoolInfo)(nil)
 	// TODO: add RangedPoolInfo for v2
@@ -48,7 +42,7 @@ func (pool Pool) GetReserveAddress() sdk.AccAddress {
 // PoolReserveAcc returns a unique pool reserve account address for each pool.
 func PoolReserveAcc(poolId uint64) sdk.AccAddress {
 	return farmingtypes.DeriveAddress(
-		ReserveAddressType,
+		AddressType,
 		ModuleName,
 		strings.Join([]string{PoolReserveAccPrefix, strconv.FormatUint(poolId, 10)}, AccNameSplitter),
 	)

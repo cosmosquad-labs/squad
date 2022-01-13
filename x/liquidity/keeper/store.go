@@ -291,22 +291,22 @@ func (k Keeper) GetSwapRequest(ctx sdk.Context, poolId, id uint64) (state types.
 }
 
 // SetDepositRequest stores deposit request for the batch execution.
-func (k Keeper) SetDepositRequest(ctx sdk.Context, poolId uint64, id uint64, state types.DepositRequest) {
+func (k Keeper) SetDepositRequest(ctx sdk.Context, poolId uint64, req types.DepositRequest) {
 	store := ctx.KVStore(k.storeKey)
-	bz := types.MustMarshalDepositRequest(k.cdc, state)
-	store.Set(types.GetDepositRequestKey(poolId, id), bz)
+	bz := types.MustMarshalDepositRequest(k.cdc, req)
+	store.Set(types.GetDepositRequestKey(poolId, req.Id), bz)
 }
 
 // SetWithdrawRequest stores withdraw request for the batch execution.
-func (k Keeper) SetWithdrawRequest(ctx sdk.Context, poolId uint64, id uint64, state types.WithdrawRequest) {
+func (k Keeper) SetWithdrawRequest(ctx sdk.Context, poolId uint64, req types.WithdrawRequest) {
 	store := ctx.KVStore(k.storeKey)
-	bz := types.MustMarshaWithdrawRequest(k.cdc, state)
-	store.Set(types.GetWithdrawRequestKey(poolId, id), bz)
+	bz := types.MustMarshaWithdrawRequest(k.cdc, req)
+	store.Set(types.GetWithdrawRequestKey(poolId, req.Id), bz)
 }
 
 // SetSwapRequest stores swap request for the batch execution.
-func (k Keeper) SetSwapRequest(ctx sdk.Context, poolId uint64, id uint64, state types.SwapRequest) {
+func (k Keeper) SetSwapRequest(ctx sdk.Context, poolId uint64, req types.SwapRequest) {
 	store := ctx.KVStore(k.storeKey)
-	bz := types.MustMarshaSwapRequest(k.cdc, state)
-	store.Set(types.GetDepositRequestKey(poolId, id), bz)
+	bz := types.MustMarshaSwapRequest(k.cdc, req)
+	store.Set(types.GetSwapRequestKey(poolId, req.Id), bz)
 }

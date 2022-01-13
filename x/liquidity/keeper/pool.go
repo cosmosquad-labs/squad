@@ -14,10 +14,39 @@ func (k Keeper) GetNextPoolIdWithUpdate(ctx sdk.Context) uint64 {
 	return id
 }
 
-// CreatePool creates a liquidity pool.
-func (k Keeper) CreatePool(ctx sdk.Context, msg *types.MsgCreatePool) error {
-	creator := msg.GetCreator()
+// GetNextDepositRequestIdWithUpdate increments the pool's last deposit request
+// id and returns it.
+func (k Keeper) GetNextDepositRequestIdWithUpdate(ctx sdk.Context, pool types.Pool) uint64 {
+	id := pool.LastDepositRequestId + 1
+	pool.LastDepositRequestId = id
+	k.SetPool(ctx, pool)
+	return id
+}
 
+// GetNextWithdrawRequestIdWithUpdate increments the pool's last withdraw
+// request id and returns it.
+func (k Keeper) GetNextWithdrawRequestIdWithUpdate(ctx sdk.Context, pool types.Pool) uint64 {
+	id := pool.LastWithdrawRequestId + 1
+	pool.LastWithdrawRequestId = id
+	k.SetPool(ctx, pool)
+	return id
+}
+
+// GetPoolBalance returns x coin and y coin balance of the pool.
+func (k Keeper) GetPoolBalance(ctx sdk.Context, pool types.Pool) (rx sdk.Int, ry sdk.Int) {
+	reserveAddr := pool.GetReserveAddress()
+	rx = k.bankKeeper.GetBalance(ctx, reserveAddr, pool.XCoinDenom).Amount
+	rx = k.bankKeeper.GetBalance(ctx, reserveAddr, pool.YCoinDenom).Amount
+	return
+}
+
+// GetPoolCoinSupply returns total pool coin supply of the pool.
+func (k Keeper) GetPoolCoinSupply(ctx sdk.Context, pool types.Pool) sdk.Int {
+	return k.bankKeeper.GetSupply(ctx, pool.PoolCoinDenom).Amount
+}
+
+// CreatePool handles types.MsgCreatePool and creates a pool.
+func (k Keeper) CreatePool(ctx sdk.Context, msg *types.MsgCreatePool) error {
 	params := k.GetParams(ctx)
 	if msg.XCoin.Amount.LT(params.MinInitialDepositAmount) || msg.YCoin.Amount.LT(params.MinInitialDepositAmount) {
 		return types.ErrInsufficientDepositAmount // TODO: more detail error?
@@ -54,11 +83,13 @@ func (k Keeper) CreatePool(ctx sdk.Context, msg *types.MsgCreatePool) error {
 	k.SetPool(ctx, pool)
 
 	// Send deposit coins to the pool's reserve account.
+	creator := msg.GetCreator()
 	depositCoins := sdk.NewCoins(msg.XCoin, msg.YCoin)
-	// TODO: can we use multi-send?
 	if err := k.bankKeeper.SendCoins(ctx, creator, pool.GetReserveAddress(), depositCoins); err != nil {
 		return err
 	}
+	// Spend the pool creation fee to the module account.
+	// TODO: can we use multi-send?
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, creator, types.ModuleName, params.PoolCreationFee); err != nil {
 		return sdkerrors.Wrap(err, "insufficient pool creation fee")
 	}
@@ -83,10 +114,65 @@ func (k Keeper) CreatePool(ctx sdk.Context, msg *types.MsgCreatePool) error {
 	return nil
 }
 
+// DepositBatch handles types.MsgDepositBatch and stores the request.
 func (k Keeper) DepositBatch(ctx sdk.Context, msg *types.MsgDepositBatch) error {
-	panic("not implemented")
+	pool, found := k.GetPool(ctx, msg.PoolId)
+	if !found {
+		return types.ErrPoolNotFound
+	}
+
+	if msg.XCoin.Denom != pool.XCoinDenom || msg.YCoin.Denom != pool.YCoinDenom {
+		return types.ErrWrongPair
+	}
+
+	depositCoins := sdk.NewCoins(msg.XCoin, msg.YCoin)
+	if err := k.bankKeeper.SendCoins(ctx, msg.GetDepositor(), types.GlobalEscrowAddr, depositCoins); err != nil {
+		return err
+	}
+
+	requestId := k.GetNextDepositRequestIdWithUpdate(ctx, pool)
+	req := types.DepositRequest{
+		Id:        requestId,
+		PoolId:    pool.Id,
+		MsgHeight: ctx.BlockHeight(),
+		Depositor: msg.Depositor,
+		XCoin:     msg.XCoin,
+		YCoin:     msg.YCoin,
+	}
+	k.SetDepositRequest(ctx, pool.Id, req)
+
+	// TODO: need to emit an event?
+
+	return nil
 }
 
+// WithdrawBatch handles types.MsgWithdrawBatch and stores the request.
 func (k Keeper) WithdrawBatch(ctx sdk.Context, msg *types.MsgWithdrawBatch) error {
-	panic("not implemented")
+	pool, found := k.GetPool(ctx, msg.PoolId)
+	if !found {
+		return types.ErrPoolNotFound
+	}
+
+	if msg.PoolCoin.Denom != pool.PoolCoinDenom {
+		return types.ErrWrongPoolCoinDenom
+	}
+
+	// TODO: send pool coin to the escrow
+	if err := k.bankKeeper.SendCoins(ctx, msg.GetWithdrawer(), types.GlobalEscrowAddr, sdk.NewCoins(msg.PoolCoin)); err != nil {
+		return err
+	}
+
+	requestId := k.GetNextWithdrawRequestIdWithUpdate(ctx, pool)
+	req := types.WithdrawRequest{
+		Id:         requestId,
+		PoolId:     pool.Id,
+		MsgHeight:  ctx.BlockHeight(),
+		Withdrawer: msg.Withdrawer,
+		PoolCoin:   msg.PoolCoin,
+	}
+	k.SetWithdrawRequest(ctx, pool.Id, req)
+
+	// TODO: need to emit an event?
+
+	return nil
 }
