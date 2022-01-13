@@ -62,6 +62,13 @@ func TestParams_Validate(t *testing.T) {
 			},
 			"invalid fee collector address: decoding bech32 failed: invalid index of 1",
 		},
+		{
+			"negative MaxPriceLimitRatio",
+			func(params *types.Params) {
+				params.MaxPriceLimitRatio = sdk.NewDec(-1)
+			},
+			"max price diff ratio must not be negative: -1.000000000000000000",
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			params := types.DefaultParams()

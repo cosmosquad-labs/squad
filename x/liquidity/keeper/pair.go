@@ -20,3 +20,12 @@ func (k Keeper) CreatePair(ctx sdk.Context, xCoinDenom, yCoinDenom string) types
 	k.SetPair(ctx, pair)
 	return pair
 }
+
+// GetNextSwapRequestIdWithUpdate increments the pair's last swap request
+// id and returns it.
+func (k Keeper) GetNextSwapRequestIdWithUpdate(ctx sdk.Context, pair types.Pair) uint64 {
+	id := pair.LastSwapRequestId + 1
+	pair.LastSwapRequestId = id
+	k.SetPair(ctx, pair)
+	return id
+}

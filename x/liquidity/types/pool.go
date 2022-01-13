@@ -40,11 +40,12 @@ func (pool Pool) GetReserveAddress() sdk.AccAddress {
 }
 
 // PoolReserveAcc returns a unique pool reserve account address for each pool.
+// TODO: rename to PoolReserveAddr
 func PoolReserveAcc(poolId uint64) sdk.AccAddress {
 	return farmingtypes.DeriveAddress(
 		AddressType,
 		ModuleName,
-		strings.Join([]string{PoolReserveAccPrefix, strconv.FormatUint(poolId, 10)}, AccNameSplitter),
+		strings.Join([]string{PoolReserveAccPrefix, strconv.FormatUint(poolId, 10)}, ModuleAddrNameSplitter),
 	)
 }
 

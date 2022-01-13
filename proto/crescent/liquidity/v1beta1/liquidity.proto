@@ -23,6 +23,9 @@ message Params {
       [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
 
   string fee_collector_address = 6;
+
+  string max_price_limit_ratio = 7
+      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
 }
 
 // Pool defines a basic liquidity pool with no min-price and max-price.
@@ -52,9 +55,11 @@ message Pair {
 
   string y_coin_denom = 3;
 
-  uint64 last_swap_request_id = 4;
+  string escrow_address = 4;
 
-  string last_price = 5 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec"];
+  uint64 last_swap_request_id = 5;
+
+  string last_price = 6 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec"];
 }
 
 // DepositRequest defines a deposit request.

@@ -1,8 +1,22 @@
 package types
 
 import (
+	"strconv"
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	farmingtypes "github.com/crescent-network/crescent/x/farming/types"
 )
+
+func (pair Pair) GetEscrowAddress() sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(pair.EscrowAddress)
+	if err != nil {
+		panic(err)
+	}
+	return addr
+}
 
 // NewPair returns a new pair object.
 func NewPair(id uint64, xCoinDenom, yCoinDenom string) Pair {
@@ -10,9 +24,18 @@ func NewPair(id uint64, xCoinDenom, yCoinDenom string) Pair {
 		Id:                id,
 		XCoinDenom:        xCoinDenom,
 		YCoinDenom:        yCoinDenom,
+		EscrowAddress:     PairEscrowAddr(id).String(),
 		LastSwapRequestId: 0,
 		LastPrice:         nil,
 	}
+}
+
+// PairEscrowAddr returns a unique address of the pair's escrow.
+func PairEscrowAddr(pairId uint64) sdk.AccAddress {
+	return farmingtypes.DeriveAddress(
+		AddressType,
+		ModuleName,
+		strings.Join([]string{PairEscrowAddrPrefix, strconv.FormatUint(pairId, 10)}, ModuleAddrNameSplitter))
 }
 
 // MustMarshalPair returns the pair bytes.

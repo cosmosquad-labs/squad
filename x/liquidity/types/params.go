@@ -10,9 +10,10 @@ import (
 )
 
 const (
-	PoolReserveAccPrefix = "PoolReserveAcc"
-	AccNameSplitter      = "|"
-	AddressType          = farmingtypes.AddressType32Bytes
+	PoolReserveAccPrefix   = "PoolReserveAcc"
+	PairEscrowAddrPrefix   = "PairEscrowAddr"
+	ModuleAddrNameSplitter = "|"
+	AddressType            = farmingtypes.AddressType32Bytes
 )
 
 // TODO: sort keys
@@ -23,6 +24,7 @@ var (
 	KeyMinInitialDepositAmount = []byte("MinInitialDepositAmount")
 	KeyPoolCreationFee         = []byte("PoolCreationFee")
 	KeyFeeCollectorAddress     = []byte("FeeCollectorAddress")
+	KeyMaxPriceLimitRatio      = []byte("MaxPriceLimitRatio")
 )
 
 var (
@@ -32,6 +34,7 @@ var (
 	DefaultMinInitialDepositAmount        = sdk.NewInt(1000000)
 	DefaultPoolCreationFee                = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000)))
 	DefaultFeeCollectorAddress            = farmingtypes.DeriveAddress(AddressType, ModuleName, "FeeCollector").String()
+	DefaultMaxPriceLimitRatio             = sdk.NewDecWithPrec(1, 1) // 10%
 )
 
 var (
@@ -54,6 +57,7 @@ func DefaultParams() Params {
 		MinInitialDepositAmount: DefaultMinInitialDepositAmount,
 		PoolCreationFee:         DefaultPoolCreationFee,
 		FeeCollectorAddress:     DefaultFeeCollectorAddress,
+		MaxPriceLimitRatio:      DefaultMaxPriceLimitRatio,
 	}
 }
 
@@ -65,6 +69,7 @@ func (params *Params) ParamSetPairs() paramstypes.ParamSetPairs {
 		paramstypes.NewParamSetPair(KeyMinInitialDepositAmount, &params.MinInitialDepositAmount, validateMinInitialDepositAmount),
 		paramstypes.NewParamSetPair(KeyPoolCreationFee, &params.PoolCreationFee, validatePoolCreationFee),
 		paramstypes.NewParamSetPair(KeyFeeCollectorAddress, &params.FeeCollectorAddress, validateFeeCollectorAddress),
+		paramstypes.NewParamSetPair(KeyMaxPriceLimitRatio, &params.FeeCollectorAddress, validateMaxPriceLimitRatio),
 	}
 }
 
@@ -79,6 +84,7 @@ func (params Params) Validate() error {
 		{params.MinInitialDepositAmount, validateMinInitialDepositAmount},
 		{params.PoolCreationFee, validatePoolCreationFee},
 		{params.FeeCollectorAddress, validateFeeCollectorAddress},
+		{params.MaxPriceLimitRatio, validateMaxPriceLimitRatio},
 	} {
 		if err := field.validateFunc(field.val); err != nil {
 			return err
@@ -160,6 +166,19 @@ func validateFeeCollectorAddress(i interface{}) error {
 
 	if _, err := sdk.AccAddressFromBech32(v); err != nil {
 		return fmt.Errorf("invalid fee collector address: %w", err)
+	}
+
+	return nil
+}
+
+func validateMaxPriceLimitRatio(i interface{}) error {
+	v, ok := i.(sdk.Dec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v.IsNegative() {
+		return fmt.Errorf("max price diff ratio must not be negative: %s", v)
 	}
 
 	return nil
