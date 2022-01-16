@@ -120,14 +120,17 @@ func (s *IntegrationTestSuite) TestCmdParams() {
 		{
 			"json output",
 			[]string{fmt.Sprintf("--%s=json", tmcli.OutputFlag)},
-			`{"liquid_bond_denom":"bstake","whitelisted_validators":[],"unstake_fee_rate":"0.000000000000000000"}`,
+			`{"liquid_bond_denom":"bstake","whitelisted_validators":[],"unstake_fee_rate":"0.000000000000000000","commission_rate":"0.050000000000000000","min_liquid_staking_amount":"1000000"}`,
 		},
 		{
 			"text output",
 			[]string{},
-			`liquid_bond_denom: bstake
+			`commission_rate: "0.050000000000000000"
+liquid_bond_denom: bstake
+min_liquid_staking_amount: "1000000"
 unstake_fee_rate: "0.000000000000000000"
-whitelisted_validators: []`,
+whitelisted_validators: []
+`,
 		},
 	}
 
