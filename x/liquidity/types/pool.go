@@ -11,17 +11,25 @@ import (
 	farmingtypes "github.com/crescent-network/crescent/x/farming/types"
 )
 
-const (
-	PoolReserveAccPrefix = "PoolReserveAcc"
-	AccNameSplitter      = "|"
-	ReserveAddressType   = farmingtypes.AddressType32Bytes
-)
-
 var (
 	_ PoolI = (*PoolInfo)(nil)
 	// TODO: add RangedPoolInfo for v2
 	_ OrderSource = (*PoolOrderSource)(nil)
 )
+
+// NewPool returns a new pool object.
+func NewPool(id, pairId uint64, xCoinDenom, yCoinDenom string) Pool {
+	return Pool{
+		Id:                    id,
+		PairId:                pairId,
+		XCoinDenom:            xCoinDenom,
+		YCoinDenom:            yCoinDenom,
+		ReserveAddress:        PoolReserveAcc(id).String(),
+		PoolCoinDenom:         PoolCoinDenom(id),
+		LastDepositRequestId:  0,
+		LastWithdrawRequestId: 0,
+	}
+}
 
 func (pool Pool) GetReserveAddress() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(pool.ReserveAddress)
@@ -32,17 +40,32 @@ func (pool Pool) GetReserveAddress() sdk.AccAddress {
 }
 
 // PoolReserveAcc returns a unique pool reserve account address for each pool.
+// TODO: rename to PoolReserveAddr
 func PoolReserveAcc(poolId uint64) sdk.AccAddress {
 	return farmingtypes.DeriveAddress(
-		ReserveAddressType,
+		AddressType,
 		ModuleName,
-		strings.Join([]string{PoolReserveAccPrefix, strconv.FormatUint(poolId, 10)}, AccNameSplitter),
+		strings.Join([]string{PoolReserveAccPrefix, strconv.FormatUint(poolId, 10)}, ModuleAddrNameSplitter),
 	)
 }
 
 // PoolCoinDenom returns a unique pool coin denom for a pool.
 func PoolCoinDenom(poolId uint64) string {
 	return fmt.Sprintf("pool%d", poolId)
+}
+
+// ParsePoolCoinDenom trims pool prefix from the pool coin denom and returns pool id.
+func ParsePoolCoinDenom(denom string) uint64 {
+	if !strings.HasPrefix(denom, "pool") {
+		return 0
+	}
+
+	poolId, err := strconv.ParseUint(strings.TrimPrefix(denom, "pool"), 10, 64)
+	if err != nil {
+		return 0
+	}
+
+	return poolId
 }
 
 type PoolI interface {
@@ -80,21 +103,26 @@ func (info PoolInfo) Price() sdk.Dec {
 }
 
 type PoolOrderSource struct {
-	RX, RY        sdk.Int
-	PoolPrice     sdk.Dec
-	Direction     SwapDirection
-	TickPrecision int
-	// TODO: need a tick cache?
+	ReserveAddress sdk.AccAddress
+	RX, RY         sdk.Int
+	PoolPrice      sdk.Dec
+	Direction      SwapDirection
+	TickPrecision  int
+	pxCache        map[string]sdk.Int // map(price => providableXOnTick)
+	pyCache        map[string]sdk.Int // map(price => providableYOnTick)
 }
 
-func NewPoolOrderSource(pool PoolI, dir SwapDirection, prec int) OrderSource {
+func NewPoolOrderSource(pool PoolI, reserveAddr sdk.AccAddress, dir SwapDirection, prec int) OrderSource {
 	rx, ry := pool.Balance()
 	return &PoolOrderSource{
-		RX:            rx,
-		RY:            ry,
-		PoolPrice:     pool.Price(),
-		Direction:     dir,
-		TickPrecision: prec,
+		ReserveAddress: reserveAddr,
+		RX:             rx,
+		RY:             ry,
+		PoolPrice:      pool.Price(),
+		Direction:      dir,
+		TickPrecision:  prec,
+		pxCache:        map[string]sdk.Int{},
+		pyCache:        map[string]sdk.Int{},
 	}
 }
 
@@ -116,14 +144,26 @@ func (os PoolOrderSource) ProvidableXOnTick(price sdk.Dec) sdk.Int {
 	if price.GTE(os.PoolPrice) {
 		return sdk.ZeroInt()
 	}
-	return os.ProvidableX(price).Sub(os.ProvidableX(UpTick(price, os.TickPrecision)))
+	s := price.String()
+	px, ok := os.pxCache[s]
+	if !ok {
+		px = os.ProvidableX(price).Sub(os.ProvidableX(UpTick(price, os.TickPrecision)))
+		os.pxCache[s] = px
+	}
+	return px
 }
 
 func (os PoolOrderSource) ProvidableYOnTick(price sdk.Dec) sdk.Int {
 	if price.LTE(os.PoolPrice) {
 		return sdk.ZeroInt()
 	}
-	return os.ProvidableY(price).Sub(os.ProvidableY(DownTick(price, os.TickPrecision)))
+	s := price.String()
+	py, ok := os.pyCache[s]
+	if !ok {
+		py = os.ProvidableY(price).Sub(os.ProvidableY(DownTick(price, os.TickPrecision)))
+		os.pyCache[s] = py
+	}
+	return py
 }
 
 func (os PoolOrderSource) AmountGTE(price sdk.Dec) sdk.Int {
@@ -177,7 +217,13 @@ func (os PoolOrderSource) AmountLTE(price sdk.Dec) sdk.Int {
 }
 
 func (os PoolOrderSource) Orders(price sdk.Dec) Orders {
-	panic("not implemented")
+	switch os.Direction {
+	case SwapDirectionBuy:
+		return Orders{NewPoolOrder(os.ReserveAddress, SwapDirectionBuy, price, os.ProvidableXOnTick(price))}
+	case SwapDirectionSell:
+		return Orders{NewPoolOrder(os.ReserveAddress, SwapDirectionSell, price, os.ProvidableYOnTick(price))}
+	}
+	return nil
 }
 
 func (os PoolOrderSource) UpTick(price sdk.Dec) (tick sdk.Dec, found bool) {

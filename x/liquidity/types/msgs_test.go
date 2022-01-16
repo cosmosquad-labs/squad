@@ -2,7 +2,7 @@ package types_test
 
 import (
 	"testing"
-	time "time"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -184,8 +184,9 @@ func TestMsgSwapBatch(t *testing.T) {
 		{
 			"", // empty means no error expected
 			types.NewMsgSwapBatch(
-				uint64(1),
 				sdk.AccAddress(crypto.AddressHash([]byte("Orderer"))),
+				"denom1",
+				"denom2",
 				sdk.NewInt64Coin("denom2", 100_000_000),
 				"denom1",
 				sdk.MustNewDecFromStr("1.0"),
@@ -195,8 +196,9 @@ func TestMsgSwapBatch(t *testing.T) {
 		{
 			"invalid orderer address: empty address string is not allowed: invalid address",
 			types.NewMsgSwapBatch(
-				uint64(1),
 				sdk.AccAddress{},
+				"denom1",
+				"denom2",
 				sdk.NewInt64Coin("denom2", 100_000_000),
 				"denom1",
 				sdk.MustNewDecFromStr("1.0"),
@@ -206,8 +208,9 @@ func TestMsgSwapBatch(t *testing.T) {
 		{
 			"offer coin must be positive: invalid request",
 			types.NewMsgSwapBatch(
-				uint64(1),
-				sdk.AccAddress(crypto.AddressHash([]byte("Depositor"))),
+				sdk.AccAddress(crypto.AddressHash([]byte("Orderer"))),
+				"denom1",
+				"denom2",
 				sdk.NewInt64Coin("denom2", 0),
 				"denom1",
 				sdk.MustNewDecFromStr("1.0"),
@@ -215,10 +218,11 @@ func TestMsgSwapBatch(t *testing.T) {
 			),
 		},
 		{
-			"invalid demand coin denom: invalid request",
+			"offer and demand coin denom pair doesn't match with x and y coin denom pair: invalid request",
 			types.NewMsgSwapBatch(
-				uint64(1),
 				sdk.AccAddress(crypto.AddressHash([]byte("Orderer"))),
+				"denom1",
+				"denom2",
 				sdk.NewInt64Coin("denom2", 100_000_000),
 				"denom2",
 				sdk.MustNewDecFromStr("1.0"),
@@ -254,12 +258,14 @@ func TestMsgCancelSwapBatch(t *testing.T) {
 			types.NewMsgCancelSwapBatch(
 				sdk.AccAddress(crypto.AddressHash([]byte("Orderer"))),
 				uint64(1),
+				uint64(1),
 			),
 		},
 		{
 			"invalid orderer address: empty address string is not allowed: invalid address",
 			types.NewMsgCancelSwapBatch(
 				sdk.AccAddress{},
+				uint64(1),
 				uint64(1),
 			),
 		},
