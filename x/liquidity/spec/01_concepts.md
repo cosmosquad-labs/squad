@@ -12,7 +12,7 @@ Unlike general DEXs, we introduced the concept of an orderbook for versatility a
 
 ## Tick System
 
-We introduce tick system in Crescent DEX, alongside with enabling order book feature. This is a natural consequence because most exchanges with order book have its own tick system. The size of tick is configured by using the `tickPreicision`governance parameter.
+We introduce tick system in Crescent DEX, alongside with enabling order book feature. This is a natural consequence because most exchanges with order book have its own tick system. The size of tick is configured by using the `tickPreicision` governance parameter.
 
 ## Liquidity Pool
 
@@ -20,11 +20,11 @@ A liquidity pool is a coin reserve that contains two different types of coins in
 
 ## Constant Product Model (CPM)
 
-This AMM has a particularly desirable feature where it can always ****provide liquidity, no matter how large the order size nor how tiny the liquidity pool. The trick is to asymptotically increase the price of the coin as the desired quantity increases. The term **“**constant**”** refers to the fact that any trade must change the reserves in such a way that the product of those reserves remains unchanged (i.e. equal to a constant).
+This AMM has a particularly desirable feature where it can always provide liquidity, no matter how large the order size nor how tiny the liquidity pool. The trick is to asymptotically increase the price of the coin as the desired quantity increases. The term “constant” refers to the fact that any trade must change the reserves in such a way that the product of those reserves remains unchanged (i.e. equal to a constant).
 
 ## Batch Execution
 
-The liquidity module uses a batch execution methodology. Deposits, withdrawals, and swap orders are accumulated in a liquidity pool for a pre-defined period that is one or more blocks in length. Orders are then added to the orderbook and executed at the end of the batch. The size of each batch is configured by using the`BatchSize`governance parameter.
+The liquidity module uses a batch execution methodology. Deposits, withdrawals, and swap orders are accumulated in a liquidity pool for a pre-defined period that is one or more blocks in length. Orders are then added to the orderbook and executed at the end of the batch. The size of each batch is configured by using the`BatchSize` governance parameter.
 
 ## Escrow Process
 
@@ -48,4 +48,4 @@ The liquidity module has `WithdrawFeeRate` parameter that is paid upon withdrawa
 
 ### SwapFeeRate
 
-Swap fees aren’t paid upon swap orders directly. Instead, ****pool just adjust pool's quoting prices to reflect the swap fees. In other words, the pool provides liquidity at a price that is slightly higher than what it can do, and the profit from the transaction made at this price is accumulated in the pools and are shared among the liquidity providers. In short, fee rate concept should be replaced by "QuoteSpread"
+Swap fees aren’t paid upon swap orders directly. Instead, the pool just adjust pool's quoting prices to reflect the swap fees. In other words, the pool provides liquidity at a price that is slightly higher than what it can do, and the profit from the transaction made at this price is accumulated in the pools and are shared among the liquidity providers. In short, fee rate concept should be replaced by "QuoteSpread"

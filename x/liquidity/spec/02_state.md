@@ -6,9 +6,33 @@ The `liquidity` module keeps track of ...
 
 ## Pair
 
+```go
+type Pair struct {
+    Id                  uint64
+    BaseCoinDenom       string
+    QuoteCoinDenom      string
+    EscrowAddress       string
+    LastSwapRequestId   uint64
+    LastPrice           sdk.Dec
+    CurrentBatchId      uint64
+}
+```
+
 ## Pool
+```go
+type Pair struct {
+	Id                      uint64
+	BaseCoinDenom           string
+	QuoteCoinDenom          string
+    EscrowAddress           string
+	LastSwapRequestId       uint64
+	LastPrice               sdk.Dec
+    CurrentBatchId          uint64
+}
+```
 
 ## DepositRequest
+
 
 ## WithdrawRequest
 
