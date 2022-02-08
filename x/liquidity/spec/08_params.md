@@ -15,7 +15,7 @@ The `liquidity` module contains the following parameters:
 | MaxPriceLimitRatio         | string (sdk.Dec)    | "0.100000000000000000"
 | SwapFeeRate                | string (sdk.Dec)    | "0.000000000000000000"
 | WithdrawFeeRate            | string (sdk.Dec)    | "0.000000000000000000"
-| MaxOrderLifespan           | time.Duration       | 5s
+| MaxOrderLifespan           | time.Duration       | 24hours
 
 ## InitialPoolCoinSupply
 
