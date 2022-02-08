@@ -18,7 +18,7 @@ type Pair struct {
     EscrowAddress       string  // address for the escrow account 
     LastSwapRequestId   uint64  // index of the last swap request for the pair
     LastPrice           sdk.Dec // the last swap price of the pair
-    CurrentBatchId      uint64  // index of the batch for pair. This index increase when valid swaps occur for the pair
+    CurrentBatchId      uint64  // index of the batch for pair
 }
 ```
 
@@ -137,24 +137,6 @@ type SwapRequest struct {
     BatchId             uint64          // batch id of the pair when swap order is submitted
     ExpireAt            time.Time       // swap orders are cancelled when current block time is greater than ExpireAt
     Status              SwapRequestStatus
-}
-```
-
-## CancelSwapRequest
-`CancleSwapRequest` defines the state of cancel swap message as it is processed in the next batch or batches.
-
-When a user sends `MsgLimitOrder` or `MsgMarketOrder` transaction to the network, it is accumulated in a batch.
-`SwapRequest` contains the information required for swap transaction, the result and the status of the request.
-
-```go
-type CancelSwapRequest struct {
-    Id              uint64
-    PairId          uint64
-    MsgHeight       int64
-    Orderer         string
-    SwapRequestId   uint64
-    BatchId         uint64
-    Status          RequestStatus
 }
 ```
 
