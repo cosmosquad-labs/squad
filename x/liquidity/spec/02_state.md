@@ -132,16 +132,20 @@ type SwapRequest struct {
     RemainingOfferCoin  sdk.Coin        // remaining amount of offer coin after matching
     ReceivedCoin        sdk.Coin        // amount of received coin after matching
     Price               sdk.Dec         // order price of the swap message
-    Amount              sdk.Int         // 
-    OpenAmount          sdk.Int
-    BatchId             uint64
-    ExpireAt            time.Time
+    Amount              sdk.Int         // order amount in base coin of the swap message 
+    OpenAmount          sdk.Int         // remaining order amount in base coin after matching
+    BatchId             uint64          // batch id of the pair when swap order is submitted
+    ExpireAt            time.Time       // swap orders are cancelled when current block time is greater than ExpireAt
     Status              SwapRequestStatus
 }
 ```
 
-
 ## CancelSwapRequest
+`CancleSwapRequest` defines the state of cancel swap message as it is processed in the next batch or batches.
+
+When a user sends `MsgLimitOrder` or `MsgMarketOrder` transaction to the network, it is accumulated in a batch.
+`SwapRequest` contains the information required for swap transaction, the result and the status of the request.
+
 ```go
 type CancelSwapRequest struct {
     Id              uint64
