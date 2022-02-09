@@ -8,7 +8,7 @@ These operations occur before the end-block operations for the liquidity module.
 
 After successful message verification and coin `escrow` process, the incoming `MsgDeposit`, `MsgWithdraw`, `MsgLimitOrder` and `MsgMarketOrder` messages are converted to requests and stored.
 
-##*End-Block
+##End-Block
 
 End-block operations for the Liquidity Module.
 
