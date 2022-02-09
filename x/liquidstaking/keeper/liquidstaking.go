@@ -78,6 +78,9 @@ func (k Keeper) LiquidDelegate(ctx sdk.Context, proxyAcc sdk.AccAddress, activeV
 	totalNewShares := sdk.ZeroDec()
 	// crumb may occur due to a decimal point error in dividing the staking amount into the weight of liquid validators, It added on first active liquid validator
 	weightedShares, crumb := types.DivideByWeight(activeVals, stakingAmt, whitelistedValMap)
+	if len(weightedShares) == 0 {
+		return sdk.ZeroDec(), types.ErrInvalidActiveLiquidValidators
+	}
 	weightedShares[0] = weightedShares[0].Add(crumb)
 	for i, val := range activeVals {
 		validator, _ := k.stakingKeeper.GetValidator(ctx, val.GetOperator())
@@ -135,6 +138,9 @@ func (k Keeper) LiquidUnstaking(
 
 	// crumb may occur due to a decimal error in dividing the unstaking bToken into the weight of liquid validators, which is also accumulated in the netAmount value
 	unbondingAmounts, crumb := k.DivideByCurrentWeight(ctx, activeVals, unbondingAmount)
+	if len(unbondingAmounts) == 0 {
+		return time.Time{}, sdk.ZeroDec(), []stakingtypes.UnbondingDelegation{}, types.ErrInvalidActiveLiquidValidators
+	}
 	// TODO: ValidateUnbondAmount for sufficient delShares
 	unbondingAmounts[0] = unbondingAmounts[0].Add(crumb)
 	var ubdTime time.Time

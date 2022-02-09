@@ -58,6 +58,9 @@ func (k Keeper) TallyLiquidGov(ctx sdk.Context, votes *govtypes.Votes, otherVote
 			if pair, found := k.liquidityKeeper.GetPair(ctx, pool.PairId); found {
 				rx, ry := k.liquidityKeeper.GetPoolBalance(ctx, pool, pair)
 				poolCoinSupply := k.liquidityKeeper.GetPoolCoinSupply(ctx, pool)
+				if !poolCoinSupply.IsPositive() {
+					continue
+				}
 				bTokenSharePerPoolCoin := sdk.ZeroDec()
 				if pair.QuoteCoinDenom == bondedBondDenom {
 					bTokenSharePerPoolCoin = rx.ToDec().Quo(poolCoinSupply.ToDec())
@@ -110,6 +113,9 @@ func (k Keeper) TallyLiquidGov(ctx sdk.Context, votes *govtypes.Votes, otherVote
 		if votingPower.IsPositive() {
 			(*otherVotes)[voter] = map[string]sdk.Dec{}
 			dividedPowers, crumb := k.DivideByCurrentWeight(ctx, activeVals, votingPower)
+			if len(dividedPowers) == 0 {
+				continue
+			}
 			dividedPowers[0] = dividedPowers[0].Add(crumb)
 			for i, val := range activeVals {
 				if existed, ok := (*otherVotes)[voter][val.OperatorAddress]; ok {

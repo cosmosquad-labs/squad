@@ -140,14 +140,16 @@ func (s *KeeperTestSuite) advanceHeight(height int, withEndBlock bool) {
 			totalPower = totalPower + consPower
 			return false
 		})
-		s.app.StakingKeeper.IterateBondedValidatorsByPower(s.ctx, func(index int64, validator stakingtypes.ValidatorI) (stop bool) {
-			consPower := validator.GetConsensusPower(s.app.StakingKeeper.PowerReduction(s.ctx))
-			powerFraction := sdk.NewDec(consPower).QuoTruncate(sdk.NewDec(totalPower))
-			reward := rewardsToBeDistributed.ToDec().MulTruncate(powerFraction)
-			s.app.DistrKeeper.AllocateTokensToValidator(s.ctx, validator, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: reward}})
-			totalRewards = totalRewards.Add(reward)
-			return false
-		})
+		if totalPower != 0 {
+			s.app.StakingKeeper.IterateBondedValidatorsByPower(s.ctx, func(index int64, validator stakingtypes.ValidatorI) (stop bool) {
+				consPower := validator.GetConsensusPower(s.app.StakingKeeper.PowerReduction(s.ctx))
+				powerFraction := sdk.NewDec(consPower).QuoTruncate(sdk.NewDec(totalPower))
+				reward := rewardsToBeDistributed.ToDec().MulTruncate(powerFraction)
+				s.app.DistrKeeper.AllocateTokensToValidator(s.ctx, validator, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: reward}})
+				totalRewards = totalRewards.Add(reward)
+				return false
+			})
+		}
 		remaining := rewardsToBeDistributed.ToDec().Sub(totalRewards)
 		s.Require().False(remaining.GT(sdk.NewDec(1)))
 		feePool := s.app.DistrKeeper.GetFeePool(s.ctx)

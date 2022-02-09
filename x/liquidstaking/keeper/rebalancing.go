@@ -35,6 +35,10 @@ func (k Keeper) TryRedelegation(ctx sdk.Context, re types.Redelegation) (complet
 // which is may occur while dividing according to the weight of liquid validators by decimal error.
 func (k Keeper) DivideByCurrentWeight(ctx sdk.Context, avs types.ActiveLiquidValidators, input sdk.Dec) (outputs []sdk.Dec, crumb sdk.Dec) {
 	totalLiquidTokens := avs.TotalLiquidTokens(ctx, k.stakingKeeper)
+	// TODO: test coverage, zero
+	if !totalLiquidTokens.IsPositive() {
+		return []sdk.Dec{}, sdk.ZeroDec()
+	}
 	totalOutput := sdk.ZeroDec()
 	unitInput := input.QuoTruncate(totalLiquidTokens)
 	for _, val := range avs {

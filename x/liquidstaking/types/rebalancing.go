@@ -15,6 +15,10 @@ type Redelegation struct {
 // which is may occur while dividing according to the weight of active liquid validators by decimal error.
 func DivideByWeight(activeVals ActiveLiquidValidators, input sdk.Int, whitelistedValMap WhitelistedValMap) (outputs []sdk.Int, crumb sdk.Int) {
 	totalWeight := activeVals.TotalWeight(whitelistedValMap)
+	// TODO: test coverage, zero
+	if !totalWeight.IsPositive() {
+		return []sdk.Int{}, sdk.ZeroInt()
+	}
 	totalShares := sdk.ZeroInt()
 	sharePerWeight := input.ToDec().QuoTruncate(totalWeight.ToDec())
 	for _, val := range activeVals {
