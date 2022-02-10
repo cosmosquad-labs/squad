@@ -134,13 +134,11 @@ func (k Keeper) LiquidUnstaking(
 		return time.Time{}, sdk.ZeroDec(), []stakingtypes.UnbondingDelegation{}, err
 	}
 
-	// crumb may occur due to a decimal error in dividing the unstaking bToken into the weight of liquid validators, which is also accumulated in the netAmount value
+	// crumb may occur due to a decimal error in dividing the unstaking bToken into the weight of liquid validators, add it to first sufficient active validator
 	unbondingAmounts, crumb := k.DivideByCurrentWeight(ctx, activeVals, unbondingAmount)
 	if len(unbondingAmounts) == 0 {
 		return time.Time{}, sdk.ZeroDec(), []stakingtypes.UnbondingDelegation{}, types.ErrInvalidActiveLiquidValidators
 	}
-	// TODO: ValidateUnbondAmount for sufficient delShares
-	unbondingAmounts[0] = unbondingAmounts[0].Add(crumb)
 	var ubdTime time.Time
 	var ubds []stakingtypes.UnbondingDelegation
 	for i, val := range activeVals {
@@ -152,6 +150,12 @@ func (k Keeper) LiquidUnstaking(
 		if unstakingAll && found && del.Shares.IsPositive() {
 			weightedShare = del.Shares
 		} else {
+			// crumb to first sufficient active validator
+			if crumb.IsPositive() && val.GetLiquidTokens(ctx, k.stakingKeeper).GT(unbondingAmounts[i].Add(crumb).TruncateInt()) {
+				unbondingAmounts[i] = unbondingAmounts[i].Add(crumb)
+				crumb = sdk.ZeroDec()
+			}
+			// calculate delShares from tokens with validation
 			weightedShare, err = k.stakingKeeper.ValidateUnbondAmount(ctx, proxyAcc, val.GetOperator(), unbondingAmounts[i].TruncateInt())
 			if err != nil {
 				return time.Time{}, sdk.ZeroDec(), []stakingtypes.UnbondingDelegation{}, err
