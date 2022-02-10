@@ -6,9 +6,10 @@ import (
 
 type Redelegation struct {
 	Delegator    sdk.AccAddress
-	SrcValidator sdk.ValAddress
-	DstValidator sdk.ValAddress
+	SrcValidator LiquidValidator
+	DstValidator LiquidValidator
 	Amount       sdk.Int
+	Last         bool
 }
 
 // DivideByWeight divide the input value by the ratio of the param weight of the liquid validator and return it with crumb

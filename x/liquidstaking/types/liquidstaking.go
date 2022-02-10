@@ -67,6 +67,7 @@ func (v LiquidValidator) GetDelShares(ctx sdk.Context, sk StakingKeeper) sdk.Dec
 	return del.GetShares()
 }
 
+// TODO: consider to return int
 func (v LiquidValidator) GetLiquidTokens(ctx sdk.Context, sk StakingKeeper) sdk.Dec {
 	delShares := v.GetDelShares(ctx, sk)
 	if !delShares.IsPositive() {
@@ -112,7 +113,7 @@ type LiquidValidators []LiquidValidator
 type ActiveLiquidValidators LiquidValidators
 
 // MinMaxGap Return the list of LiquidValidator with the maximum gap and minimum gap from the target weight of LiquidValidators, respectively.
-func (vs LiquidValidators) MinMaxGap(ctx sdk.Context, sk StakingKeeper, targetMap map[string]sdk.Int, threshold sdk.Int) (minGapVal LiquidValidator, maxGapVal LiquidValidator, amountNeeded sdk.Int) {
+func (vs LiquidValidators) MinMaxGap(ctx sdk.Context, sk StakingKeeper, targetMap map[string]sdk.Int, threshold, crumb sdk.Int) (minGapVal LiquidValidator, maxGapVal LiquidValidator, amountNeeded sdk.Int, lastRedelegation bool) {
 	maxGap := sdk.ZeroInt()
 	minGap := sdk.ZeroInt()
 
@@ -131,21 +132,21 @@ func (vs LiquidValidators) MinMaxGap(ctx sdk.Context, sk StakingKeeper, targetMa
 	}
 	amountNeeded = sdk.MinInt(maxGap, minGap.Abs())
 	// when last redelegation for target weight zero, maxGap has priority, if not small left delShares for zero targetWeight
-	lastRedelegation := amountNeeded.IsPositive() && maxGap.Sub(minGap.Abs()).LT(threshold) && !targetMap[maxGapVal.OperatorAddress].IsPositive()
+	lastRedelegation = amountNeeded.IsPositive() && maxGap.Sub(minGap.Abs()).Abs().LT(threshold) && !targetMap[maxGapVal.OperatorAddress].IsPositive()
 	if lastRedelegation {
 		// TODO: verify edge case
-		fmt.Println("[---LastRedelegation]", threshold, maxGap.Sub(minGap.Abs()).LT(threshold) && !targetMap[maxGapVal.OperatorAddress].IsPositive(), maxGap)
+		fmt.Println("[---LastRedelegation]", crumb, maxGap.Sub(minGap.Abs()).Abs().LT(threshold) && !targetMap[maxGapVal.OperatorAddress].IsPositive(), maxGap)
 		amountNeeded = maxGap
 	}
-
-	fmt.Println("[MinMaxGap]", amountNeeded, minGapVal.OperatorAddress, minGap, minGapVal.GetLiquidTokens(ctx, sk), maxGapVal.OperatorAddress, maxGap, maxGapVal.GetLiquidTokens(ctx, sk))
-	return minGapVal, maxGapVal, amountNeeded
+	fmt.Println("[MinMaxGap]", amountNeeded.GT(threshold), amountNeeded, maxGap.Sub(minGap.Abs()).Abs(), crumb, minGapVal.OperatorAddress, minGap, minGapVal.GetLiquidTokens(ctx, sk), maxGapVal.OperatorAddress, maxGap, maxGapVal.GetLiquidTokens(ctx, sk))
+	return minGapVal, maxGapVal, amountNeeded, lastRedelegation
 }
 
 func (vs LiquidValidators) Len() int {
 	return len(vs)
 }
 
+// TODO: consider to return Int with sum of truncated token
 func (vs LiquidValidators) TotalLiquidTokens(ctx sdk.Context, sk StakingKeeper) sdk.Dec {
 	totalLiquidTokens := sdk.ZeroDec()
 	for _, lv := range vs {
@@ -167,6 +168,7 @@ func (avs ActiveLiquidValidators) Len() int {
 	return LiquidValidators(avs).Len()
 }
 
+// TODO: consider to return Int with sum of truncated token
 func (avs ActiveLiquidValidators) TotalLiquidTokens(ctx sdk.Context, sk StakingKeeper) sdk.Dec {
 	return LiquidValidators(avs).TotalLiquidTokens(ctx, sk)
 }
