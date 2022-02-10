@@ -144,9 +144,9 @@ func (k Keeper) LiquidUnstaking(
 	for i, val := range activeVals {
 		var ubd stakingtypes.UnbondingDelegation
 		var returnAmount sdk.Int
+		var weightedShare sdk.Dec
 		// unstaking all when last unstaking request(unstakingBtoken == bTokenTotalSupply)
 		del, found := k.stakingKeeper.GetDelegation(ctx, proxyAcc, val.GetOperator())
-		weightedShare := sdk.ZeroDec()
 		if unstakingAll && found && del.Shares.IsPositive() {
 			weightedShare = del.Shares
 		} else {
