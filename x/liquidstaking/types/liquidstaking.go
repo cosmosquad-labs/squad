@@ -1,8 +1,6 @@
 package types
 
 import (
-	"fmt"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -133,11 +131,8 @@ func (vs LiquidValidators) MinMaxGap(ctx sdk.Context, sk StakingKeeper, targetMa
 		!targetMap[maxGapVal.OperatorAddress].IsPositive() &&
 		maxGap.Sub(minGap).Abs().LT(threshold)
 	if lastRedelegation {
-		// TODO: verify edge case
-		fmt.Println("[---LastRedelegation]", crumb, maxGap.Sub(minGap).Abs().LT(threshold) && !targetMap[maxGapVal.OperatorAddress].IsPositive(), maxGap)
 		amountNeeded = maxGap
 	}
-	fmt.Println("[MinMaxGap]", amountNeeded.GT(threshold), amountNeeded, maxGap.Sub(minGap).Abs(), crumb, minGapVal.OperatorAddress, minGap, minGapVal.GetLiquidTokens(ctx, sk), maxGapVal.OperatorAddress, maxGap, maxGapVal.GetLiquidTokens(ctx, sk))
 	return minGapVal, maxGapVal, amountNeeded, lastRedelegation
 }
 

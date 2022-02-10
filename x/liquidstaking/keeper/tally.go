@@ -27,7 +27,6 @@ func (k Keeper) GetVoterBalanceByDenom(ctx sdk.Context, votes *govtypes.Votes) m
 			}
 		}
 	}
-	squadtypes.PP(denomAddrBalanceMap)
 	return denomAddrBalanceMap
 }
 

@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -20,7 +19,6 @@ func (k Keeper) BondedBondDenom(ctx sdk.Context) (res string) {
 func (k Keeper) NetAmount(ctx sdk.Context) sdk.Dec {
 	balance := k.bankKeeper.GetBalance(ctx, types.LiquidStakingProxyAcc, k.stakingKeeper.BondDenom(ctx)).Amount
 	totalRewards, _, totalLiquidTokens := k.CheckTotalRewards(ctx, types.LiquidStakingProxyAcc)
-	fmt.Println("[balance, totalLiquidTokens, totalRewards]", balance, totalLiquidTokens, totalRewards)
 	return balance.ToDec().Add(totalLiquidTokens.ToDec()).Add(totalRewards)
 }
 
@@ -148,10 +146,10 @@ func (k Keeper) LiquidUnstaking(
 	for i, val := range activeVals {
 		var ubd stakingtypes.UnbondingDelegation
 		var returnAmount sdk.Int
+		// unstaking all when last unstaking request(unstakingBtoken == bTokenTotalSupply)
 		del, found := k.stakingKeeper.GetDelegation(ctx, proxyAcc, val.GetOperator())
 		weightedShare := sdk.ZeroDec()
-		// unstaking all when last unstaking request(unstakingBtoken == bTokenTotalSupply)
-		if unstakingAll {
+		if unstakingAll && found && del.Shares.IsPositive() {
 			weightedShare = del.Shares
 		} else {
 			weightedShare, err = k.stakingKeeper.ValidateUnbondAmount(ctx, proxyAcc, val.GetOperator(), unbondingAmounts[i].TruncateInt())
@@ -159,7 +157,6 @@ func (k Keeper) LiquidUnstaking(
 				return time.Time{}, sdk.ZeroDec(), []stakingtypes.UnbondingDelegation{}, err
 			}
 		}
-		fmt.Println("[liquid UBD]", weightedShare.String(), del.Shares.String(), found, unbondingAmounts[i], activeVals.Len(), unbondingAmount.String())
 		ubdTime, returnAmount, ubd, err = k.LiquidUnbond(ctx, proxyAcc, liquidStaker, val.GetOperator(), weightedShare)
 		if err != nil {
 			return time.Time{}, sdk.ZeroDec(), []stakingtypes.UnbondingDelegation{}, err

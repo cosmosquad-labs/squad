@@ -1,11 +1,9 @@
 package keeper
 
 import (
-	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	squadtypes "github.com/cosmosquad-labs/squad/types"
 	"github.com/cosmosquad-labs/squad/x/liquidstaking/types"
 )
 
@@ -34,7 +32,6 @@ func (k Keeper) TryRedelegation(ctx sdk.Context, re types.Redelegation, last boo
 		return time.Time{}, err
 	}
 	writeCache()
-	fmt.Println("[rebalancing]", re.Amount.String(), re.SrcValidator.String(), "->", re.DstValidator.String())
 	return completionTime, nil
 }
 
@@ -89,8 +86,6 @@ func (k Keeper) Rebalancing(ctx sdk.Context, proxyAcc sdk.AccAddress, liquidVals
 			break
 		}
 	}
-	squadtypes.PP(targetMap)
-	squadtypes.PP(weightMap)
 
 	lenLiquidVals := liquidVals.Len()
 	rebalancingThreshold := rebalancingTrigger.Mul(totalLiquidTokens.ToDec()).TruncateInt()
