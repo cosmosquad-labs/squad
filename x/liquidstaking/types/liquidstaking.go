@@ -116,7 +116,6 @@ func (vs LiquidValidators) MinMaxGap(ctx sdk.Context, sk StakingKeeper, targetMa
 	minGap := sdk.ZeroInt()
 
 	for _, val := range vs {
-		// TODO: liquidTokens or DelShares
 		gap := val.GetLiquidTokens(ctx, sk).Sub(targetMap[val.OperatorAddress])
 		if gap.GT(maxGap) {
 			maxGap = gap
@@ -126,17 +125,19 @@ func (vs LiquidValidators) MinMaxGap(ctx sdk.Context, sk StakingKeeper, targetMa
 			minGap = gap
 			minGapVal = val
 		}
-		// TODO: consider when equal
 	}
-	amountNeeded = sdk.MinInt(maxGap, minGap.Abs())
+	minGap = minGap.Abs()
+	amountNeeded = sdk.MinInt(maxGap, minGap)
 	// when last redelegation for target weight zero, maxGap has priority, if not small left delShares for zero targetWeight
-	lastRedelegation = amountNeeded.IsPositive() && maxGap.Sub(minGap.Abs()).Abs().LT(threshold) && !targetMap[maxGapVal.OperatorAddress].IsPositive()
+	lastRedelegation = amountNeeded.IsPositive() &&
+		!targetMap[maxGapVal.OperatorAddress].IsPositive() &&
+		maxGap.Sub(minGap).Abs().LT(threshold)
 	if lastRedelegation {
 		// TODO: verify edge case
-		fmt.Println("[---LastRedelegation]", crumb, maxGap.Sub(minGap.Abs()).Abs().LT(threshold) && !targetMap[maxGapVal.OperatorAddress].IsPositive(), maxGap)
+		fmt.Println("[---LastRedelegation]", crumb, maxGap.Sub(minGap).Abs().LT(threshold) && !targetMap[maxGapVal.OperatorAddress].IsPositive(), maxGap)
 		amountNeeded = maxGap
 	}
-	fmt.Println("[MinMaxGap]", amountNeeded.GT(threshold), amountNeeded, maxGap.Sub(minGap.Abs()).Abs(), crumb, minGapVal.OperatorAddress, minGap, minGapVal.GetLiquidTokens(ctx, sk), maxGapVal.OperatorAddress, maxGap, maxGapVal.GetLiquidTokens(ctx, sk))
+	fmt.Println("[MinMaxGap]", amountNeeded.GT(threshold), amountNeeded, maxGap.Sub(minGap).Abs(), crumb, minGapVal.OperatorAddress, minGap, minGapVal.GetLiquidTokens(ctx, sk), maxGapVal.OperatorAddress, maxGap, maxGapVal.GetLiquidTokens(ctx, sk))
 	return minGapVal, maxGapVal, amountNeeded, lastRedelegation
 }
 

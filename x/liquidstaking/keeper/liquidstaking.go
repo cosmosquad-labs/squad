@@ -39,10 +39,11 @@ func (k Keeper) LiquidStaking(
 	params := k.GetParams(ctx)
 	whitelistedValMap := types.GetWhitelistedValMap(params.WhitelistedValidators)
 	activeVals := k.GetActiveLiquidValidators(ctx, whitelistedValMap)
-	if activeVals.Len() == 0 {
+	if activeVals.Len() == 0 || !activeVals.TotalWeight(whitelistedValMap).IsPositive() {
 		return sdk.ZeroDec(), bTokenMintAmount, types.ErrActiveLiquidValidatorsNotExists
 	}
 
+	// NetAmount must be calculated before send
 	netAmount := k.NetAmount(ctx)
 
 	// send staking coin to liquid staking proxy account to proxy delegation
@@ -116,11 +117,10 @@ func (k Keeper) LiquidUnstaking(
 	// UnstakeAmount = NetAmount * BTokenAmount/TotalSupply * (1-UnstakeFeeRate)
 	bTokenTotalSupply := k.bankKeeper.GetSupply(ctx, bondedBondDenom)
 	unstakingAll := false
-	//if !bTokenTotalSupply.IsPositive() {
 	if unstakingBtoken.Amount.GT(bTokenTotalSupply.Amount) {
 		return time.Time{}, sdk.ZeroDec(), []stakingtypes.UnbondingDelegation{}, types.ErrInvalidBTokenSupply
 	} else if unstakingBtoken.Amount.Equal(bTokenTotalSupply.Amount) {
-		// TODO: verify with netAmount for rewards, balance
+		// TODO: need to policy for last liquid unstaking for remaining rewards, balance
 		unstakingAll = true
 	}
 	netAmount := k.NetAmount(ctx)

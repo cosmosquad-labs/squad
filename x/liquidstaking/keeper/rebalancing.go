@@ -58,13 +58,15 @@ func (k Keeper) DivideByCurrentWeight(ctx sdk.Context, avs types.ActiveLiquidVal
 
 // Rebalancing argument liquidVals containing ValidatorStatusActive which is containing just added on whitelist(liquidToken 0) and ValidatorStatusInActive to delist
 func (k Keeper) Rebalancing(ctx sdk.Context, proxyAcc sdk.AccAddress, liquidVals types.LiquidValidators, whitelistedValMap types.WhitelistedValMap, rebalancingTrigger sdk.Dec) (redelegations []types.Redelegation) {
+	logger := k.Logger(ctx)
 	totalLiquidTokens := liquidVals.TotalLiquidTokens(ctx, k.stakingKeeper)
 	if !totalLiquidTokens.IsPositive() {
 		return []types.Redelegation{}
 	}
 
 	weightMap, totalWeight := k.GetWeightMap(ctx, liquidVals, whitelistedValMap)
-	// TODO: no active liquid validators, make policy for this case
+
+	// no active liquid validators
 	if !totalWeight.IsPositive() {
 		return []types.Redelegation{}
 	}
@@ -77,14 +79,12 @@ func (k Keeper) Rebalancing(ctx sdk.Context, proxyAcc sdk.AccAddress, liquidVals
 		totalTargetMap = totalTargetMap.Add(targetMap[val.OperatorAddress])
 	}
 	crumb := totalLiquidTokens.Sub(totalTargetMap)
-	// TODO: add condition || crumb.IsNegative()
 	if !totalTargetMap.IsPositive() {
 		return []types.Redelegation{}
 	}
 	// crumb to first non zero liquid validator
 	for _, val := range liquidVals {
 		if targetMap[val.OperatorAddress].IsPositive() {
-			// TODO: add testcase with slashing, if decimal loss occurred, targetMap total should be equal totalLiquidTokensInt
 			targetMap[val.OperatorAddress] = targetMap[val.OperatorAddress].Add(crumb)
 			break
 		}
@@ -96,7 +96,6 @@ func (k Keeper) Rebalancing(ctx sdk.Context, proxyAcc sdk.AccAddress, liquidVals
 	rebalancingThreshold := rebalancingTrigger.Mul(totalLiquidTokens.ToDec()).TruncateInt()
 	for i := 0; i < lenLiquidVals; i++ {
 		minVal, maxVal, amountNeeded, last := liquidVals.MinMaxGap(ctx, k.stakingKeeper, targetMap, rebalancingThreshold, crumb)
-		// TODO: consider rebalancingThreshold policy apply every redelegatoin or maxGap
 		if amountNeeded.IsZero() || amountNeeded.LT(rebalancingThreshold) {
 			break
 		}
@@ -110,7 +109,7 @@ func (k Keeper) Rebalancing(ctx sdk.Context, proxyAcc sdk.AccAddress, liquidVals
 		redelegations = append(redelegations, redelegation)
 		_, err := k.TryRedelegation(ctx, redelegation, last)
 		if err != nil {
-			fmt.Println("[TryRedelegations] failed due to redelegation restriction", redelegations)
+			logger.Error("rebalancing failed due to redelegation restriction", "redelegations", redelegations, "error", err)
 		}
 	}
 	return redelegations
@@ -119,24 +118,23 @@ func (k Keeper) Rebalancing(ctx sdk.Context, proxyAcc sdk.AccAddress, liquidVals
 // WithdrawRewardsAndReStaking withdraw rewards and re-staking when over threshold
 func (k Keeper) WithdrawRewardsAndReStaking(ctx sdk.Context, whitelistedValMap types.WhitelistedValMap) {
 	activeVals := k.GetActiveLiquidValidators(ctx, whitelistedValMap)
-	// TODO: refactor get totalLiquidTokens from below CheckTotalRewards, to be same source
 	totalLiquidTokens := activeVals.TotalLiquidTokens(ctx, k.stakingKeeper)
-	if totalLiquidTokens.IsPositive() {
-		// Withdraw rewards of LiquidStakingProxyAcc and re-staking
-		totalRewards, _, tt2 := k.CheckTotalRewards(ctx, types.LiquidStakingProxyAcc)
-		// checking over types.RewardTrigger and execute GetRewards
-		balance := k.GetProxyAccBalance(ctx, types.LiquidStakingProxyAcc)
-		rewardsThreshold := types.RewardTrigger.Mul(totalLiquidTokens.ToDec()).TruncateInt()
-		fmt.Println("[WithdrawRewardsAndReStaking]", totalLiquidTokens.String(), tt2.String(), rewardsThreshold.String(), types.RewardTrigger, balance.String(), balance.Add(totalRewards.TruncateInt()), balance.Add(totalRewards.TruncateInt()).GTE(rewardsThreshold))
-		if balance.Add(totalRewards.TruncateInt()).GTE(rewardsThreshold) {
-			// re-staking with balance, due to auto-withdraw on add staking by f1
-			rewards := k.WithdrawLiquidRewards(ctx, types.LiquidStakingProxyAcc)
-			balance = k.GetProxyAccBalance(ctx, types.LiquidStakingProxyAcc)
-			res, err := k.LiquidDelegate(ctx, types.LiquidStakingProxyAcc, activeVals, balance, whitelistedValMap)
-			fmt.Println("[WithdrawRewardsAndReStaking res]", rewards.String(), balance.String(), res.String(), err)
-			if err != nil {
-				panic(err)
-			}
+	// skip when invalid totalLiquidTokens or totalWeight
+	if !totalLiquidTokens.IsPositive() || !activeVals.TotalWeight(whitelistedValMap).IsPositive() {
+		return
+	}
+	// Withdraw rewards of LiquidStakingProxyAcc and re-staking
+	totalRewards, _, _ := k.CheckTotalRewards(ctx, types.LiquidStakingProxyAcc)
+	// checking over types.RewardTrigger and execute GetRewards
+	balance := k.GetProxyAccBalance(ctx, types.LiquidStakingProxyAcc)
+	rewardsThreshold := types.RewardTrigger.Mul(totalLiquidTokens.ToDec())
+	if balance.ToDec().Add(totalRewards).GTE(rewardsThreshold) {
+		// re-staking with balance, due to auto-withdraw on add staking by f1
+		k.WithdrawLiquidRewards(ctx, types.LiquidStakingProxyAcc)
+		balance = k.GetProxyAccBalance(ctx, types.LiquidStakingProxyAcc)
+		_, err := k.LiquidDelegate(ctx, types.LiquidStakingProxyAcc, activeVals, balance, whitelistedValMap)
+		if err != nil {
+			panic(err)
 		}
 	}
 }
