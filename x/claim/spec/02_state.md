@@ -4,8 +4,11 @@
 
 ```go
 type ClaimRecord struct {
- 	Address            string  // 
-	RemainingActions   uint8   // 
-	ClaimableAmount    sdk.Int //
+ 	Address                  string  // 
+	InitialClaimableAmount   sdk.Int //
+	RemainingClaimableAmount sdk.Int //
+	DepositAction            bool    // 
+	SwapAction               bool    //
+	StakeAction              bool    //
 }
 ```
