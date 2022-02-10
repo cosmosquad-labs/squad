@@ -32,7 +32,6 @@ func (v LiquidValidator) Validate() error {
 	if valErr != nil {
 		return valErr
 	}
-	// TODO: add state level validate
 	return nil
 }
 
@@ -67,14 +66,13 @@ func (v LiquidValidator) GetDelShares(ctx sdk.Context, sk StakingKeeper) sdk.Dec
 	return del.GetShares()
 }
 
-// TODO: consider to return int
-func (v LiquidValidator) GetLiquidTokens(ctx sdk.Context, sk StakingKeeper) sdk.Dec {
+func (v LiquidValidator) GetLiquidTokens(ctx sdk.Context, sk StakingKeeper) sdk.Int {
 	delShares := v.GetDelShares(ctx, sk)
 	if !delShares.IsPositive() {
-		return sdk.ZeroDec()
+		return sdk.ZeroInt()
 	}
 	val := sk.Validator(ctx, v.GetOperator())
-	return val.TokensFromSharesTruncated(delShares)
+	return val.TokensFromSharesTruncated(delShares).TruncateInt()
 }
 
 func (v LiquidValidator) GetWeight(whitelistedValMap WhitelistedValMap, active bool) sdk.Int {
@@ -119,7 +117,7 @@ func (vs LiquidValidators) MinMaxGap(ctx sdk.Context, sk StakingKeeper, targetMa
 
 	for _, val := range vs {
 		// TODO: liquidTokens or DelShares
-		gap := val.GetLiquidTokens(ctx, sk).TruncateInt().Sub(targetMap[val.OperatorAddress])
+		gap := val.GetLiquidTokens(ctx, sk).Sub(targetMap[val.OperatorAddress])
 		if gap.GT(maxGap) {
 			maxGap = gap
 			maxGapVal = val
@@ -146,9 +144,8 @@ func (vs LiquidValidators) Len() int {
 	return len(vs)
 }
 
-// TODO: consider to return Int with sum of truncated token
-func (vs LiquidValidators) TotalLiquidTokens(ctx sdk.Context, sk StakingKeeper) sdk.Dec {
-	totalLiquidTokens := sdk.ZeroDec()
+func (vs LiquidValidators) TotalLiquidTokens(ctx sdk.Context, sk StakingKeeper) sdk.Int {
+	totalLiquidTokens := sdk.ZeroInt()
 	for _, lv := range vs {
 		liquidTokens := lv.GetLiquidTokens(ctx, sk)
 		totalLiquidTokens = totalLiquidTokens.Add(liquidTokens)
@@ -169,7 +166,7 @@ func (avs ActiveLiquidValidators) Len() int {
 }
 
 // TODO: consider to return Int with sum of truncated token
-func (avs ActiveLiquidValidators) TotalLiquidTokens(ctx sdk.Context, sk StakingKeeper) sdk.Dec {
+func (avs ActiveLiquidValidators) TotalLiquidTokens(ctx sdk.Context, sk StakingKeeper) sdk.Int {
 	return LiquidValidators(avs).TotalLiquidTokens(ctx, sk)
 }
 

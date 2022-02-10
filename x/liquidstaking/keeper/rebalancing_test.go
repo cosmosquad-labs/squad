@@ -44,7 +44,7 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 	s.Require().EqualValues(proxyAccDel1.Shares.TruncateInt(), sdk.NewInt(16666))
 	s.Require().EqualValues(proxyAccDel2.Shares.TruncateInt(), sdk.NewInt(16666))
 	s.Require().EqualValues(proxyAccDel3.Shares.TruncateInt(), sdk.NewInt(16666))
-	s.Require().EqualValues(stakingAmt, s.keeper.GetAllLiquidValidators(s.ctx).TotalLiquidTokens(s.ctx, s.app.StakingKeeper).TruncateInt())
+	s.Require().EqualValues(stakingAmt, s.keeper.GetAllLiquidValidators(s.ctx).TotalLiquidTokens(s.ctx, s.app.StakingKeeper))
 
 	for _, v := range s.keeper.GetAllLiquidValidators(s.ctx) {
 		fmt.Println(v.OperatorAddress, v.GetLiquidTokens(s.ctx, s.app.StakingKeeper))
@@ -76,7 +76,7 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 	s.Require().EqualValues(proxyAccDel2.Shares.TruncateInt(), sdk.NewInt(12499))
 	s.Require().EqualValues(proxyAccDel3.Shares.TruncateInt(), sdk.NewInt(12499))
 	s.Require().EqualValues(proxyAccDel4.Shares.TruncateInt(), sdk.NewInt(12499))
-	s.Require().EqualValues(stakingAmt, s.keeper.GetAllLiquidValidators(s.ctx).TotalLiquidTokens(s.ctx, s.app.StakingKeeper).TruncateInt())
+	s.Require().EqualValues(stakingAmt, s.keeper.GetAllLiquidValidators(s.ctx).TotalLiquidTokens(s.ctx, s.app.StakingKeeper))
 
 	for _, v := range s.keeper.GetAllLiquidValidators(s.ctx) {
 		fmt.Println(v.OperatorAddress, v.GetLiquidTokens(s.ctx, s.app.StakingKeeper))
@@ -120,7 +120,7 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 	s.Require().EqualValues(proxyAccDel3.Shares.TruncateInt(), sdk.NewInt(9999))
 	s.Require().EqualValues(proxyAccDel4.Shares.TruncateInt(), sdk.NewInt(9999))
 	s.Require().EqualValues(proxyAccDel5.Shares.TruncateInt(), sdk.NewInt(9999))
-	s.Require().EqualValues(stakingAmt, s.keeper.GetAllLiquidValidators(s.ctx).TotalLiquidTokens(s.ctx, s.app.StakingKeeper).TruncateInt())
+	s.Require().EqualValues(stakingAmt, s.keeper.GetAllLiquidValidators(s.ctx).TotalLiquidTokens(s.ctx, s.app.StakingKeeper))
 
 	// advance block time and height for complete redelegations
 	s.completeRedelegationUnbonding()
@@ -157,7 +157,7 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 	s.Require().EqualValues(proxyAccDel2.Shares.TruncateInt(), sdk.NewInt(12499))
 	s.Require().EqualValues(proxyAccDel3.Shares.TruncateInt(), sdk.NewInt(12499))
 	s.Require().EqualValues(proxyAccDel4.Shares.TruncateInt(), sdk.NewInt(12499))
-	s.Require().EqualValues(stakingAmt, s.keeper.GetAllLiquidValidators(s.ctx).TotalLiquidTokens(s.ctx, s.app.StakingKeeper).TruncateInt())
+	s.Require().EqualValues(stakingAmt, s.keeper.GetAllLiquidValidators(s.ctx).TotalLiquidTokens(s.ctx, s.app.StakingKeeper))
 
 	// advance block time and height for complete redelegations
 	s.completeRedelegationUnbonding()
@@ -188,7 +188,7 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 	}
 	s.Require().EqualValues(proxyAccDel1.Shares.TruncateInt(), sdk.NewInt(25000))
 	s.Require().EqualValues(proxyAccDel2.Shares.TruncateInt(), sdk.NewInt(24998))
-	s.Require().EqualValues(stakingAmt, s.keeper.GetAllLiquidValidators(s.ctx).TotalLiquidTokens(s.ctx, s.app.StakingKeeper).TruncateInt())
+	s.Require().EqualValues(stakingAmt, s.keeper.GetAllLiquidValidators(s.ctx).TotalLiquidTokens(s.ctx, s.app.StakingKeeper))
 
 	// advance block time and height for complete redelegations
 	s.completeRedelegationUnbonding()
@@ -202,7 +202,7 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 	s.Require().Equal(lvState.Status, types.ValidatorStatusInActive)
 	s.Require().Equal(lvState.Weight, sdk.ZeroInt())
 	s.Require().NotEqualValues(lvState.DelShares, sdk.ZeroDec())
-	s.Require().NotEqualValues(lvState.LiquidTokens, sdk.ZeroDec())
+	s.Require().NotEqualValues(lvState.LiquidTokens, sdk.ZeroInt())
 
 	// rebalancing, remove tombstoned liquid validator
 	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
@@ -218,7 +218,7 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 	s.Require().Equal(lvState.OperatorAddress, valOpers[1].String())
 	s.Require().Equal(lvState.Status, types.ValidatorStatusUnspecified)
 	s.Require().EqualValues(lvState.DelShares, sdk.ZeroDec())
-	s.Require().EqualValues(lvState.LiquidTokens, sdk.ZeroDec())
+	s.Require().EqualValues(lvState.LiquidTokens, sdk.ZeroInt())
 
 	// TODO: slashed amount checking
 

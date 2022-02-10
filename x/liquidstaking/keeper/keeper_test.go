@@ -167,11 +167,11 @@ func (s *KeeperTestSuite) advanceHeight(height int, withEndBlock bool) {
 // doubleSign, tombstone, slash, jail
 func (s *KeeperTestSuite) doubleSign(valOper sdk.ValAddress, consAddr sdk.ConsAddress) {
 	liquidValidator, found := s.keeper.GetLiquidValidator(s.ctx, valOper)
+	s.Require().True(found)
 	val, found := s.app.StakingKeeper.GetValidator(s.ctx, valOper)
 	s.Require().True(found)
 	tokens := val.Tokens
 	liquidTokens := liquidValidator.GetLiquidTokens(s.ctx, s.app.StakingKeeper)
-	fmt.Println(s.keeper.GetAllLiquidValidators(s.ctx).TotalLiquidTokens(s.ctx, s.app.StakingKeeper).TruncateInt())
 
 	// check sign info
 	info, found := s.app.SlashingKeeper.GetValidatorSigningInfo(s.ctx, consAddr)

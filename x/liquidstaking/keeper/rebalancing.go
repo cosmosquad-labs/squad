@@ -47,9 +47,9 @@ func (k Keeper) DivideByCurrentWeight(ctx sdk.Context, avs types.ActiveLiquidVal
 		return []sdk.Dec{}, sdk.ZeroDec()
 	}
 	totalOutput := sdk.ZeroDec()
-	unitInput := input.QuoTruncate(totalLiquidTokens)
+	unitInput := input.QuoTruncate(totalLiquidTokens.ToDec())
 	for _, val := range avs {
-		output := unitInput.MulTruncate(val.GetLiquidTokens(ctx, k.stakingKeeper))
+		output := unitInput.MulTruncate(val.GetLiquidTokens(ctx, k.stakingKeeper).ToDec())
 		totalOutput = totalOutput.Add(output)
 		outputs = append(outputs, output)
 	}
@@ -72,12 +72,11 @@ func (k Keeper) Rebalancing(ctx sdk.Context, proxyAcc sdk.AccAddress, liquidVals
 	// calculate rebalancing target map
 	targetMap := map[string]sdk.Int{}
 	totalTargetMap := sdk.ZeroInt()
-	totalLiquidTokensInt := totalLiquidTokens.TruncateInt()
 	for _, val := range liquidVals {
-		targetMap[val.OperatorAddress] = totalLiquidTokensInt.Mul(weightMap[val.OperatorAddress]).Quo(totalWeight)
+		targetMap[val.OperatorAddress] = totalLiquidTokens.Mul(weightMap[val.OperatorAddress]).Quo(totalWeight)
 		totalTargetMap = totalTargetMap.Add(targetMap[val.OperatorAddress])
 	}
-	crumb := totalLiquidTokensInt.Sub(totalTargetMap)
+	crumb := totalLiquidTokens.Sub(totalTargetMap)
 	// TODO: add condition || crumb.IsNegative()
 	if !totalTargetMap.IsPositive() {
 		return []types.Redelegation{}
@@ -94,7 +93,7 @@ func (k Keeper) Rebalancing(ctx sdk.Context, proxyAcc sdk.AccAddress, liquidVals
 	squadtypes.PP(weightMap)
 
 	lenLiquidVals := liquidVals.Len()
-	rebalancingThreshold := rebalancingTrigger.Mul(totalLiquidTokens).TruncateInt()
+	rebalancingThreshold := rebalancingTrigger.Mul(totalLiquidTokens.ToDec()).TruncateInt()
 	for i := 0; i < lenLiquidVals; i++ {
 		minVal, maxVal, amountNeeded, last := liquidVals.MinMaxGap(ctx, k.stakingKeeper, targetMap, rebalancingThreshold, crumb)
 		// TODO: consider rebalancingThreshold policy apply every redelegatoin or maxGap
@@ -127,7 +126,7 @@ func (k Keeper) WithdrawRewardsAndReStaking(ctx sdk.Context, whitelistedValMap t
 		totalRewards, _, tt2 := k.CheckTotalRewards(ctx, types.LiquidStakingProxyAcc)
 		// checking over types.RewardTrigger and execute GetRewards
 		balance := k.GetProxyAccBalance(ctx, types.LiquidStakingProxyAcc)
-		rewardsThreshold := types.RewardTrigger.Mul(totalLiquidTokens).TruncateInt()
+		rewardsThreshold := types.RewardTrigger.Mul(totalLiquidTokens.ToDec()).TruncateInt()
 		fmt.Println("[WithdrawRewardsAndReStaking]", totalLiquidTokens.String(), tt2.String(), rewardsThreshold.String(), types.RewardTrigger, balance.String(), balance.Add(totalRewards.TruncateInt()), balance.Add(totalRewards.TruncateInt()).GTE(rewardsThreshold))
 		if balance.Add(totalRewards.TruncateInt()).GTE(rewardsThreshold) {
 			// re-staking with balance, due to auto-withdraw on add staking by f1

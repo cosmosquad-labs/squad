@@ -21,7 +21,7 @@ func (k Keeper) NetAmount(ctx sdk.Context) sdk.Dec {
 	balance := k.bankKeeper.GetBalance(ctx, types.LiquidStakingProxyAcc, k.stakingKeeper.BondDenom(ctx)).Amount
 	totalRewards, _, totalLiquidTokens := k.CheckTotalRewards(ctx, types.LiquidStakingProxyAcc)
 	fmt.Println("[balance, totalLiquidTokens, totalRewards]", balance, totalLiquidTokens, totalRewards)
-	return balance.ToDec().Add(totalLiquidTokens).Add(totalRewards)
+	return balance.ToDec().Add(totalLiquidTokens.ToDec()).Add(totalRewards)
 }
 
 // LiquidStaking mints bToken worth of staking coin value according to NetAmount and performs LiquidDelegate.
@@ -200,10 +200,10 @@ func (k Keeper) LiquidUnbond(
 	return completionTime, returnAmount, ubd, nil
 }
 
-func (k Keeper) CheckTotalRewards(ctx sdk.Context, proxyAcc sdk.AccAddress) (sdk.Dec, sdk.Dec, sdk.Dec) {
+func (k Keeper) CheckTotalRewards(ctx sdk.Context, proxyAcc sdk.AccAddress) (sdk.Dec, sdk.Dec, sdk.Int) {
 	bondDenom := k.stakingKeeper.BondDenom(ctx)
 	totalDelShares := sdk.ZeroDec()
-	totalLiquidTokens := sdk.ZeroDec()
+	totalLiquidTokens := sdk.ZeroInt()
 	totalRewards := sdk.ZeroDec()
 
 	// Cache ctx for calculate rewards
@@ -218,7 +218,7 @@ func (k Keeper) CheckTotalRewards(ctx sdk.Context, proxyAcc sdk.AccAddress) (sdk
 			delShares := del.GetShares()
 			if delShares.IsPositive() {
 				totalDelShares = totalDelShares.Add(delShares)
-				liquidTokens := val.TokensFromSharesTruncated(delShares)
+				liquidTokens := val.TokensFromSharesTruncated(delShares).TruncateInt()
 				totalLiquidTokens = totalLiquidTokens.Add(liquidTokens)
 				totalRewards = totalRewards.Add(delReward.AmountOf(bondDenom))
 			}
@@ -329,7 +329,7 @@ func (k Keeper) GetLiquidValidatorState(ctx sdk.Context, addr sdk.ValAddress) (l
 			Weight:          sdk.ZeroInt(),
 			Status:          types.ValidatorStatusUnspecified,
 			DelShares:       sdk.ZeroDec(),
-			LiquidTokens:    sdk.ZeroDec(),
+			LiquidTokens:    sdk.ZeroInt(),
 		}, false
 	}
 	whitelistedValMap := k.GetParams(ctx).WhitelistedValMap()
