@@ -28,3 +28,19 @@ func DivideByWeight(activeVals ActiveLiquidValidators, input sdk.Int, whiteliste
 	}
 	return outputs, input.Sub(totalShares)
 }
+
+// DivideByCurrentWeight divide the input value by the ratio of the weight of the liquid validator's liquid token and return it with crumb
+// which is may occur while dividing according to the weight of liquid validators by decimal error.
+func DivideByCurrentWeight(avs ActiveLiquidValidators, input sdk.Dec, totalLiquidTokens sdk.Int, liquidTokenMap map[string]sdk.Int) (outputs []sdk.Dec, crumb sdk.Dec) {
+	if !totalLiquidTokens.IsPositive() {
+		return []sdk.Dec{}, sdk.ZeroDec()
+	}
+	totalOutput := sdk.ZeroDec()
+	unitInput := input.QuoTruncate(totalLiquidTokens.ToDec())
+	for _, val := range avs {
+		output := unitInput.MulTruncate(liquidTokenMap[val.OperatorAddress].ToDec())
+		totalOutput = totalOutput.Add(output)
+		outputs = append(outputs, output)
+	}
+	return outputs, input.Sub(totalOutput)
+}

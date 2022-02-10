@@ -36,27 +36,10 @@ func (k Keeper) TryRedelegation(ctx sdk.Context, re types.Redelegation, last boo
 	return completionTime, nil
 }
 
-// DivideByCurrentWeight divide the input value by the ratio of the weight of the liquid validator's liquid token and return it with crumb
-// which is may occur while dividing according to the weight of liquid validators by decimal error.
-func (k Keeper) DivideByCurrentWeight(ctx sdk.Context, avs types.ActiveLiquidValidators, input sdk.Dec) (outputs []sdk.Dec, crumb sdk.Dec) {
-	totalLiquidTokens := avs.TotalLiquidTokens(ctx, k.stakingKeeper)
-	if !totalLiquidTokens.IsPositive() {
-		return []sdk.Dec{}, sdk.ZeroDec()
-	}
-	totalOutput := sdk.ZeroDec()
-	unitInput := input.QuoTruncate(totalLiquidTokens.ToDec())
-	for _, val := range avs {
-		output := unitInput.MulTruncate(val.GetLiquidTokens(ctx, k.stakingKeeper).ToDec())
-		totalOutput = totalOutput.Add(output)
-		outputs = append(outputs, output)
-	}
-	return outputs, input.Sub(totalOutput)
-}
-
 // Rebalancing argument liquidVals containing ValidatorStatusActive which is containing just added on whitelist(liquidToken 0) and ValidatorStatusInActive to delist
 func (k Keeper) Rebalancing(ctx sdk.Context, proxyAcc sdk.AccAddress, liquidVals types.LiquidValidators, whitelistedValMap types.WhitelistedValMap, rebalancingTrigger sdk.Dec) (redelegations []types.Redelegation) {
 	logger := k.Logger(ctx)
-	totalLiquidTokens := liquidVals.TotalLiquidTokens(ctx, k.stakingKeeper)
+	totalLiquidTokens, liquidTokenMap := liquidVals.TotalLiquidTokens(ctx, k.stakingKeeper)
 	if !totalLiquidTokens.IsPositive() {
 		return []types.Redelegation{}
 	}
@@ -90,11 +73,16 @@ func (k Keeper) Rebalancing(ctx sdk.Context, proxyAcc sdk.AccAddress, liquidVals
 	lenLiquidVals := liquidVals.Len()
 	rebalancingThreshold := rebalancingTrigger.Mul(totalLiquidTokens.ToDec()).TruncateInt()
 	for i := 0; i < lenLiquidVals; i++ {
-		minVal, maxVal, amountNeeded, last := liquidVals.MinMaxGap(ctx, k.stakingKeeper, targetMap, rebalancingThreshold, crumb)
+		// sync totalLiquidTokens, liquidTokenMap applied rebalancing
+		totalLiquidTokens, liquidTokenMap = liquidVals.TotalLiquidTokens(ctx, k.stakingKeeper)
+
+		// get min, max of liquid token gap
+		minVal, maxVal, amountNeeded, last := liquidVals.MinMaxGap(targetMap, liquidTokenMap, rebalancingThreshold)
 		if amountNeeded.IsZero() || amountNeeded.LT(rebalancingThreshold) {
 			break
 		}
 
+		// try redelegation from max validator to min validator
 		redelegation := types.Redelegation{
 			Delegator:    proxyAcc,
 			SrcValidator: maxVal,
@@ -112,12 +100,18 @@ func (k Keeper) Rebalancing(ctx sdk.Context, proxyAcc sdk.AccAddress, liquidVals
 
 // WithdrawRewardsAndReStaking withdraw rewards and re-staking when over threshold
 func (k Keeper) WithdrawRewardsAndReStaking(ctx sdk.Context, whitelistedValMap types.WhitelistedValMap) {
+	// skip when no active liquid validator
 	activeVals := k.GetActiveLiquidValidators(ctx, whitelistedValMap)
-	totalLiquidTokens := activeVals.TotalLiquidTokens(ctx, k.stakingKeeper)
+	if len(activeVals) == 0 {
+		return
+	}
+
 	// skip when invalid totalLiquidTokens or totalWeight
+	totalLiquidTokens, _ := activeVals.TotalLiquidTokens(ctx, k.stakingKeeper)
 	if !totalLiquidTokens.IsPositive() || !activeVals.TotalWeight(whitelistedValMap).IsPositive() {
 		return
 	}
+
 	// Withdraw rewards of LiquidStakingProxyAcc and re-staking
 	totalRewards, _, _ := k.CheckTotalRewards(ctx, types.LiquidStakingProxyAcc)
 	// checking over types.RewardTrigger and execute GetRewards

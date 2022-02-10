@@ -134,8 +134,9 @@ func (k Keeper) LiquidUnstaking(
 		return time.Time{}, sdk.ZeroDec(), []stakingtypes.UnbondingDelegation{}, err
 	}
 
+	totalLiquidTokens, liquidTokenMap := activeVals.TotalLiquidTokens(ctx, k.stakingKeeper)
 	// crumb may occur due to a decimal error in dividing the unstaking bToken into the weight of liquid validators, add it to first sufficient active validator
-	unbondingAmounts, crumb := k.DivideByCurrentWeight(ctx, activeVals, unbondingAmount)
+	unbondingAmounts, crumb := types.DivideByCurrentWeight(activeVals, unbondingAmount, totalLiquidTokens, liquidTokenMap)
 	if len(unbondingAmounts) == 0 {
 		return time.Time{}, sdk.ZeroDec(), []stakingtypes.UnbondingDelegation{}, types.ErrInvalidActiveLiquidValidators
 	}

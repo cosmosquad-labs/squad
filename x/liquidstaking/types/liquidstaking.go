@@ -108,13 +108,14 @@ func ActiveCondition(validator stakingtypes.Validator, whitelisted bool, tombsto
 type LiquidValidators []LiquidValidator
 type ActiveLiquidValidators LiquidValidators
 
+// TODO: add test code
 // MinMaxGap Return the list of LiquidValidator with the maximum gap and minimum gap from the target weight of LiquidValidators, respectively.
-func (vs LiquidValidators) MinMaxGap(ctx sdk.Context, sk StakingKeeper, targetMap map[string]sdk.Int, threshold, crumb sdk.Int) (minGapVal LiquidValidator, maxGapVal LiquidValidator, amountNeeded sdk.Int, lastRedelegation bool) {
+func (vs LiquidValidators) MinMaxGap(targetMap, liquidTokenMap map[string]sdk.Int, threshold sdk.Int) (minGapVal LiquidValidator, maxGapVal LiquidValidator, amountNeeded sdk.Int, lastRedelegation bool) {
 	maxGap := sdk.ZeroInt()
 	minGap := sdk.ZeroInt()
 
 	for _, val := range vs {
-		gap := val.GetLiquidTokens(ctx, sk).Sub(targetMap[val.OperatorAddress])
+		gap := liquidTokenMap[val.OperatorAddress].Sub(targetMap[val.OperatorAddress])
 		if gap.GT(maxGap) {
 			maxGap = gap
 			maxGapVal = val
@@ -140,13 +141,15 @@ func (vs LiquidValidators) Len() int {
 	return len(vs)
 }
 
-func (vs LiquidValidators) TotalLiquidTokens(ctx sdk.Context, sk StakingKeeper) sdk.Int {
+func (vs LiquidValidators) TotalLiquidTokens(ctx sdk.Context, sk StakingKeeper) (sdk.Int, map[string]sdk.Int) {
 	totalLiquidTokens := sdk.ZeroInt()
+	liquidTokenMap := make(map[string]sdk.Int)
 	for _, lv := range vs {
 		liquidTokens := lv.GetLiquidTokens(ctx, sk)
+		liquidTokenMap[lv.OperatorAddress] = liquidTokens
 		totalLiquidTokens = totalLiquidTokens.Add(liquidTokens)
 	}
-	return totalLiquidTokens
+	return totalLiquidTokens, liquidTokenMap
 }
 
 func (vs LiquidValidators) Map() map[string]bool {
@@ -161,7 +164,7 @@ func (avs ActiveLiquidValidators) Len() int {
 	return LiquidValidators(avs).Len()
 }
 
-func (avs ActiveLiquidValidators) TotalLiquidTokens(ctx sdk.Context, sk StakingKeeper) sdk.Int {
+func (avs ActiveLiquidValidators) TotalLiquidTokens(ctx sdk.Context, sk StakingKeeper) (sdk.Int, map[string]sdk.Int) {
 	return LiquidValidators(avs).TotalLiquidTokens(ctx, sk)
 }
 

@@ -32,16 +32,29 @@ func (k Keeper) GetVoterBalanceByDenom(ctx sdk.Context, votes *govtypes.Votes) m
 
 func (k Keeper) TallyLiquidGov(ctx sdk.Context, votes *govtypes.Votes, otherVotes *govtypes.OtherVotes) {
 	params := k.GetParams(ctx)
-	activeVals := k.GetActiveLiquidValidators(ctx, params.WhitelistedValMap())
 	bondedBondDenom := k.BondedBondDenom(ctx)
-	totalSupply := k.bankKeeper.GetSupply(ctx, bondedBondDenom).Amount
-	bTokenValueMap := make(squadtypes.StrIntMap)
+
+	// skip when no bonded token supply
+	bTokenTotalSupply := k.bankKeeper.GetSupply(ctx, bondedBondDenom).Amount
+	if !bTokenTotalSupply.IsPositive() {
+		return
+	}
+
+	// skip when no active validators, liquid tokens
+	activeVals := k.GetActiveLiquidValidators(ctx, params.WhitelistedValMap())
+	if len(activeVals) == 0 {
+		return
+	}
+	totalLiquidTokens, liquidTokenMap := activeVals.TotalLiquidTokens(ctx, k.stakingKeeper)
+	if !totalLiquidTokens.IsPositive() {
+		return
+	}
+
 	// get the map of balance amount of voter by denom
 	voterBalanceByDenom := k.GetVoterBalanceByDenom(ctx, votes)
 	bTokenSharePerPoolCoinMap := make(map[string]sdk.Dec)
-	if !totalSupply.IsPositive() {
-		return
-	}
+	bTokenValueMap := make(squadtypes.StrIntMap)
+
 	// calculate btoken value of each voter
 	for denom, balanceByVoter := range voterBalanceByDenom {
 
@@ -107,11 +120,11 @@ func (k Keeper) TallyLiquidGov(ctx sdk.Context, votes *govtypes.Votes, otherVote
 	for voter, bTokenValue := range bTokenValueMap {
 		votingPower := sdk.ZeroDec()
 		if bTokenValue.IsPositive() {
-			votingPower = types.BTokenToNativeToken(bTokenValue, totalSupply, k.NetAmount(ctx), sdk.ZeroDec())
+			votingPower = types.BTokenToNativeToken(bTokenValue, bTokenTotalSupply, k.NetAmount(ctx), sdk.ZeroDec())
 		}
 		if votingPower.IsPositive() {
 			(*otherVotes)[voter] = map[string]sdk.Dec{}
-			dividedPowers, crumb := k.DivideByCurrentWeight(ctx, activeVals, votingPower)
+			dividedPowers, crumb := types.DivideByCurrentWeight(activeVals, votingPower, totalLiquidTokens, liquidTokenMap)
 			if len(dividedPowers) == 0 {
 				continue
 			}
