@@ -16,6 +16,7 @@ func (k Keeper) TryRedelegation(ctx sdk.Context, re types.Redelegation, last boo
 	cachedCtx, writeCache := ctx.CacheContext()
 	srcVal := re.SrcValidator.GetOperator()
 	dstVal := re.DstValidator.GetOperator()
+	// calculate delShares from tokens with validation
 	shares, err := k.stakingKeeper.ValidateUnbondAmount(
 		cachedCtx, re.Delegator, srcVal, re.Amount,
 	)
@@ -39,7 +40,6 @@ func (k Keeper) TryRedelegation(ctx sdk.Context, re types.Redelegation, last boo
 // which is may occur while dividing according to the weight of liquid validators by decimal error.
 func (k Keeper) DivideByCurrentWeight(ctx sdk.Context, avs types.ActiveLiquidValidators, input sdk.Dec) (outputs []sdk.Dec, crumb sdk.Dec) {
 	totalLiquidTokens := avs.TotalLiquidTokens(ctx, k.stakingKeeper)
-	// TODO: test coverage, zero
 	if !totalLiquidTokens.IsPositive() {
 		return []sdk.Dec{}, sdk.ZeroDec()
 	}
@@ -159,7 +159,6 @@ func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context) []types.Redelegation {
 
 	// remove inactive with zero liquidToken liquidvalidator
 	for _, lv := range liquidValidators {
-		// TODO: GetLiquidTokens or GetDelShares
 		if !k.ActiveCondition(ctx, lv, whitelistedValMap.IsListed(lv.OperatorAddress)) && !lv.GetDelShares(ctx, k.stakingKeeper).IsPositive() {
 			k.RemoveLiquidValidator(ctx, lv)
 		}

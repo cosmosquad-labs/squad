@@ -161,7 +161,6 @@ func (avs ActiveLiquidValidators) Len() int {
 	return LiquidValidators(avs).Len()
 }
 
-// TODO: consider to return Int with sum of truncated token
 func (avs ActiveLiquidValidators) TotalLiquidTokens(ctx sdk.Context, sk StakingKeeper) sdk.Int {
 	return LiquidValidators(avs).TotalLiquidTokens(ctx, sk)
 }

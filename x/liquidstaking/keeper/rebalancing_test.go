@@ -71,7 +71,6 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 	proxyAccDel4, found := s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakingProxyAcc, valOpers[3])
 	s.Require().True(found)
 
-	// TODO: check, total should be stakingAmt
 	s.Require().EqualValues(proxyAccDel1.Shares.TruncateInt(), sdk.NewInt(12501))
 	s.Require().EqualValues(proxyAccDel2.Shares.TruncateInt(), sdk.NewInt(12499))
 	s.Require().EqualValues(proxyAccDel3.Shares.TruncateInt(), sdk.NewInt(12499))

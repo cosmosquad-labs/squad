@@ -309,9 +309,8 @@ func (k Keeper) GetAllLiquidValidatorStates(ctx sdk.Context) (liquidValidatorSta
 			OperatorAddress: lv.OperatorAddress,
 			Weight:          lv.GetWeight(whitelistedValMap, active),
 			Status:          lv.GetStatus(active),
-			// TODO: could be deprecated or reduce duplicated sk
-			DelShares:    lv.GetDelShares(ctx, k.stakingKeeper),
-			LiquidTokens: lv.GetLiquidTokens(ctx, k.stakingKeeper),
+			DelShares:       lv.GetDelShares(ctx, k.stakingKeeper),
+			LiquidTokens:    lv.GetLiquidTokens(ctx, k.stakingKeeper),
 		}
 		liquidValidatorStates = append(liquidValidatorStates, lvState)
 	}
@@ -335,9 +334,8 @@ func (k Keeper) GetLiquidValidatorState(ctx sdk.Context, addr sdk.ValAddress) (l
 		OperatorAddress: lv.OperatorAddress,
 		Weight:          lv.GetWeight(whitelistedValMap, active),
 		Status:          lv.GetStatus(active),
-		// TODO: could be deprecated or reduce duplicated sk
-		DelShares:    lv.GetDelShares(ctx, k.stakingKeeper),
-		LiquidTokens: lv.GetLiquidTokens(ctx, k.stakingKeeper),
+		DelShares:       lv.GetDelShares(ctx, k.stakingKeeper),
+		LiquidTokens:    lv.GetLiquidTokens(ctx, k.stakingKeeper),
 	}, true
 }
 
@@ -360,11 +358,6 @@ func (k Keeper) GetWeightMap(ctx sdk.Context, liquidVals types.LiquidValidators,
 	}
 	return weightMap, totalWeight
 }
-
-//// Deprecated: GetLiquidUnbonding
-//func (k Keeper) GetLiquidUnbonding(ctx sdk.Context, proxyAcc sdk.AccAddress) []stakingtypes.UnbondingDelegation {
-//	return k.stakingKeeper.GetAllUnbondingDelegations(ctx, proxyAcc)
-//}
 
 //// Deprecated: LiquidStakingWithBalancing for using simple weight distribution, not rebalancing, not using on this version for simplify.
 //func (k Keeper) LiquidStakingWithBalancing(ctx sdk.Context, proxyAcc sdk.AccAddress, activeVals types.ActiveLiquidValidators, stakingAmt sdk.Int) (newShares sdk.Dec, err error) {
