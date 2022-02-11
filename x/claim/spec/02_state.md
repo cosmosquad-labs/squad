@@ -6,7 +6,7 @@
 type ClaimRecord struct {
  	Address                  string  // 
 	InitialClaimableAmount   sdk.Int //
-	RemainingClaimableAmount sdk.Int //
+	UnclaimedClaimableAmount sdk.Int //
 	DepositAction            bool    // 
 	SwapAction               bool    //
 	StakeAction              bool    //
