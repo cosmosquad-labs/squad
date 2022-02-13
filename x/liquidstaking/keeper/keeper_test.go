@@ -249,6 +249,10 @@ func (s *KeeperTestSuite) doubleSign(valOper sdk.ValAddress, consAddr sdk.ConsAd
 	s.Require().True(tokensSlashed.LT(tokens))
 	s.Require().True(liquidTokensSlashed.LT(liquidTokens))
 
+	s.app.StakingKeeper.BlockValidatorUpdates(s.ctx)
+	val, _ = s.app.StakingKeeper.GetValidator(s.ctx, valOper)
+	// set unbonding status, no more rewards before return Bonded
+	s.Require().Equal(val.Status, stakingtypes.Unbonding)
 	//// check slashed
 	//doubleSignFraction := s.app.SlashingKeeper.SlashFractionDoubleSign(s.ctx)
 	//liquidTokensAfterSlashed := liquidValidator.GetLiquidTokens(s.ctx, s.app.StakingKeeper)
