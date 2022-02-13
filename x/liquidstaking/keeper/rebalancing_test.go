@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	squadtypes "github.com/cosmosquad-labs/squad/types"
 	"github.com/cosmosquad-labs/squad/x/liquidstaking/types"
 )
@@ -224,9 +225,41 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 	s.Require().EqualValues(lvState.DelShares, sdk.ZeroDec())
 	s.Require().EqualValues(lvState.LiquidTokens, sdk.ZeroInt())
 
-	// TODO: slashed amount checking
+	// jail last liquid validator, undelegate all liquid tokens to proxy acc
+	s.doubleSign(valOpers[0], sdk.ConsAddress(pks[0].Address()))
+	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.Require().Len(reds, 0)
 
-	// TODO: add more edge cases
+	// no delegation of proxy acc
+	proxyAccDel1, found = s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakingProxyAcc, valOpers[0])
+	s.Require().False(found)
+	val1, found := s.app.StakingKeeper.GetValidator(s.ctx, valOpers[0])
+	s.Require().True(found)
+	s.Require().Equal(val1.Status, stakingtypes.Unbonding)
+
+	// check unbonding delegation to proxy acc
+	ubd, found := s.app.StakingKeeper.GetUnbondingDelegation(s.ctx, types.LiquidStakingProxyAcc, val1.GetOperator())
+	s.Require().True(found)
+
+	// complete unbonding
+	s.completeRedelegationUnbonding()
+
+	// check validator Unbonded
+	val1, found = s.app.StakingKeeper.GetValidator(s.ctx, valOpers[0])
+	s.Require().True(found)
+	s.Require().Equal(val1.Status, stakingtypes.Unbonded)
+
+	// no rewards, delShares, liquid tokens
+	rewards, delShares, liquidTokens := s.keeper.CheckRemainingRewards(s.ctx, types.LiquidStakingProxyAcc)
+	proxyBalance := s.app.BankKeeper.GetBalance(s.ctx, types.LiquidStakingProxyAcc, s.app.StakingKeeper.BondDenom(s.ctx)).Amount
+	netAmount := s.keeper.NetAmount(s.ctx)
+	s.Require().EqualValues(rewards, sdk.ZeroDec())
+	s.Require().EqualValues(delShares, sdk.ZeroDec())
+	s.Require().EqualValues(liquidTokens, sdk.ZeroInt())
+
+	// unbonded to balance, equal with netAmount
+	s.Require().EqualValues(ubd.Entries[0].Balance, proxyBalance)
+	s.Require().EqualValues(netAmount.TruncateInt(), proxyBalance)
 }
 
 func (s *KeeperTestSuite) TestWithdrawRewardsAndReStaking() {
