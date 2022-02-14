@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	squadappparams "github.com/cosmosquad-labs/squad/app/params"
+	squad "github.com/cosmosquad-labs/squad/types"
 	"github.com/cosmosquad-labs/squad/x/liquidity/amm"
 	"github.com/cosmosquad-labs/squad/x/liquidity/keeper"
 	"github.com/cosmosquad-labs/squad/x/liquidity/types"
@@ -194,11 +195,11 @@ func SimulateMsgCreatePool(ak types.AccountKeeper, bk types.BankKeeper, k keeper
 		depositCoins := sdk.NewCoins(
 			sdk.NewCoin(
 				pair.BaseCoinDenom,
-				randomInt(r, minDepositAmt, spendable.Sub(params.PoolCreationFee).AmountOf(pair.BaseCoinDenom)),
+				squad.RandomInt(r, minDepositAmt, spendable.Sub(params.PoolCreationFee).AmountOf(pair.BaseCoinDenom)),
 			),
 			sdk.NewCoin(
 				pair.QuoteCoinDenom,
-				randomInt(r, minDepositAmt, spendable.Sub(params.PoolCreationFee).AmountOf(pair.QuoteCoinDenom)),
+				squad.RandomInt(r, minDepositAmt, spendable.Sub(params.PoolCreationFee).AmountOf(pair.QuoteCoinDenom)),
 			),
 		)
 
@@ -249,10 +250,10 @@ func SimulateMsgDeposit(ak types.AccountKeeper, bk types.BankKeeper, k keeper.Ke
 				depositCoins = sdk.NewCoins(
 					sdk.NewCoin(
 						pair.BaseCoinDenom,
-						randomInt(r, sdk.OneInt(), spendable.AmountOf(pair.BaseCoinDenom))),
+						squad.RandomInt(r, sdk.OneInt(), spendable.AmountOf(pair.BaseCoinDenom))),
 					sdk.NewCoin(
 						pair.QuoteCoinDenom,
-						randomInt(r, sdk.OneInt(), spendable.AmountOf(pair.QuoteCoinDenom))),
+						squad.RandomInt(r, sdk.OneInt(), spendable.AmountOf(pair.QuoteCoinDenom))),
 				)
 				if depositCoins.IsAllLTE(spendable) {
 					skip = false
@@ -316,7 +317,7 @@ func SimulateMsgWithdraw(ak types.AccountKeeper, bk types.BankKeeper, k keeper.K
 		}
 
 		pool, _ := k.GetPool(ctx, poolId)
-		poolCoin := sdk.NewCoin(pool.PoolCoinDenom, randomInt(r, sdk.OneInt(), spendable.AmountOf(pool.PoolCoinDenom)))
+		poolCoin := sdk.NewCoin(pool.PoolCoinDenom, squad.RandomInt(r, sdk.OneInt(), spendable.AmountOf(pool.PoolCoinDenom)))
 		msg := types.NewMsgWithdraw(simAccount.Address, poolId, poolCoin)
 
 		txCtx := simulation.OperationInput{
@@ -352,7 +353,7 @@ func SimulateMsgLimitOrder(ak types.AccountKeeper, bk types.BankKeeper, k keeper
 		var spendable sdk.Coins
 		var pair types.Pair
 		var pool types.Pool
-		var dir types.SwapDirection
+		var dir types.OrderDirection
 		skip := true
 		for _, simAccount = range accs {
 			spendable = bk.SpendableCoins(ctx, simAccount.Address)
@@ -376,17 +377,17 @@ func SimulateMsgLimitOrder(ak types.AccountKeeper, bk types.BankKeeper, k keeper
 			ammPool := amm.NewBasicPool(rx, ry, sdk.ZeroInt())
 			minPrice, maxPrice = minMaxPrice(k, ctx, ammPool.Price())
 		}
-		price := amm.PriceToDownTick(randomDec(r, minPrice, maxPrice), int(params.TickPrecision))
+		price := amm.PriceToDownTick(squad.RandomDec(r, minPrice, maxPrice), int(params.TickPrecision))
 
-		amt := randomInt(r, types.MinCoinAmount, sdk.NewInt(1000000))
+		amt := squad.RandomInt(r, types.MinCoinAmount, sdk.NewInt(1000000))
 
 		var offerCoin sdk.Coin
 		var demandCoinDenom string
 		switch dir {
-		case types.SwapDirectionBuy:
+		case types.OrderDirectionBuy:
 			offerCoin = sdk.NewCoin(pair.QuoteCoinDenom, price.MulInt(amt).Ceil().TruncateInt())
 			demandCoinDenom = pair.BaseCoinDenom
-		case types.SwapDirectionSell:
+		case types.OrderDirectionSell:
 			offerCoin = sdk.NewCoin(pair.BaseCoinDenom, amt)
 			demandCoinDenom = pair.QuoteCoinDenom
 		}
@@ -434,7 +435,7 @@ func SimulateMsgMarketOrder(ak types.AccountKeeper, bk types.BankKeeper, k keepe
 		var simAccount simtypes.Account
 		var spendable sdk.Coins
 		var pair types.Pair
-		var dir types.SwapDirection
+		var dir types.OrderDirection
 		skip := true
 		for _, simAccount = range accs {
 			spendable = bk.SpendableCoins(ctx, simAccount.Address)
@@ -452,15 +453,15 @@ func SimulateMsgMarketOrder(ak types.AccountKeeper, bk types.BankKeeper, k keepe
 
 		_, maxPrice := minMaxPrice(k, ctx, *pair.LastPrice)
 
-		amt := randomInt(r, types.MinCoinAmount, sdk.NewInt(1000000))
+		amt := squad.RandomInt(r, types.MinCoinAmount, sdk.NewInt(1000000))
 
 		var offerCoin sdk.Coin
 		var demandCoinDenom string
 		switch dir {
-		case types.SwapDirectionBuy:
+		case types.OrderDirectionBuy:
 			offerCoin = sdk.NewCoin(pair.QuoteCoinDenom, maxPrice.MulInt(amt).Ceil().TruncateInt())
 			demandCoinDenom = pair.BaseCoinDenom
-		case types.SwapDirectionSell:
+		case types.OrderDirectionSell:
 			offerCoin = sdk.NewCoin(pair.BaseCoinDenom, amt)
 			demandCoinDenom = pair.QuoteCoinDenom
 		}
@@ -503,16 +504,16 @@ func SimulateMsgCancelOrder(ak types.AccountKeeper, bk types.BankKeeper, k keepe
 
 		var simAccount simtypes.Account
 		var spendable sdk.Coins
-		var swapReqs []types.SwapRequest
+		var orders []types.Order
 		skip := true
 		for _, simAccount = range accs {
 			spendable = bk.SpendableCoins(ctx, simAccount.Address)
 
 			found := false
-			_ = k.IterateAllSwapRequests(ctx, func(req types.SwapRequest) (stop bool, err error) {
-				pair, _ := k.GetPair(ctx, req.PairId)
-				if req.Status != types.SwapRequestStatusCanceled && req.GetOrderer().Equals(simAccount.Address) && req.BatchId < pair.CurrentBatchId {
-					swapReqs = append(swapReqs, req)
+			_ = k.IterateAllOrders(ctx, func(order types.Order) (stop bool, err error) {
+				pair, _ := k.GetPair(ctx, order.PairId)
+				if order.Status != types.OrderStatusCanceled && order.GetOrderer().Equals(simAccount.Address) && order.BatchId < pair.CurrentBatchId {
+					orders = append(orders, order)
 					found = true
 					return true, nil
 				}
@@ -527,9 +528,9 @@ func SimulateMsgCancelOrder(ak types.AccountKeeper, bk types.BankKeeper, k keepe
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCancelOrder, "no account to cancel an order"), nil, nil
 		}
 
-		swapReq := swapReqs[r.Intn(len(swapReqs))]
+		order := orders[r.Intn(len(orders))]
 
-		msg := types.NewMsgCancelOrder(simAccount.Address, swapReq.PairId, swapReq.Id)
+		msg := types.NewMsgCancelOrder(simAccount.Address, order.PairId, order.Id)
 
 		txCtx := simulation.OperationInput{
 			R:               r,
@@ -564,7 +565,7 @@ func SimulateMsgCancelAllOrders(ak types.AccountKeeper, bk types.BankKeeper, k k
 			spendable = bk.SpendableCoins(ctx, simAccount.Address)
 
 			found := false
-			_ = k.IterateAllSwapRequests(ctx, func(req types.SwapRequest) (stop bool, err error) {
+			_ = k.IterateAllOrders(ctx, func(req types.Order) (stop bool, err error) {
 				pair, _ := k.GetPair(ctx, req.PairId)
 				if req.GetOrderer().Equals(simAccount.Address) && req.BatchId < pair.CurrentBatchId {
 					pairIds[req.PairId] = struct{}{}
@@ -612,16 +613,6 @@ func SimulateMsgCancelAllOrders(ak types.AccountKeeper, bk types.BankKeeper, k k
 
 		return simulation.GenAndDeliverTxWithRandFees(txCtx)
 	}
-}
-
-// randomInt returns an integer within a range [min, max].
-func randomInt(r *rand.Rand, min, max sdk.Int) sdk.Int {
-	return sdk.MaxInt(min, min.Add(simtypes.RandomAmount(r, max.Sub(min))))
-}
-
-// randomDec returns a decimal within a range [min, max].
-func randomDec(r *rand.Rand, min, max sdk.Dec) sdk.Dec {
-	return sdk.MaxDec(min, min.Add(simtypes.RandomDecAmount(r, max.Sub(min))))
 }
 
 var once sync.Once
@@ -711,7 +702,7 @@ func findPairToCreatePool(r *rand.Rand, k keeper.Keeper, ctx sdk.Context, spenda
 	return types.Pair{}, false
 }
 
-func findPairToMakeLimitOrder(r *rand.Rand, k keeper.Keeper, ctx sdk.Context, spendable sdk.Coins) (types.Pair, types.Pool, types.SwapDirection, bool) {
+func findPairToMakeLimitOrder(r *rand.Rand, k keeper.Keeper, ctx sdk.Context, spendable sdk.Coins) (types.Pair, types.Pool, types.OrderDirection, bool) {
 	var pairs []types.Pair
 	_ = k.IterateAllPairs(ctx, func(pair types.Pair) (stop bool, err error) {
 		pairs = append(pairs, pair)
@@ -736,7 +727,7 @@ func findPairToMakeLimitOrder(r *rand.Rand, k keeper.Keeper, ctx sdk.Context, sp
 			continue
 		}
 
-		dirs := []types.SwapDirection{types.SwapDirectionBuy, types.SwapDirectionSell}
+		dirs := []types.OrderDirection{types.OrderDirectionBuy, types.OrderDirectionSell}
 		r.Shuffle(len(dirs), func(i, j int) {
 			dirs[i], dirs[j] = dirs[j], dirs[i]
 		})
@@ -744,9 +735,9 @@ func findPairToMakeLimitOrder(r *rand.Rand, k keeper.Keeper, ctx sdk.Context, sp
 		for _, dir := range dirs {
 			var minOfferCoinAmt sdk.Coin
 			switch dir {
-			case types.SwapDirectionBuy:
+			case types.OrderDirectionBuy:
 				minOfferCoinAmt = sdk.NewCoin(pair.QuoteCoinDenom, types.MinCoinAmount)
-			case types.SwapDirectionSell:
+			case types.OrderDirectionSell:
 				minOfferCoinAmt = sdk.NewCoin(pair.BaseCoinDenom, types.MinCoinAmount)
 			}
 
@@ -759,7 +750,7 @@ func findPairToMakeLimitOrder(r *rand.Rand, k keeper.Keeper, ctx sdk.Context, sp
 	return types.Pair{}, types.Pool{}, 0, false
 }
 
-func findPairToMakeMarketOrder(r *rand.Rand, k keeper.Keeper, ctx sdk.Context, spendable sdk.Coins) (types.Pair, types.SwapDirection, bool) {
+func findPairToMakeMarketOrder(r *rand.Rand, k keeper.Keeper, ctx sdk.Context, spendable sdk.Coins) (types.Pair, types.OrderDirection, bool) {
 	var pairs []types.Pair
 	_ = k.IterateAllPairs(ctx, func(pair types.Pair) (stop bool, err error) {
 		pairs = append(pairs, pair)
@@ -774,7 +765,7 @@ func findPairToMakeMarketOrder(r *rand.Rand, k keeper.Keeper, ctx sdk.Context, s
 			continue
 		}
 
-		dirs := []types.SwapDirection{types.SwapDirectionBuy, types.SwapDirectionSell}
+		dirs := []types.OrderDirection{types.OrderDirectionBuy, types.OrderDirectionSell}
 		r.Shuffle(len(dirs), func(i, j int) {
 			dirs[i], dirs[j] = dirs[j], dirs[i]
 		})
@@ -782,9 +773,9 @@ func findPairToMakeMarketOrder(r *rand.Rand, k keeper.Keeper, ctx sdk.Context, s
 		for _, dir := range dirs {
 			var minOfferCoinAmt sdk.Coin
 			switch dir {
-			case types.SwapDirectionBuy:
+			case types.OrderDirectionBuy:
 				minOfferCoinAmt = sdk.NewCoin(pair.QuoteCoinDenom, types.MinCoinAmount)
-			case types.SwapDirectionSell:
+			case types.OrderDirectionSell:
 				minOfferCoinAmt = sdk.NewCoin(pair.BaseCoinDenom, types.MinCoinAmount)
 			}
 
