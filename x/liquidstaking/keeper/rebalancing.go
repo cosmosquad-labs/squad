@@ -102,6 +102,7 @@ func (k Keeper) Rebalancing(ctx sdk.Context, proxyAcc sdk.AccAddress, liquidVals
 // WithdrawRewardsAndReStaking withdraw rewards and re-staking when over threshold
 func (k Keeper) WithdrawRewardsAndReStaking(ctx sdk.Context, whitelistedValMap types.WhitelistedValMap) {
 	// skip when no active liquid validator
+	// TODO: consider to using all liquid validators
 	activeVals := k.GetActiveLiquidValidators(ctx, whitelistedValMap)
 	if len(activeVals) == 0 {
 		return

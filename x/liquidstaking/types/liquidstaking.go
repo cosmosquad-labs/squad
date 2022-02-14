@@ -190,6 +190,34 @@ func DeductFeeRate(input sdk.Dec, feeRate sdk.Dec) (feeDeductedOutput sdk.Dec) {
 	return input.MulTruncate(sdk.OneDec().Sub(feeRate)).TruncateDec()
 }
 
+// TODO: using getter to can't set
+type States struct {
+	NetAmount             NetAmountStates
+	LiquidValidatorStates LiquidValidatorStates
+	// TODO: ValidatorMap
+
+	// TODO: whitelsit can be replaced by LiquidValidatorStates.Weight
+	//WhitelistedValMap     WhitelistedValMap
+}
+
+type LiquidValidatorStates []LiquidValidatorState
+
+// TODO: make Total functions for LiquidValidatorStates
+// totalWeight, totalLiquidTokens, ...
+// TODO: refactor DivideByWeight, DivideByCurrentWeight to handover only states
+
+// TODO: make as proto, endpoint,
+type NetAmountStates struct {
+	//- [x]  MintRate (Dec) -> Function, but states for endpoint
+	//- [x]  proxyAccBalance
+	//- [x]  bTokenTotalSupply
+	//- [x]  TotalRemainingRewards (Dec)
+	//- [x]  TotalUnbondingAmount (Dec))
+	//- [ ]  NetAmount
+	//- [ ]  TotalLiquidTokens (Int or Dec)
+	//- [ ]  TotalDelShares (Dec)
+}
+
 func MustMarshalLiquidValidator(cdc codec.BinaryCodec, val *LiquidValidator) []byte {
 	return cdc.MustMarshal(val)
 }

@@ -40,6 +40,7 @@ func (k Keeper) TallyLiquidGov(ctx sdk.Context, votes *govtypes.Votes, otherVote
 		return
 	}
 
+	// TODO: consider all liquid validators, bonded
 	// skip when no active validators, liquid tokens
 	activeVals := k.GetActiveLiquidValidators(ctx, params.WhitelistedValMap())
 	if len(activeVals) == 0 {
