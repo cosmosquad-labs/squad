@@ -182,7 +182,7 @@ func NativeTokenToBToken(nativeTokenAmount, bTokenTotalSupplyAmount sdk.Int, net
 
 // BTokenToNativeToken returns bTokenAmount * netAmount / bTokenTotalSupply with truncations
 func BTokenToNativeToken(bTokenAmount, bTokenTotalSupplyAmount sdk.Int, netAmount sdk.Dec) (nativeTokenAmount sdk.Dec) {
-	return bTokenAmount.ToDec().MulTruncate(netAmount).QuoTruncate(bTokenTotalSupplyAmount.ToDec()).TruncateDec()
+	return bTokenAmount.ToDec().MulTruncate(netAmount).Quo(bTokenTotalSupplyAmount.ToDec()).TruncateDec()
 }
 
 // DeductFeeRate returns Input * (1-FeeRate) with truncations
@@ -192,6 +192,13 @@ func DeductFeeRate(input sdk.Dec, feeRate sdk.Dec) (feeDeductedOutput sdk.Dec) {
 
 func (nas NetAmountState) CalcNetAmount() sdk.Dec {
 	return nas.ProxyAccBalance.Add(nas.TotalLiquidTokens).Add(nas.TotalUnbondingBalance).ToDec().Add(nas.TotalRemainingRewards)
+}
+
+func (nas NetAmountState) CalcMintRate() sdk.Dec {
+	if nas.NetAmount.IsNil() || !nas.NetAmount.IsPositive() {
+		return sdk.ZeroDec()
+	}
+	return nas.BtokenTotalSupply.ToDec().QuoTruncate(nas.NetAmount)
 }
 
 // TODO: using getter to can't set

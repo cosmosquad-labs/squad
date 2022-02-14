@@ -53,6 +53,7 @@ func (k Keeper) NetAmountState(ctx sdk.Context) (nas types.NetAmountState) {
 	nas.TotalUnbondingBalance = totalUnbondingBalance
 	nas.BtokenTotalSupply = k.bankKeeper.GetSupply(ctx, k.LiquidBondDenom(ctx)).Amount
 	nas.NetAmount = nas.CalcNetAmount()
+	nas.MintRate = nas.CalcMintRate()
 	return
 }
 
