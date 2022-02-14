@@ -190,14 +190,18 @@ func DeductFeeRate(input sdk.Dec, feeRate sdk.Dec) (feeDeductedOutput sdk.Dec) {
 	return input.MulTruncate(sdk.OneDec().Sub(feeRate)).TruncateDec()
 }
 
+func (nas NetAmountState) CalcNetAmount() sdk.Dec {
+	return nas.ProxyAccBalance.Add(nas.TotalLiquidTokens).Add(nas.TotalUnbondingBalance).ToDec().Add(nas.TotalRemainingRewards)
+}
+
 // TODO: using getter to can't set
-type States struct {
-	NetAmount             NetAmountStates
+type State struct {
+	NetAmountState        NetAmountState
 	LiquidValidatorStates LiquidValidatorStates
-	// TODO: ValidatorMap
+	// TODO: ValidatorMap  map[string]stakingtypes.Validator
 
 	// TODO: whitelsit can be replaced by LiquidValidatorStates.Weight
-	//WhitelistedValMap     WhitelistedValMap
+	// //WhitelistedValMap     WhitelistedValMap
 }
 
 type LiquidValidatorStates []LiquidValidatorState
@@ -206,17 +210,17 @@ type LiquidValidatorStates []LiquidValidatorState
 // totalWeight, totalLiquidTokens, ...
 // TODO: refactor DivideByWeight, DivideByCurrentWeight to handover only states
 
-// TODO: make as proto, endpoint,
-type NetAmountStates struct {
-	//- [x]  MintRate (Dec) -> Function, but states for endpoint
-	//- [x]  proxyAccBalance
-	//- [x]  bTokenTotalSupply
-	//- [x]  TotalRemainingRewards (Dec)
-	//- [x]  TotalUnbondingAmount (Dec))
-	//- [ ]  NetAmount
-	//- [ ]  TotalLiquidTokens (Int or Dec)
-	//- [ ]  TotalDelShares (Dec)
-}
+//// TODO: make as proto, endpoint,
+//type NetAmountState struct {
+//	//- [x]  MintRate (Dec) -> Function, but states for endpoint
+//	//- [x]  proxyAccBalance
+//	//- [x]  bTokenTotalSupply
+//	//- [x]  TotalRemainingRewards (Dec)
+//	//- [x]  TotalUnbondingBalance (Int))
+//	//- [ ]  NetAmount
+//	//- [ ]  TotalLiquidTokens (Int or Dec)
+//	//- [ ]  TotalDelShares (Dec)
+//}
 
 func MustMarshalLiquidValidator(cdc codec.BinaryCodec, val *LiquidValidator) []byte {
 	return cdc.MustMarshal(val)

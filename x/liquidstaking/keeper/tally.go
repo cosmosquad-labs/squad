@@ -118,11 +118,11 @@ func (k Keeper) TallyLiquidGov(ctx sdk.Context, votes *govtypes.Votes, otherVote
 		})
 	}
 
-	netAmount := k.NetAmount(ctx)
+	netAmountState := k.NetAmountState(ctx)
 	for voter, bTokenValue := range bTokenValueMap {
 		votingPower := sdk.ZeroDec()
 		if bTokenValue.IsPositive() {
-			votingPower = types.BTokenToNativeToken(bTokenValue, bTokenTotalSupply, netAmount)
+			votingPower = types.BTokenToNativeToken(bTokenValue, bTokenTotalSupply, netAmountState.NetAmount)
 		}
 		if votingPower.IsPositive() {
 			(*otherVotes)[voter] = map[string]sdk.Dec{}

@@ -44,9 +44,9 @@ func NetAmountInvariant(k Keeper) sdk.Invariant {
 		if lvs.Len() == 0 {
 			return msg, broken
 		}
-		NetAmount := k.NetAmount(ctx)
+		nas := k.NetAmountState(ctx)
 		balance := k.bankKeeper.GetBalance(ctx, types.LiquidStakingProxyAcc, k.stakingKeeper.BondDenom(ctx)).Amount
-		NetAmountExceptBalance := NetAmount.Sub(balance.ToDec())
+		NetAmountExceptBalance := nas.NetAmount.Sub(balance.ToDec())
 		liquidBondDenom := k.LiquidBondDenom(ctx)
 		bTokenTotalSupply := k.bankKeeper.GetSupply(ctx, liquidBondDenom)
 		if bTokenTotalSupply.IsPositive() && !NetAmountExceptBalance.IsPositive() {
@@ -73,7 +73,7 @@ func TotalLiquidTokensInvariant(k Keeper) sdk.Invariant {
 		}
 		params := k.GetParams(ctx)
 		alvs := k.GetActiveLiquidValidators(ctx, params.WhitelistedValMap())
-		_, _, totalDelegationTokensOfProxyAcc := k.CheckRemainingRewards(ctx, types.LiquidStakingProxyAcc)
+		_, _, totalDelegationTokensOfProxyAcc := k.CheckDelegationStates(ctx, types.LiquidStakingProxyAcc)
 		totalLiquidTokensOfLiquidValidators, _ := lvs.TotalLiquidTokens(ctx, k.stakingKeeper)
 		totalActiveLiquidTokens, _ := alvs.TotalActiveLiquidTokens(ctx, k.stakingKeeper)
 

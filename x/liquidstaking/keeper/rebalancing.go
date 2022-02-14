@@ -115,7 +115,7 @@ func (k Keeper) WithdrawRewardsAndReStaking(ctx sdk.Context, whitelistedValMap t
 	}
 
 	// Withdraw rewards of LiquidStakingProxyAcc and re-staking
-	totalRemainingRewards, _, _ := k.CheckRemainingRewards(ctx, types.LiquidStakingProxyAcc)
+	totalRemainingRewards, _, _ := k.CheckDelegationStates(ctx, types.LiquidStakingProxyAcc)
 	// checking over types.RewardTrigger and execute GetRewards
 	proxyAccBalance := k.GetProxyAccBalance(ctx, types.LiquidStakingProxyAcc)
 	rewardsThreshold := types.RewardTrigger.Mul(totalLiquidTokens.ToDec())
