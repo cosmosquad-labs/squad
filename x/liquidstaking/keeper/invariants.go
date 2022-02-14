@@ -71,18 +71,16 @@ func TotalLiquidTokensInvariant(k Keeper) sdk.Invariant {
 		if lvs.Len() == 0 {
 			return "", false
 		}
-		params := k.GetParams(ctx)
-		alvs := k.GetActiveLiquidValidators(ctx, params.WhitelistedValMap())
+
+		// TODO: Separate Active and InActive LiquidTokens and process them.
 		_, _, totalDelegationTokensOfProxyAcc := k.CheckDelegationStates(ctx, types.LiquidStakingProxyAcc)
 		totalLiquidTokensOfLiquidValidators, _ := lvs.TotalLiquidTokens(ctx, k.stakingKeeper)
-		totalActiveLiquidTokens, _ := alvs.TotalActiveLiquidTokens(ctx, k.stakingKeeper)
 
-		broken := !(totalDelegationTokensOfProxyAcc.Equal(totalLiquidTokensOfLiquidValidators) &&
-			totalActiveLiquidTokens.Equal(totalLiquidTokensOfLiquidValidators))
+		broken := !totalDelegationTokensOfProxyAcc.Equal(totalLiquidTokensOfLiquidValidators)
 		return sdk.FormatInvariant(
 			types.ModuleName, "total liquid tokens invariant broken",
-			fmt.Sprintf("found unmatched total delegation tokens of proxy account %s with total liquid tokens of active liquid validators %s, all liquid validators %s\n",
-				totalDelegationTokensOfProxyAcc.String(), totalActiveLiquidTokens.String(), totalLiquidTokensOfLiquidValidators.String()),
+			fmt.Sprintf("found unmatched total delegation tokens of proxy account %s with total liquid tokens of all liquid validators %s\n",
+				totalDelegationTokensOfProxyAcc.String(), totalLiquidTokensOfLiquidValidators.String()),
 		), broken
 	}
 }

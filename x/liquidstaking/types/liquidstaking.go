@@ -81,7 +81,6 @@ func (v LiquidValidator) GetWeight(whitelistedValMap WhitelistedValMap, active b
 	}
 }
 
-// TODO: refactor unused receiver
 func (v LiquidValidator) GetStatus(activeCondition bool) ValidatorStatus {
 	if activeCondition {
 		return ValidatorStatusActive
@@ -161,7 +160,6 @@ func (avs ActiveLiquidValidators) Len() int {
 	return LiquidValidators(avs).Len()
 }
 
-// TODO: assert ActiveLiquidValidators == TotalLiquidTokens, need to handle no liquid tokens of inactive liquid validator
 func (avs ActiveLiquidValidators) TotalActiveLiquidTokens(ctx sdk.Context, sk StakingKeeper) (sdk.Int, map[string]sdk.Int) {
 	return LiquidValidators(avs).TotalLiquidTokens(ctx, sk)
 }
@@ -201,33 +199,14 @@ func (nas NetAmountState) CalcMintRate() sdk.Dec {
 	return nas.BtokenTotalSupply.ToDec().QuoTruncate(nas.NetAmount)
 }
 
-// TODO: using getter to can't set
-type State struct {
-	NetAmountState        NetAmountState
-	LiquidValidatorStates LiquidValidatorStates
-	// TODO: ValidatorMap  map[string]stakingtypes.Validator
-
-	// TODO: whitelsit can be replaced by LiquidValidatorStates.Weight
-	// //WhitelistedValMap     WhitelistedValMap
-}
+// WIP: add state
+//type State struct {
+//	NetAmountState        NetAmountState
+//	LiquidValidatorStates LiquidValidatorStates
+//	// ValidatorMap  map[string]stakingtypes.Validator
+//}
 
 type LiquidValidatorStates []LiquidValidatorState
-
-// TODO: make Total functions for LiquidValidatorStates
-// totalWeight, totalLiquidTokens, ...
-// TODO: refactor DivideByWeight, DivideByCurrentWeight to handover only states
-
-//// TODO: make as proto, endpoint,
-//type NetAmountState struct {
-//	//- [x]  MintRate (Dec) -> Function, but states for endpoint
-//	//- [x]  proxyAccBalance
-//	//- [x]  bTokenTotalSupply
-//	//- [x]  TotalRemainingRewards (Dec)
-//	//- [x]  TotalUnbondingBalance (Int))
-//	//- [ ]  NetAmount
-//	//- [ ]  TotalLiquidTokens (Int or Dec)
-//	//- [ ]  TotalDelShares (Dec)
-//}
 
 func MustMarshalLiquidValidator(cdc codec.BinaryCodec, val *LiquidValidator) []byte {
 	return cdc.MustMarshal(val)

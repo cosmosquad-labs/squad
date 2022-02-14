@@ -36,7 +36,6 @@ func (k Keeper) NetAmount(ctx sdk.Context) sdk.Dec {
 func (k Keeper) NetAmountState(ctx sdk.Context) (nas types.NetAmountState) {
 	nas.ProxyAccBalance = k.bankKeeper.GetBalance(ctx, types.LiquidStakingProxyAcc, k.stakingKeeper.BondDenom(ctx)).Amount
 
-	// TODO: CheckDelegationStates consider delegation of liquid validator
 	totalRemainingRewards, totalDelShares, totalLiquidTokens := k.CheckDelegationStates(ctx, types.LiquidStakingProxyAcc)
 	nas.TotalRemainingRewards = totalRemainingRewards
 	nas.TotalDelShares = totalDelShares
@@ -231,7 +230,7 @@ func (k Keeper) LiquidUnbond(
 	return completionTime, returnAmount, ubd, nil
 }
 
-// TODO: CheckDelegationStates consider delegation of liquid validator
+// CheckDelegationStates returns total remaining rewards, delshares, liquid tokens of delegations by proxy account
 func (k Keeper) CheckDelegationStates(ctx sdk.Context, proxyAcc sdk.AccAddress) (sdk.Dec, sdk.Dec, sdk.Int) {
 	bondDenom := k.stakingKeeper.BondDenom(ctx)
 	totalRewards := sdk.ZeroDec()
