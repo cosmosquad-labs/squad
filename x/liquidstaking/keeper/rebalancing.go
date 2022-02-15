@@ -154,7 +154,6 @@ func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context) []types.Redelegation {
 	// tombstone status also handled on Rebalancing
 	reds := k.Rebalancing(ctx, types.LiquidStakingProxyAcc, liquidValidators, whitelistedValMap, types.RebalancingTrigger)
 
-	// TODO: consider refactoring and also put on endblock and AfterValidatorRemoved hook
 	for _, lv := range liquidValidators {
 		if !k.ActiveCondition(ctx, lv, whitelistedValMap.IsListed(lv.OperatorAddress)) {
 			// unbond all delShares to proxyAcc if delShares exist on inactive validators
@@ -166,12 +165,10 @@ func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context) []types.Redelegation {
 				}
 			}
 			_, found := k.stakingKeeper.GetDelegation(ctx, types.LiquidStakingProxyAcc, lv.GetOperator())
-			if found {
-				panic("inactive liquid tokens")
+			if !found {
+				// remove inactive liquid validator (no delShares)
+				k.RemoveLiquidValidator(ctx, lv)
 			}
-
-			// remove inactive liquid validator (no delShares)
-			k.RemoveLiquidValidator(ctx, lv)
 		}
 	}
 
