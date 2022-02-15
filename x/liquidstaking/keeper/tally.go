@@ -227,7 +227,7 @@ func (k Keeper) TallyLiquidGov(ctx sdk.Context, votes *govtypes.Votes, otherVote
 		if votingPower.IsPositive() {
 			(*otherVotes)[voter] = map[string]sdk.Dec{}
 			// drop crumb for defensive policy about delShares decimal errors
-			dividedPowers, _ := types.DivideByCurrentWeight((types.ActiveLiquidValidators)(liquidVals), votingPower, totalBondedLiquidTokens, bondedLiquidTokenMap)
+			dividedPowers, _ := types.DivideByCurrentWeight(liquidVals, votingPower, totalBondedLiquidTokens, bondedLiquidTokenMap)
 			if len(dividedPowers) == 0 {
 				continue
 			}
