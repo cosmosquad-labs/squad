@@ -34,6 +34,10 @@ func genMinLiquidStakingAmount(r *rand.Rand) sdk.Int {
 	return sdk.NewInt(int64(simtypes.RandIntBetween(r, 0, 10000000)))
 }
 
+func genTargetWeight(r *rand.Rand) sdk.Int {
+	return sdk.NewInt(int64(simtypes.RandIntBetween(r, 1, 20)))
+}
+
 // genWhitelistedValidator returns randomized whitelisted validators.
 func genWhitelistedValidator(r *rand.Rand) []types.WhitelistedValidator {
 	ranLiquidValidators := make([]types.WhitelistedValidator, 0)
@@ -42,6 +46,10 @@ func genWhitelistedValidator(r *rand.Rand) []types.WhitelistedValidator {
 	//	liquidValidator := types.LiquidValidator{}
 	//	ranLiquidValidators = append(ranLiquidValidators, liquidValidator)
 	//}
+	//ranLiquidValidators = append(ranLiquidValidators, types.WhitelistedValidator{
+	//	ValidatorAddress: "cosmosvaloper18fec3xyxrh57ldags36wlu5xv504hsnt74ekng",
+	//	TargetWeight:     genTargetWeight(r),
+	//})
 
 	return ranLiquidValidators
 }
