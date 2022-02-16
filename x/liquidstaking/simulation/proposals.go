@@ -115,7 +115,7 @@ func SimulateUpdateWhitelistValidatorsProposal(ak types.AccountKeeper, bk types.
 				break
 			}
 		}
-		for i, _ := range params.WhitelistedValidators {
+		for i := range params.WhitelistedValidators {
 			if params.WhitelistedValidators[i].ValidatorAddress == targetVal.OperatorAddress {
 				params.WhitelistedValidators[i].TargetWeight = genTargetWeight(r)
 				break
@@ -170,7 +170,7 @@ func SimulateDeleteWhitelistValidatorsProposal(ak types.AccountKeeper, bk types.
 			return append(slice[:s], slice[s+1:]...)
 		}
 
-		for i, _ := range params.WhitelistedValidators {
+		for i := range params.WhitelistedValidators {
 			if params.WhitelistedValidators[i].ValidatorAddress == targetVal.OperatorAddress {
 				params.WhitelistedValidators[i].TargetWeight = genTargetWeight(r)
 				params.WhitelistedValidators = remove(params.WhitelistedValidators, i)
