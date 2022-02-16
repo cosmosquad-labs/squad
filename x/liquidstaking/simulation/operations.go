@@ -1,6 +1,7 @@
 package simulation
 
 import (
+	"fmt"
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -78,15 +79,6 @@ func SimulateMsgLiquidStake(ak types.AccountKeeper, bk types.BankKeeper, k keepe
 
 		stakingCoin := sdk.NewInt64Coin(sdk.DefaultBondDenom, int64(simtypes.RandIntBetween(r, int(params.MinLiquidStakingAmount.Int64()), 1_000_000_000)))
 
-		//var fees sdk.Coins
-		//coins, hasNeg := spendable.SafeSub(sdk.Coins{selfDelegation})
-		//if !hasNeg {
-		//	fees, err = simtypes.RandomFees(r, ctx, coins)
-		//	if err != nil {
-		//		return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreateValidator, "unable to generate fees"), nil, err
-		//	}
-		//}
-
 		if !spendable.AmountOf(sdk.DefaultBondDenom).GTE(stakingCoin.Amount) {
 			if err := bk.MintCoins(ctx, types.ModuleName, sdk.NewCoins(stakingCoin)); err != nil {
 				panic(err)
@@ -94,10 +86,18 @@ func SimulateMsgLiquidStake(ak types.AccountKeeper, bk types.BankKeeper, k keepe
 			if err := bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, delegator, sdk.NewCoins(stakingCoin)); err != nil {
 				panic(err)
 			}
-			//return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgLiquidStake, "insufficient funds"), nil, nil
 		}
-
-		squadtypes.PP("@@STATES stake")
+		//return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgLiquidStake, "insufficient funds"), nil, nil
+		//}
+		//	}
+		//		return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreateValidator, "unable to generate fees"), nil, err
+		//	if err != nil {
+		//	fees, err = simtypes.RandomFees(r, ctx, coins)
+		//if !hasNeg {
+		//coins, hasNeg := spendable.SafeSub(sdk.Coins{selfDelegation})
+		//var fees sdk.Coins
+		fmt.Println("ADD liquid NetAmountState", stakingCoin)
+		squadtypes.PP(k.NetAmountState(ctx))
 		squadtypes.PP(k.GetAllLiquidValidatorStates(ctx))
 
 		msg := types.NewMsgLiquidStake(delegator, stakingCoin)
@@ -143,6 +143,9 @@ func SimulateMsgLiquidUnstake(ak types.AccountKeeper, bk types.BankKeeper, k kee
 
 			// spendable must be greater than unstaking coins
 			if spendable.AmountOf(types.DefaultLiquidBondDenom).GTE(unstakingCoin.Amount) {
+				fmt.Println("UNBONDING NetAmountState", unstakingCoin)
+				squadtypes.PP(k.NetAmountState(ctx))
+				squadtypes.PP(k.GetAllLiquidValidatorStates(ctx))
 				break
 			}
 		}
@@ -150,9 +153,6 @@ func SimulateMsgLiquidUnstake(ak types.AccountKeeper, bk types.BankKeeper, k kee
 		if !spendable.AmountOf(types.DefaultLiquidBondDenom).GTE(unstakingCoin.Amount) {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgLiquidUnstake, "insufficient funds"), nil, nil
 		}
-
-		squadtypes.PP("@@STATES")
-		squadtypes.PP(k.GetAllLiquidValidatorStates(ctx))
 
 		msg := types.NewMsgLiquidUnstake(delegator, unstakingCoin)
 		txCtx := simulation.OperationInput{

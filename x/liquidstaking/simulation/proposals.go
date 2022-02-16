@@ -20,6 +20,7 @@ const (
 	OpWeightSimulateAddWhitelistValidatorsProposal    = "op_weight_add_whitelist_validators_proposal"
 	OpWeightSimulateUpdateWhitelistValidatorsProposal = "op_weight_update_whitelist_validators_proposal"
 	OpWeightSimulateDeleteWhitelistValidatorsProposal = "op_weight_delete_whitelist_validators_proposal"
+	OpWeightWeightCompleteRedelegationUnbonding       = "op_weight_complete_redelegation_unbonding"
 	MaxWhitelistValidators                            = 10
 )
 
@@ -41,6 +42,11 @@ func ProposalContents(ak types.AccountKeeper, bk types.BankKeeper, sk types.Stak
 			params.DefaultWeightDeleteWhitelistValidatorsProposal,
 			SimulateDeleteWhitelistValidatorsProposal(ak, bk, sk, k),
 		),
+		simulation.NewWeightedProposalContent(
+			OpWeightWeightCompleteRedelegationUnbonding,
+			params.DefaultWeightCompleteRedelegationUnbonding,
+			SimulateCompleteRedelegationUnbonding(ak, bk, sk, k),
+		),
 	}
 }
 
@@ -49,12 +55,12 @@ func SimulateAddWhitelistValidatorsProposal(ak types.AccountKeeper, bk types.Ban
 	return func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
 		params := k.GetParams(ctx)
 
-		fmt.Println("## current params")
+		//fmt.Println("## current params")
 		//squadtypes.PP(params)
 
 		vals := sk.GetBondedValidatorsByPower(ctx)
 		//
-		fmt.Println("## current vals")
+		//fmt.Println("## current vals")
 		//squadtypes.PP(len(vals))
 
 		wm := params.WhitelistedValMap()
@@ -66,6 +72,7 @@ func SimulateAddWhitelistValidatorsProposal(ak types.AccountKeeper, bk types.Ban
 						ValidatorAddress: val.OperatorAddress,
 						TargetWeight:     genTargetWeight(r),
 					})
+				fmt.Println("## added vals", val.OperatorAddress)
 				break
 			}
 		}
@@ -76,7 +83,6 @@ func SimulateAddWhitelistValidatorsProposal(ak types.AccountKeeper, bk types.Ban
 		}
 		change := proposal.NewParamChange(types.ModuleName, string(types.KeyWhitelistedValidators), string(whitelistStr))
 
-		fmt.Println("## change vals")
 		//squadtypes.PP(change)
 
 		// manually set params for simulation
@@ -98,27 +104,32 @@ func SimulateUpdateWhitelistValidatorsProposal(ak types.AccountKeeper, bk types.
 	return func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
 		params := k.GetParams(ctx)
 
-		fmt.Println("## current params")
+		//fmt.Println("## current params")
 		//squadtypes.PP(params)
 
-		vals := sk.GetBondedValidatorsByPower(ctx)
-		fmt.Println("## current vals")
+		//vals := sk.GetBondedValidatorsByPower(ctx)
+		//fmt.Println("## current vals")
 		//squadtypes.PP(len(vals))
 
-		wm := params.WhitelistedValMap()
-		var targetVal stakingtypes.Validator
-		for i := 0; i < len(vals); i++ {
-			// TODO: random liquid validator
-			val, _ := keeper.RandomValidator(r, sk, ctx)
-			if _, ok := wm[val.OperatorAddress]; ok {
-				targetVal = val
-				break
-			}
-		}
-		for i, _ := range params.WhitelistedValidators {
-			if params.WhitelistedValidators[i].ValidatorAddress == targetVal.OperatorAddress {
-				params.WhitelistedValidators[i].TargetWeight = genTargetWeight(r)
-				break
+		//wm := params.WhitelistedValMap()
+		//var targetVal stakingtypes.Validator
+		//for i := 0; i < len(vals); i++ {
+		//	// TODO: random liquid validator
+		//	val, _ := keeper.RandomValidator(r, sk, ctx)
+		//	if _, ok := wm[val.OperatorAddress]; ok {
+		//		targetVal = val
+		//		break
+		//	}
+		//}
+		targetVal, found := keeper.RandomActiveLiquidValidator(r, ctx, k, sk)
+		if found {
+			for i := range params.WhitelistedValidators {
+				if params.WhitelistedValidators[i].ValidatorAddress == targetVal.OperatorAddress {
+					params.WhitelistedValidators[i].TargetWeight = genTargetWeight(r)
+					fmt.Println("## update vals", targetVal.OperatorAddress)
+					k.SetParams(ctx, params)
+					break
+				}
 			}
 		}
 
@@ -128,7 +139,6 @@ func SimulateUpdateWhitelistValidatorsProposal(ak types.AccountKeeper, bk types.
 		}
 		change := proposal.NewParamChange(types.ModuleName, string(types.KeyWhitelistedValidators), string(whitelistStr))
 
-		fmt.Println("## update vals", targetVal.OperatorAddress)
 		//squadtypes.PP(change)
 
 		// manually set params for simulation
@@ -148,35 +158,42 @@ func SimulateDeleteWhitelistValidatorsProposal(ak types.AccountKeeper, bk types.
 	return func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
 		params := k.GetParams(ctx)
 
-		fmt.Println("## current params")
+		//fmt.Println("## current params")
 		//squadtypes.PP(params)
 
-		vals := sk.GetBondedValidatorsByPower(ctx)
-		fmt.Println("## current vals")
+		//vals := sk.GetBondedValidatorsByPower(ctx)
+		//fmt.Println("## current vals")
 		//squadtypes.PP(len(vals))
 
-		wm := params.WhitelistedValMap()
-		var targetVal stakingtypes.Validator
-		for i := 0; i < len(vals); i++ {
-			// TODO: random liquid validator
-			val, _ := keeper.RandomValidator(r, sk, ctx)
-			if _, ok := wm[val.OperatorAddress]; ok {
-				targetVal = val
-				break
+		//wm := params.WhitelistedValMap()
+		//var targetVal stakingtypes.Validator
+		//for i := 0; i < len(vals); i++ {
+		//	// TODO: random liquid validator
+		//	val, _ := keeper.RandomValidator(r, sk, ctx)
+		//	if _, ok := wm[val.OperatorAddress]; ok {
+		//		targetVal = val
+		//		break
+		//	}
+		//}
+		targetVal, found := keeper.RandomActiveLiquidValidator(r, ctx, k, sk)
+		if found {
+			remove := func(slice []types.WhitelistedValidator, s int) []types.WhitelistedValidator {
+				return append(slice[:s], slice[s+1:]...)
+			}
+
+			for i := range params.WhitelistedValidators {
+				if params.WhitelistedValidators[i].ValidatorAddress == targetVal.OperatorAddress {
+					params.WhitelistedValidators[i].TargetWeight = genTargetWeight(r)
+					params.WhitelistedValidators = remove(params.WhitelistedValidators, i)
+					fmt.Println("## delete vals", targetVal.OperatorAddress)
+					k.SetParams(ctx, params)
+					break
+				}
 			}
 		}
 
-		remove := func(slice []types.WhitelistedValidator, s int) []types.WhitelistedValidator {
-			return append(slice[:s], slice[s+1:]...)
-		}
-
-		for i, _ := range params.WhitelistedValidators {
-			if params.WhitelistedValidators[i].ValidatorAddress == targetVal.OperatorAddress {
-				params.WhitelistedValidators[i].TargetWeight = genTargetWeight(r)
-				params.WhitelistedValidators = remove(params.WhitelistedValidators, i)
-				break
-			}
-		}
+		//fmt.Println("NetAmountState")
+		//squadtypes.PP(k.NetAmountState(ctx))
 
 		whitelistStr, err := json.Marshal(&params.WhitelistedValidators)
 		if err != nil {
@@ -184,7 +201,6 @@ func SimulateDeleteWhitelistValidatorsProposal(ak types.AccountKeeper, bk types.
 		}
 		change := proposal.NewParamChange(types.ModuleName, string(types.KeyWhitelistedValidators), string(whitelistStr))
 
-		fmt.Println("## delete vals", targetVal.OperatorAddress)
 		//squadtypes.PP(change)
 
 		// manually set params for simulation
@@ -194,6 +210,33 @@ func SimulateDeleteWhitelistValidatorsProposal(ak types.AccountKeeper, bk types.
 		return proposal.NewParameterChangeProposal(
 			"SimulateDeleteWhitelistValidatorsProposal",
 			"SimulateDeleteWhitelistValidatorsProposal",
+			[]proposal.ParamChange{change},
+		)
+	}
+}
+
+// SimulateCompleteRedelegationUnbonding generates random delete whitelisted validator param change proposal content.
+func SimulateCompleteRedelegationUnbonding(ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper, k keeper.Keeper) simtypes.ContentSimulatorFn {
+	return func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
+		reds := sk.GetAllRedelegations(ctx, types.LiquidStakingProxyAcc, nil, nil)
+		ubds := sk.GetAllUnbondingDelegations(ctx, types.LiquidStakingProxyAcc)
+		if len(reds) != 0 || len(ubds) != 0 {
+			fmt.Println("[SimulateCompleteRedelegationUnbonding]", ctx.BlockTime())
+			ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 100).WithBlockTime(ctx.BlockTime().Add(stakingtypes.DefaultUnbondingTime))
+			sk.BlockValidatorUpdates(ctx)
+		}
+		params := k.GetParams(ctx)
+
+		whitelistStr, err := json.Marshal(&params.WhitelistedValidators)
+		if err != nil {
+			panic(err)
+		}
+		change := proposal.NewParamChange(types.ModuleName, string(types.KeyWhitelistedValidators), string(whitelistStr))
+
+		// this proposal could be passed due to x/gov simulation voting process
+		return proposal.NewParameterChangeProposal(
+			"SimulateCompleteRedelegationUnbonding",
+			"SimulateCompleteRedelegationUnbonding",
 			[]proposal.ParamChange{change},
 		)
 	}

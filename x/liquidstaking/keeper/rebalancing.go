@@ -1,9 +1,11 @@
 package keeper
 
 import (
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	squadtypes "github.com/cosmosquad-labs/squad/types"
 	"github.com/cosmosquad-labs/squad/x/liquidstaking/types"
 )
 
@@ -159,6 +161,7 @@ func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context) []types.Redelegation {
 			// unbond all delShares to proxyAcc if delShares exist on inactive validators
 			delShares := lv.GetDelShares(ctx, k.stakingKeeper)
 			if delShares.IsPositive() {
+				fmt.Println("[TRY unbonding on rebalancing]", delShares)
 				_, _, _, err := k.LiquidUnbond(ctx, types.LiquidStakingProxyAcc, types.LiquidStakingProxyAcc, lv.GetOperator(), delShares)
 				if err != nil {
 					panic(err)
@@ -166,6 +169,12 @@ func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context) []types.Redelegation {
 			}
 			_, found := k.stakingKeeper.GetDelegation(ctx, types.LiquidStakingProxyAcc, lv.GetOperator())
 			if !found {
+				// TODO: check redelegation or unbonding
+				reds2 := k.stakingKeeper.GetAllRedelegations(ctx, types.LiquidStakingProxyAcc, nil, lv.GetOperator())
+				if len(reds2) != 0 {
+					squadtypes.PP(reds2)
+					panic("has redelegations")
+				}
 				// remove inactive liquid validator (no delShares)
 				k.RemoveLiquidValidator(ctx, lv)
 			}

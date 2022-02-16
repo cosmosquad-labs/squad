@@ -23,7 +23,9 @@ const (
 )
 
 func genUnstakeFeeRate(r *rand.Rand) sdk.Dec {
-	return simtypes.RandomDecAmount(r, sdk.NewDecWithPrec(1, 2))
+	// TODO: tmp zero
+	//return simtypes.RandomDecAmount(r, sdk.NewDecWithPrec(1, 2))
+	return sdk.ZeroDec()
 }
 
 func genLiquidBondDenom(r *rand.Rand) string {
@@ -35,7 +37,8 @@ func genMinLiquidStakingAmount(r *rand.Rand) sdk.Int {
 }
 
 func genTargetWeight(r *rand.Rand) sdk.Int {
-	return sdk.NewInt(int64(simtypes.RandIntBetween(r, 1, 20)))
+	//return sdk.NewInt(int64(simtypes.RandIntBetween(r, 1, 20)))
+	return sdk.NewInt(10)
 }
 
 // genWhitelistedValidator returns randomized whitelisted validators.

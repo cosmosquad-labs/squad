@@ -1,11 +1,13 @@
 package keeper
 
 import (
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	squadtypes "github.com/cosmosquad-labs/squad/types"
 	"github.com/cosmosquad-labs/squad/x/liquidstaking/types"
 )
 
@@ -33,10 +35,38 @@ func (k Keeper) NetAmountState(ctx sdk.Context) (nas types.NetAmountState) {
 			totalUnbondingBalance = totalUnbondingBalance.Add(entry.Balance)
 		}
 	}
+	if len(ubds) > 0 {
+		fmt.Println("Unbondings")
+		squadtypes.PP(ubds)
+	}
+	reds := k.stakingKeeper.GetAllRedelegations(ctx, types.LiquidStakingProxyAcc, nil, nil)
+	if len(reds) > 0 {
+		totalRedAmount := sdk.ZeroInt()
+		for _, red := range reds {
+			for _, entry := range red.Entries {
+				totalRedAmount = totalRedAmount.Add(entry.InitialBalance)
+				// use Balance(slashing applied) not InitialBalance(without slashing)
+				//totalUnbondingBalance = totalUnbondingBalance.Add(entry.Balance)
+			}
+		}
+		fmt.Println("Redelegations", totalRedAmount)
+		squadtypes.PP(reds)
+	}
 	nas.TotalUnbondingBalance = totalUnbondingBalance
 	nas.BtokenTotalSupply = k.bankKeeper.GetSupply(ctx, k.LiquidBondDenom(ctx)).Amount
 	nas.NetAmount = nas.CalcNetAmount()
 	nas.MintRate = nas.CalcMintRate()
+
+	fmt.Println("@@NetAmount")
+	fmt.Println(nas.NetAmount, nas.MintRate)
+	fmt.Println("liquidTokens of All")
+	fmt.Println(k.GetAllLiquidValidators(ctx).TotalLiquidTokens(ctx, k.stakingKeeper, false))
+	fmt.Println("liquidTokens of All only bond")
+	fmt.Println(k.GetAllLiquidValidators(ctx).TotalLiquidTokens(ctx, k.stakingKeeper, true))
+	fmt.Println("liquidTokens of active")
+	fmt.Println(k.GetActiveLiquidValidators(ctx, k.GetParams(ctx).WhitelistedValMap()).TotalActiveLiquidTokens(ctx, k.stakingKeeper, false))
+	fmt.Println("liquidTokens of active only bond")
+	fmt.Println(k.GetActiveLiquidValidators(ctx, k.GetParams(ctx).WhitelistedValMap()).TotalActiveLiquidTokens(ctx, k.stakingKeeper, true))
 
 	// TODO: consider add totalBondedLiquidTokens
 	return
@@ -272,6 +302,9 @@ func (k Keeper) WithdrawLiquidRewards(ctx sdk.Context, proxyAcc sdk.AccAddress) 
 			return false
 		},
 	)
+	if totalRewards.IsPositive() {
+		fmt.Println("[WithdrawLiquidRewards]", totalRewards)
+	}
 	return totalRewards
 }
 

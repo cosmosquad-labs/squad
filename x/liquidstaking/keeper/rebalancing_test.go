@@ -88,8 +88,16 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 	//reds := s.app.StakingKeeper.GetRedelegations(s.ctx, types.LiquidStakingProxyAcc, 20)
 	s.Require().Len(reds, 3)
 
+	squadtypes.PP("before complete")
+	squadtypes.PP(s.keeper.GetAllLiquidValidatorStates(s.ctx))
+	squadtypes.PP(s.keeper.NetAmountState(s.ctx))
+
 	// advance block time and height for complete redelegations
 	s.completeRedelegationUnbonding()
+
+	squadtypes.PP("after complete")
+	squadtypes.PP(s.keeper.GetAllLiquidValidatorStates(s.ctx))
+	squadtypes.PP(s.keeper.NetAmountState(s.ctx))
 
 	// update whitelist validator
 	params.WhitelistedValidators = []types.WhitelistedValidator{

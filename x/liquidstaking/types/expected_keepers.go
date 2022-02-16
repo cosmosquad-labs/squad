@@ -9,6 +9,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	farmintypes "github.com/cosmosquad-labs/squad/x/farming/types"
 	liquiditytypes "github.com/cosmosquad-labs/squad/x/liquidity/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // BankKeeper defines the expected bank send keeper
@@ -71,6 +72,10 @@ type StakingKeeper interface {
 	BeginRedelegation(
 		ctx sdk.Context, delAddr sdk.AccAddress, valSrcAddr, valDstAddr sdk.ValAddress, sharesAmount sdk.Dec,
 	) (completionTime time.Time, err error)
+	GetAllRedelegations(
+		ctx sdk.Context, delegator sdk.AccAddress, srcValAddress, dstValAddress sdk.ValAddress,
+	) []stakingtypes.Redelegation
+	BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate
 }
 
 // GovKeeper expected gov keeper (noalias)

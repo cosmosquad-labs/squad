@@ -27,4 +27,5 @@ const (
 	DefaultWeightAddWhitelistValidatorsProposal    int = 50
 	DefaultWeightUpdateWhitelistValidatorsProposal int = 5
 	DefaultWeightDeleteWhitelistValidatorsProposal int = 5
+	DefaultWeightCompleteRedelegationUnbonding     int = 30
 )
