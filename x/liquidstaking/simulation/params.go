@@ -9,13 +9,12 @@ import (
 
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmosquad-labs/squad/x/liquidstaking/types"
 )
 
 // ParamChanges defines the parameters that can be modified by param change proposals
 // on the simulation.
-func ParamChanges(r *rand.Rand, validators []stakingtypes.Validator) []simtypes.ParamChange {
+func ParamChanges(r *rand.Rand) []simtypes.ParamChange {
 	return []simtypes.ParamChange{
 
 		simulation.NewSimParamChange(types.ModuleName, string(types.KeyWhitelistedValidators),

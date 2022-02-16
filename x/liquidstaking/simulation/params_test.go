@@ -4,7 +4,6 @@ import (
 	"math/rand"
 	"testing"
 
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmosquad-labs/squad/x/liquidstaking/simulation"
 	"github.com/stretchr/testify/require"
 )
@@ -25,7 +24,7 @@ func TestParamChanges(t *testing.T) {
 		{"liquidstaking/MinLiquidStakingAmount", "MinLiquidStakingAmount", "\"9727887\"", "liquidstaking"},
 	}
 
-	paramChanges := simulation.ParamChanges(r, []stakingtypes.Validator{})
+	paramChanges := simulation.ParamChanges(r)
 	require.Len(t, paramChanges, 4)
 
 	for i, p := range paramChanges {

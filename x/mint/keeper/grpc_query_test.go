@@ -43,6 +43,14 @@ func (suite *MintTestSuite) TestGRPCParams() {
 	suite.Require().Equal(params.Params, app.MintKeeper.GetParams(ctx))
 }
 
+func (suite *MintTestSuite) TestGRPCInflation() {
+	app, _, queryClient := suite.app, suite.ctx, suite.queryClient
+
+	inflation, err := queryClient.Inflation(gocontext.Background(), &types.QueryInflationRequest{})
+	suite.Require().NoError(err)
+	suite.Require().Equal(types.InflationSchedules(inflation.InflationSchedules), app.MintKeeper.GetInflationSchedules())
+}
+
 func TestMintTestSuite(t *testing.T) {
 	suite.Run(t, new(MintTestSuite))
 }
