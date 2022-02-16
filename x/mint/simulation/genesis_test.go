@@ -41,6 +41,7 @@ func TestRandomizedGenState(t *testing.T) {
 
 	require.Equal(t, sdk.DefaultBondDenom, genState.Params.MintDenom)
 	require.Equal(t, types.DefaultParams().BlockTimeThreshold, genState.Params.BlockTimeThreshold)
+	require.Equal(t, types.DefaultInflationSchedules, genState.Params.InflationSchedules)
 	require.Equal(t, (*time.Time)(nil), genState.LastBlockTime)
 }
 
