@@ -11,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	"github.com/cosmosquad-labs/squad/app"
 	"github.com/cosmosquad-labs/squad/x/mint/simulation"
 	"github.com/cosmosquad-labs/squad/x/mint/types"
 	"github.com/stretchr/testify/require"
@@ -32,6 +33,7 @@ func TestRandomizedGenState(t *testing.T) {
 		Accounts:     simtypes.RandomAccounts(r, 3),
 		InitialStake: 1000,
 		GenState:     make(map[string]json.RawMessage),
+		GenTimestamp: time.Unix(app.FlagGenesisTimeValue, 0),
 	}
 
 	simulation.RandomizedGenState(&simState)
