@@ -118,7 +118,6 @@ func (k Keeper) CalcStakingVotingPower(ctx sdk.Context, addr sdk.AccAddress) sdk
 }
 
 // CalcLiquidStakingVotingPower returns voting power of the addr by liquid bond denom
-// TODO: refactor votingPowerStruct (delShares, btoken, poolCoin, farming)
 func (k Keeper) CalcLiquidStakingVotingPower(ctx sdk.Context, addr sdk.AccAddress) sdk.Int {
 	liquidBondDenom := k.LiquidBondDenom(ctx)
 
@@ -169,7 +168,7 @@ func (k Keeper) CalcLiquidStakingVotingPower(ctx sdk.Context, addr sdk.AccAddres
 	}
 }
 
-func (k Keeper) TallyLiquidGov(ctx sdk.Context, votes *govtypes.Votes, otherVotes *govtypes.OtherVotes) {
+func (k Keeper) TallyLiquidStakingGov(ctx sdk.Context, votes *govtypes.Votes, otherVotes *govtypes.OtherVotes) {
 	liquidBondDenom := k.LiquidBondDenom(ctx)
 
 	// skip when no liquid bond token supply

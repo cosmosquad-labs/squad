@@ -186,7 +186,7 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 // ProposalContents returns all the liquidstaking content functions used to
 // simulate governance proposals.
 func (am AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent {
-	return simulation.ProposalContents(am.accountKeeper, am.bankKeeper, am.stakingKeeper, am.keeper)
+	return simulation.ProposalContents(am.accountKeeper, am.bankKeeper, am.stakingKeeper, am.govKeeper, am.keeper)
 }
 
 // RandomizedParams creates randomized liquidstaking param changes for the simulator.
