@@ -16,8 +16,3 @@ func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.Q
 
 	return &types.QueryParamsResponse{Params: params}, nil
 }
-
-// Inflation returns params of the mint module.
-func (k Keeper) Inflation(_ context.Context, _ *types.QueryInflationRequest) (*types.QueryInflationResponse, error) {
-	return &types.QueryInflationResponse{InflationSchedules: k.inflationSchedules}, nil
-}

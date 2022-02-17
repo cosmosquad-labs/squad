@@ -298,7 +298,7 @@ func (s *KeeperTestSuite) TestLiquidStakingGov() {
 			// equal when all liquid validator has same currentWeight
 			s.Require().EqualValues(votingPower, bTokenValue.ToDec().QuoInt64(int64(liquidValidators.Len())))
 		}
-		s.Require().EqualValues(totalVotingPower.TruncateInt(), s.keeper.CalcLiquidVotingPower(s.ctx, voter))
+		s.Require().EqualValues(totalVotingPower.TruncateInt(), s.keeper.CalcLiquidStakingVotingPower(s.ctx, voter))
 	}
 	tallyLiquidGov := func() {
 		cachedCtx, _ := s.ctx.CacheContext()

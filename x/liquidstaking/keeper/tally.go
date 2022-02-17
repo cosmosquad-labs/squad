@@ -87,8 +87,16 @@ func (k Keeper) TokenSharePerPoolCoin(ctx sdk.Context, targetDenom, poolCoinDeno
 	return bTokenSharePerPoolCoin
 }
 
-// CalcVotingPower returns voting power of the addr by normal delegations
-func (k Keeper) CalcVotingPower(ctx sdk.Context, addr sdk.AccAddress) sdk.Int {
+func (k Keeper) GetVotingPower(ctx sdk.Context, addr sdk.AccAddress) types.VotingPower {
+	return types.VotingPower{
+		Voter:                    addr.String(),
+		StakingVotingPower:       k.CalcStakingVotingPower(ctx, addr),
+		LiquidStakingVotingPower: k.CalcLiquidStakingVotingPower(ctx, addr),
+	}
+}
+
+// CalcStakingVotingPower returns voting power of the addr by normal delegations
+func (k Keeper) CalcStakingVotingPower(ctx sdk.Context, addr sdk.AccAddress) sdk.Int {
 	totalVotingPower := sdk.ZeroInt()
 	k.stakingKeeper.IterateDelegations(
 		ctx, addr,
@@ -109,9 +117,9 @@ func (k Keeper) CalcVotingPower(ctx sdk.Context, addr sdk.AccAddress) sdk.Int {
 	return totalVotingPower
 }
 
-// CalcLiquidVotingPower returns voting power of the addr by liquid bond denom
+// CalcLiquidStakingVotingPower returns voting power of the addr by liquid bond denom
 // TODO: refactor votingPowerStruct (delShares, btoken, poolCoin, farming)
-func (k Keeper) CalcLiquidVotingPower(ctx sdk.Context, addr sdk.AccAddress) sdk.Int {
+func (k Keeper) CalcLiquidStakingVotingPower(ctx sdk.Context, addr sdk.AccAddress) sdk.Int {
 	liquidBondDenom := k.LiquidBondDenom(ctx)
 
 	// skip when no liquid bond token supply

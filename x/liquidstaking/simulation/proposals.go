@@ -111,16 +111,6 @@ func SimulateUpdateWhitelistValidatorsProposal(ak types.AccountKeeper, bk types.
 		//fmt.Println("## current vals")
 		//squadtypes.PP(len(vals))
 
-		//wm := params.WhitelistedValMap()
-		//var targetVal stakingtypes.Validator
-		//for i := 0; i < len(vals); i++ {
-		//	// TODO: random liquid validator
-		//	val, _ := keeper.RandomValidator(r, sk, ctx)
-		//	if _, ok := wm[val.OperatorAddress]; ok {
-		//		targetVal = val
-		//		break
-		//	}
-		//}
 		targetVal, found := keeper.RandomActiveLiquidValidator(r, ctx, k, sk)
 		if found {
 			for i := range params.WhitelistedValidators {
