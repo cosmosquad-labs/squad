@@ -12,7 +12,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmosquad-labs/squad/app/params"
-	squadtypes "github.com/cosmosquad-labs/squad/types"
 	"github.com/cosmosquad-labs/squad/x/liquidstaking/keeper"
 	"github.com/cosmosquad-labs/squad/x/liquidstaking/types"
 )
@@ -27,49 +26,43 @@ const (
 	MaxWhitelistValidators                            = 10
 )
 
-// ProposalContents defines the module weighted proposals' contents
+// ProposalContents defines the module weighted proposals' contents for mocking param changes, other actions with keeper
 func ProposalContents(ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper, gk types.GovKeeper, k keeper.Keeper) []simtypes.WeightedProposalContent {
 	return []simtypes.WeightedProposalContent{
 		simulation.NewWeightedProposalContent(
 			OpWeightSimulateAddWhitelistValidatorsProposal,
 			params.DefaultWeightAddWhitelistValidatorsProposal,
-			SimulateAddWhitelistValidatorsProposal(ak, bk, sk, k),
+			SimulateAddWhitelistValidatorsProposal(sk, k),
 		),
 		simulation.NewWeightedProposalContent(
 			OpWeightSimulateUpdateWhitelistValidatorsProposal,
 			params.DefaultWeightUpdateWhitelistValidatorsProposal,
-			SimulateUpdateWhitelistValidatorsProposal(ak, bk, sk, k),
+			SimulateUpdateWhitelistValidatorsProposal(sk, k),
 		),
 		simulation.NewWeightedProposalContent(
 			OpWeightSimulateDeleteWhitelistValidatorsProposal,
 			params.DefaultWeightDeleteWhitelistValidatorsProposal,
-			SimulateDeleteWhitelistValidatorsProposal(ak, bk, sk, k),
+			SimulateDeleteWhitelistValidatorsProposal(sk, k),
 		),
 		simulation.NewWeightedProposalContent(
 			OpWeightCompleteRedelegationUnbonding,
 			params.DefaultWeightCompleteRedelegationUnbonding,
-			SimulateCompleteRedelegationUnbonding(ak, bk, sk, k),
+			SimulateCompleteRedelegationUnbonding(sk, k),
 		),
 		simulation.NewWeightedProposalContent(
 			OpWeightTallyWithLiquidStaking,
 			params.DefaultWeightTallyWithLiquidStaking,
-			SimulateTallyWithLiquidStaking(ak, bk, sk, gk, k),
+			SimulateTallyWithLiquidStaking(ak, bk, gk, k),
 		),
 	}
 }
 
 // SimulateAddWhitelistValidatorsProposal generates random add whitelisted validator param change proposal content.
-func SimulateAddWhitelistValidatorsProposal(ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper, k keeper.Keeper) simtypes.ContentSimulatorFn {
+func SimulateAddWhitelistValidatorsProposal(sk types.StakingKeeper, k keeper.Keeper) simtypes.ContentSimulatorFn {
 	return func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
 		params := k.GetParams(ctx)
 
-		//fmt.Println("## current params")
-		//squadtypes.PP(params)
-
 		vals := sk.GetBondedValidatorsByPower(ctx)
-		//
-		//fmt.Println("## current vals")
-		//squadtypes.PP(len(vals))
 
 		wm := params.WhitelistedValMap()
 		for i := 0; i < len(vals) && len(params.WhitelistedValidators) < MaxWhitelistValidators; i++ {
@@ -91,12 +84,8 @@ func SimulateAddWhitelistValidatorsProposal(ak types.AccountKeeper, bk types.Ban
 		}
 		change := proposal.NewParamChange(types.ModuleName, string(types.KeyWhitelistedValidators), string(whitelistStr))
 
-		//squadtypes.PP(change)
-
 		// manually set params for simulation
 		k.SetParams(ctx, params)
-
-		//squadtypes.PP(k.GetAllLiquidValidatorStates(ctx))
 
 		// this proposal could be passed due to x/gov simulation voting process
 		return proposal.NewParameterChangeProposal(
@@ -108,16 +97,9 @@ func SimulateAddWhitelistValidatorsProposal(ak types.AccountKeeper, bk types.Ban
 }
 
 // SimulateUpdateWhitelistValidatorsProposal generates random update whitelisted validator param change proposal content.
-func SimulateUpdateWhitelistValidatorsProposal(ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper, k keeper.Keeper) simtypes.ContentSimulatorFn {
+func SimulateUpdateWhitelistValidatorsProposal(sk types.StakingKeeper, k keeper.Keeper) simtypes.ContentSimulatorFn {
 	return func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
 		params := k.GetParams(ctx)
-
-		//fmt.Println("## current params")
-		//squadtypes.PP(params)
-
-		//vals := sk.GetBondedValidatorsByPower(ctx)
-		//fmt.Println("## current vals")
-		//squadtypes.PP(len(vals))
 
 		targetVal, found := keeper.RandomActiveLiquidValidator(r, ctx, k, sk)
 		if found {
@@ -137,8 +119,6 @@ func SimulateUpdateWhitelistValidatorsProposal(ak types.AccountKeeper, bk types.
 		}
 		change := proposal.NewParamChange(types.ModuleName, string(types.KeyWhitelistedValidators), string(whitelistStr))
 
-		//squadtypes.PP(change)
-
 		// manually set params for simulation
 		k.SetParams(ctx, params)
 
@@ -152,27 +132,10 @@ func SimulateUpdateWhitelistValidatorsProposal(ak types.AccountKeeper, bk types.
 }
 
 // SimulateDeleteWhitelistValidatorsProposal generates random delete whitelisted validator param change proposal content.
-func SimulateDeleteWhitelistValidatorsProposal(ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper, k keeper.Keeper) simtypes.ContentSimulatorFn {
+func SimulateDeleteWhitelistValidatorsProposal(sk types.StakingKeeper, k keeper.Keeper) simtypes.ContentSimulatorFn {
 	return func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
 		params := k.GetParams(ctx)
 
-		//fmt.Println("## current params")
-		//squadtypes.PP(params)
-
-		//vals := sk.GetBondedValidatorsByPower(ctx)
-		//fmt.Println("## current vals")
-		//squadtypes.PP(len(vals))
-
-		//wm := params.WhitelistedValMap()
-		//var targetVal stakingtypes.Validator
-		//for i := 0; i < len(vals); i++ {
-		//	// TODO: random liquid validator
-		//	val, _ := keeper.RandomValidator(r, sk, ctx)
-		//	if _, ok := wm[val.OperatorAddress]; ok {
-		//		targetVal = val
-		//		break
-		//	}
-		//}
 		targetVal, found := keeper.RandomActiveLiquidValidator(r, ctx, k, sk)
 		if found {
 			remove := func(slice []types.WhitelistedValidator, s int) []types.WhitelistedValidator {
@@ -190,19 +153,11 @@ func SimulateDeleteWhitelistValidatorsProposal(ak types.AccountKeeper, bk types.
 			}
 		}
 
-		//fmt.Println("NetAmountState")
-		//squadtypes.PP(k.NetAmountState(ctx))
-
 		whitelistStr, err := json.Marshal(&params.WhitelistedValidators)
 		if err != nil {
 			panic(err)
 		}
 		change := proposal.NewParamChange(types.ModuleName, string(types.KeyWhitelistedValidators), string(whitelistStr))
-
-		//squadtypes.PP(change)
-
-		// manually set params for simulation
-		//k.SetParams(ctx, params)
 
 		// this proposal could be passed due to x/gov simulation voting process
 		return proposal.NewParameterChangeProposal(
@@ -213,13 +168,13 @@ func SimulateDeleteWhitelistValidatorsProposal(ak types.AccountKeeper, bk types.
 	}
 }
 
-// SimulateCompleteRedelegationUnbonding generates random delete whitelisted validator param change proposal content.
-func SimulateCompleteRedelegationUnbonding(ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper, k keeper.Keeper) simtypes.ContentSimulatorFn {
+// SimulateCompleteRedelegationUnbonding mocking complete redelegations, unbondings by BlockValidatorUpdates of staking keeper.
+func SimulateCompleteRedelegationUnbonding(sk types.StakingKeeper, k keeper.Keeper) simtypes.ContentSimulatorFn {
 	return func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
 		reds := sk.GetAllRedelegations(ctx, types.LiquidStakingProxyAcc, nil, nil)
 		ubds := sk.GetAllUnbondingDelegations(ctx, types.LiquidStakingProxyAcc)
 		if len(reds) != 0 || len(ubds) != 0 {
-			fmt.Println("[SimulateCompleteRedelegationUnbonding]", ctx.BlockTime())
+			fmt.Println("## SimulateCompleteRedelegationUnbonding", ctx.BlockTime())
 			ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 100).WithBlockTime(ctx.BlockTime().Add(stakingtypes.DefaultUnbondingTime))
 			sk.BlockValidatorUpdates(ctx)
 		}
@@ -240,8 +195,8 @@ func SimulateCompleteRedelegationUnbonding(ak types.AccountKeeper, bk types.Bank
 	}
 }
 
-// SimulateTallyWithLiquidStaking generates tally for TallyLiquidStakingGov.
-func SimulateTallyWithLiquidStaking(ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper, gk types.GovKeeper, k keeper.Keeper) simtypes.ContentSimulatorFn {
+// SimulateTallyWithLiquidStaking mocking tally for TallyLiquidStakingGov.
+func SimulateTallyWithLiquidStaking(ak types.AccountKeeper, bk types.BankKeeper, gk types.GovKeeper, k keeper.Keeper) simtypes.ContentSimulatorFn {
 	return func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
 		proposals := gk.GetProposals(ctx)
 		var targetProposal *govtypes.Proposal
@@ -262,16 +217,14 @@ func SimulateTallyWithLiquidStaking(ak types.AccountKeeper, bk types.BankKeeper,
 				// spendable must be greater than unstaking coins
 				if spendable.AmountOf(types.DefaultLiquidBondDenom).GT(sdk.ZeroInt()) {
 					voter = account.GetAddress()
-					fmt.Println("[voter]", voter, spendable)
-					gk.AddVote(ctx, targetProposal.ProposalId, voter, govtypes.WeightedVoteOptions{ // weight sum > 1
+					err := gk.AddVote(ctx, targetProposal.ProposalId, voter, govtypes.WeightedVoteOptions{
 						govtypes.WeightedVoteOption{Option: govtypes.OptionYes, Weight: sdk.NewDec(1)},
 					})
-
-					votingPower := k.GetVotingPower(ctx, voter)
-
+					if err != nil {
+						panic(err)
+					}
 					_, _, res := gk.Tally(ctx, *targetProposal)
-					squadtypes.PP(res)
-					squadtypes.PP(votingPower)
+					fmt.Println("## SimulateTallyWithLiquidStaking", res)
 					break
 				}
 			}

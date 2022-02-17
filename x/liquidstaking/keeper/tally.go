@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -88,14 +90,20 @@ func (k Keeper) TokenSharePerPoolCoin(ctx sdk.Context, targetDenom, poolCoinDeno
 }
 
 func (k Keeper) GetVotingPower(ctx sdk.Context, addr sdk.AccAddress) types.VotingPower {
+	val, found := k.stakingKeeper.GetValidator(ctx, addr.Bytes())
+	validatorVotingPower := sdk.ZeroInt()
+	if found {
+		validatorVotingPower = val.BondedTokens()
+	}
 	return types.VotingPower{
 		Voter:                    addr.String(),
 		StakingVotingPower:       k.CalcStakingVotingPower(ctx, addr),
 		LiquidStakingVotingPower: k.CalcLiquidStakingVotingPower(ctx, addr),
+		ValidatorVotingPower:     validatorVotingPower,
 	}
 }
 
-// CalcStakingVotingPower returns voting power of the addr by normal delegations
+// CalcStakingVotingPower returns voting power of the addr by normal delegations except self-delegation
 func (k Keeper) CalcStakingVotingPower(ctx sdk.Context, addr sdk.AccAddress) sdk.Int {
 	totalVotingPower := sdk.ZeroInt()
 	k.stakingKeeper.IterateDelegations(
@@ -104,10 +112,11 @@ func (k Keeper) CalcStakingVotingPower(ctx sdk.Context, addr sdk.AccAddress) sdk
 			valAddr := del.GetValidatorAddr()
 			val := k.stakingKeeper.Validator(ctx, valAddr)
 			delShares := del.GetShares()
-			// if the validator not bonded, bonded token and voting power is zero
-			if delShares.IsPositive() && val.IsBonded() {
+			// if the validator not bonded, bonded token and voting power is zero, and except self-delegation power
+			if delShares.IsPositive() && val.IsBonded() && !valAddr.Equals(addr) {
 				votingPower := val.TokensFromSharesTruncated(delShares).TruncateInt()
 				if votingPower.IsPositive() {
+					fmt.Println("[-------CalcStakingVotingPower] ", valAddr.Equals(addr), votingPower, delShares, valAddr.String(), val.GetStatus(), val.GetTokens(), val.GetDelegatorShares(), val.GetBondedTokens())
 					totalVotingPower = totalVotingPower.Add(votingPower)
 				}
 			}

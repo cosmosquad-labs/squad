@@ -288,7 +288,11 @@ func (s *KeeperTestSuite) TestTallyLiquidStakingGov2() {
 func (s *KeeperTestSuite) TestVotingPower() {
 	params := types.DefaultParams()
 
-	vals, valOpers, pks := s.CreateValidators([]int64{10000000, 10000000})
+	selfDelegationAmount := sdk.NewInt(10000000)
+	normalStakingAmount := sdk.NewInt(50000000)
+	liquidStakingAmount := sdk.NewInt(50000000)
+
+	vals, valOpers, pks := s.CreateValidators([]int64{selfDelegationAmount.Int64(), selfDelegationAmount.Int64()})
 	params.WhitelistedValidators = []types.WhitelistedValidator{
 		{ValidatorAddress: valOpers[0].String(), TargetWeight: sdk.NewInt(10)},
 		{ValidatorAddress: valOpers[1].String(), TargetWeight: sdk.NewInt(5)},
@@ -300,8 +304,6 @@ func (s *KeeperTestSuite) TestVotingPower() {
 
 	delA := s.addrs[0]
 
-	normalStakingAmount := sdk.NewInt(50000000)
-	liquidStakingAmount := sdk.NewInt(50000000)
 	_, err := s.app.StakingKeeper.Delegate(s.ctx, delA, normalStakingAmount, stakingtypes.Unbonded, val1, true)
 	s.Require().NoError(err)
 
@@ -345,6 +347,13 @@ func (s *KeeperTestSuite) TestVotingPower() {
 	s.Require().EqualValues(votingPower.StakingVotingPower, normalStakingAmount)
 	// liquid staking voting power
 	s.Require().EqualValues(votingPower.LiquidStakingVotingPower, liquidStakingAmount)
+
+	// voting power of valoper
+	votingPowerValOper1 := s.keeper.GetVotingPower(s.ctx, vals[0])
+	votingPowerValOper2 := s.keeper.GetVotingPower(s.ctx, vals[1])
+	liquidValStates := s.keeper.GetAllLiquidValidatorStates(s.ctx)
+	s.Require().EqualValues(votingPowerValOper1.ValidatorVotingPower, selfDelegationAmount.Add(normalStakingAmount).Add(liquidValStates[0].LiquidTokens))
+	s.Require().EqualValues(votingPowerValOper2.ValidatorVotingPower, selfDelegationAmount.Add(liquidValStates[1].LiquidTokens))
 
 	cachedCtx, _ = s.ctx.CacheContext()
 	_, _, result = s.app.GovKeeper.Tally(cachedCtx, proposal)

@@ -23,9 +23,9 @@ const (
 )
 
 func genUnstakeFeeRate(r *rand.Rand) sdk.Dec {
-	// TODO: tmp zero
-	//return simtypes.RandomDecAmount(r, sdk.NewDecWithPrec(1, 2))
-	return sdk.ZeroDec()
+	//// TODO: tmp zero
+	//return sdk.ZeroDec()
+	return simtypes.RandomDecAmount(r, sdk.NewDecWithPrec(1, 2))
 }
 
 func genLiquidBondDenom(r *rand.Rand) string {
@@ -37,24 +37,15 @@ func genMinLiquidStakingAmount(r *rand.Rand) sdk.Int {
 }
 
 func genTargetWeight(r *rand.Rand) sdk.Int {
-	//return sdk.NewInt(int64(simtypes.RandIntBetween(r, 1, 20)))
-	return sdk.NewInt(10)
+	// TODO: tmp 10
+	//return sdk.NewInt(10)
+	return sdk.NewInt(int64(simtypes.RandIntBetween(r, 1, 20)))
 }
 
 // genWhitelistedValidator returns randomized whitelisted validators.
 func genWhitelistedValidator(r *rand.Rand) []types.WhitelistedValidator {
-	ranLiquidValidators := make([]types.WhitelistedValidator, 0)
-
-	//for i := 0; i < simtypes.RandIntBetween(r, 1, 3); i++ {
-	//	liquidValidator := types.LiquidValidator{}
-	//	ranLiquidValidators = append(ranLiquidValidators, liquidValidator)
-	//}
-	//ranLiquidValidators = append(ranLiquidValidators, types.WhitelistedValidator{
-	//	ValidatorAddress: "cosmosvaloper18fec3xyxrh57ldags36wlu5xv504hsnt74ekng",
-	//	TargetWeight:     genTargetWeight(r),
-	//})
-
-	return ranLiquidValidators
+	//ranLiquidValidators := make([]types.WhitelistedValidator, 0)
+	return []types.WhitelistedValidator{}
 }
 
 // RandomizedGenState generates a random GenesisState for liquidstaking.

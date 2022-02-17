@@ -5,7 +5,6 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	squadtypes "github.com/cosmosquad-labs/squad/types"
 	"github.com/cosmosquad-labs/squad/x/liquidstaking/types"
 )
 
@@ -169,13 +168,6 @@ func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context) []types.Redelegation {
 			}
 			_, found := k.stakingKeeper.GetDelegation(ctx, types.LiquidStakingProxyAcc, lv.GetOperator())
 			if !found {
-				// TODO: check redelegation or unbonding
-				reds2 := k.stakingKeeper.GetAllRedelegations(ctx, types.LiquidStakingProxyAcc, nil, lv.GetOperator())
-				if len(reds2) != 0 {
-					squadtypes.PP(reds2)
-					panic("has redelegations")
-				}
-				// remove inactive liquid validator (no delShares)
 				k.RemoveLiquidValidator(ctx, lv)
 			}
 		}

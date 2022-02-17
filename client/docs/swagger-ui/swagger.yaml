@@ -4348,6 +4348,14 @@ paths:
                     description: >-
                       liquid_staking_voting_power return the voting power of
                       liquid staking that can be exercised.
+                  validator_voting_power:
+                    type: string
+                    description: >-
+                      validator_voting_power return the voting power of the
+                      validator if the voter is the validator operator that can
+                      be
+
+                      exercised.
                 description: >-
                   VotingPower is type for current voting power of the voter
                   including staking module's voting power and liquid staking
@@ -7000,6 +7008,13 @@ definitions:
             description: >-
               liquid_staking_voting_power return the voting power of liquid
               staking that can be exercised.
+          validator_voting_power:
+            type: string
+            description: >-
+              validator_voting_power return the voting power of the validator if
+              the voter is the validator operator that can be
+
+              exercised.
         description: >-
           VotingPower is type for current voting power of the voter including
           staking module's voting power and liquid staking
@@ -7041,6 +7056,13 @@ definitions:
         description: >-
           liquid_staking_voting_power return the voting power of liquid staking
           that can be exercised.
+      validator_voting_power:
+        type: string
+        description: >-
+          validator_voting_power return the voting power of the validator if the
+          voter is the validator operator that can be
+
+          exercised.
     description: >-
       VotingPower is type for current voting power of the voter including
       staking module's voting power and liquid staking
