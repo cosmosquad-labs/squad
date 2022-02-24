@@ -175,6 +175,7 @@ func (k Keeper) CalcLiquidStakingVotingPower(ctx sdk.Context, addr sdk.AccAddres
 	}
 }
 
+// No huge performance gain by using pointer parameter for votes here.
 func (k Keeper) TallyLiquidStakingGov(ctx sdk.Context, votes *govtypes.Votes, otherVotes *govtypes.OtherVotes) {
 	liquidBondDenom := k.LiquidBondDenom(ctx)
 

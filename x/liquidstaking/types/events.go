@@ -16,7 +16,7 @@ const (
 	AttributeKeyCompletionTime        = "completion_time"
 	AttributeKeyUnbondingAmount       = "unbonding_amount"
 	AttributeKeyUnbondedAmount        = "unbonded_amount"
-	AttributeKeyLiquidValdator        = "liquid_validator"
+	AttributeKeyLiquidValdator        = "liquid_validator" // typo: Valdator -> Validator
 	AttributeKeyRedelegationCount     = "redelegation_count"
 	AttributeKeyRedelegationFailCount = "redelegation_fail_count"
 

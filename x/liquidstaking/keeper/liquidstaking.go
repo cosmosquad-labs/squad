@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	"github.com/cosmosquad-labs/squad/x/liquidstaking/types"
 )
 
@@ -385,11 +386,29 @@ func (k Keeper) GetLiquidValidatorState(ctx sdk.Context, addr sdk.ValAddress) (l
 	}, true
 }
 
+// Name suggestion: IsActiveLiquidValidator
+// Remove whitelisted parameter, and use that value directly in the caller.
+// For example, if you're gonna call this function with whitelisted = false,
+// then you can write code like this:
+// if whitelisted && k.ActiveCondition(ctx, v) { ... }
 func (k Keeper) ActiveCondition(ctx sdk.Context, v types.LiquidValidator, whitelisted bool) bool {
 	val, found := k.stakingKeeper.GetValidator(ctx, v.GetOperator())
 	if !found {
 		return false
 	}
+	// This can be simplified to:
+	//consPk, err := val.ConsPubKey()
+	//if err != nil {
+	//	panic(err)
+	//}
+	//tombstoned := k.slashingKeeper.IsTombstoned(ctx, sdk.ConsAddress(consPk.Address()))
+	//return whitelisted &&
+	//	!tombstoned &&
+	//	// !Unspecified ==> Bonded, Unbonding, Unbonded
+	//	val.GetStatus() != stakingtypes.Unspecified &&
+	//	!val.GetTokens().IsNil() &&
+	//	!val.GetDelegatorShares().IsNil() &&
+	//	!val.InvalidExRate()
 	tombstoned := v.IsTombstoned(ctx, k.stakingKeeper, k.slashingKeeper)
 	return types.ActiveCondition(val, whitelisted, tombstoned)
 }

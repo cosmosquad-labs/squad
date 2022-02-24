@@ -5,6 +5,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/cosmosquad-labs/squad/x/liquidstaking/types"
 )
 
@@ -38,6 +39,7 @@ func (k Keeper) TryRedelegation(ctx sdk.Context, re types.Redelegation, last boo
 }
 
 // Rebalancing argument liquidVals containing ValidatorStatusActive which is containing just added on whitelist(liquidToken 0) and ValidatorStatusInactive to delist
+// Rename Rebalancing to Rebalance
 func (k Keeper) Rebalancing(ctx sdk.Context, proxyAcc sdk.AccAddress, liquidVals types.LiquidValidators, whitelistedValMap types.WhitelistedValMap, rebalancingTrigger sdk.Dec) (redelegations []types.Redelegation) {
 	logger := k.Logger(ctx)
 	totalLiquidTokens, _ := liquidVals.TotalLiquidTokens(ctx, k.stakingKeeper, false)
@@ -71,12 +73,12 @@ func (k Keeper) Rebalancing(ctx sdk.Context, proxyAcc sdk.AccAddress, liquidVals
 		}
 	}
 
-	lenLiquidVals := liquidVals.Len()
-	var liquidTokenMap map[string]sdk.Int
-	failCound := 0
+	lenLiquidVals := liquidVals.Len() // Using liquidVals.Len() inside for loop is fine.
+	failCount := 0
 	rebalancingThresholdAmt := rebalancingTrigger.Mul(totalLiquidTokens.ToDec()).TruncateInt()
 	for i := 0; i < lenLiquidVals; i++ {
 		// sync totalLiquidTokens, liquidTokenMap applied rebalancing
+		var liquidTokenMap map[string]sdk.Int
 		totalLiquidTokens, liquidTokenMap = liquidVals.TotalLiquidTokens(ctx, k.stakingKeeper, false)
 
 		// get min, max of liquid token gap
@@ -96,7 +98,7 @@ func (k Keeper) Rebalancing(ctx sdk.Context, proxyAcc sdk.AccAddress, liquidVals
 		_, err := k.TryRedelegation(ctx, redelegation, last)
 		if err != nil {
 			logger.Error("rebalancing failed due to redelegation restriction", "redelegations", redelegations, "error", err)
-			failCound += 1
+			failCount++
 		}
 	}
 	if len(redelegations) != 0 {
@@ -105,13 +107,13 @@ func (k Keeper) Rebalancing(ctx sdk.Context, proxyAcc sdk.AccAddress, liquidVals
 				types.EventTypeBeginRebalancing,
 				sdk.NewAttribute(types.AttributeKeyDelegator, types.LiquidStakingProxyAcc.String()),
 				sdk.NewAttribute(types.AttributeKeyRedelegationCount, strconv.Itoa(len(redelegations))),
-				sdk.NewAttribute(types.AttributeKeyRedelegationFailCount, strconv.Itoa(failCound)),
+				sdk.NewAttribute(types.AttributeKeyRedelegationFailCount, strconv.Itoa(failCount)),
 			),
 		})
 		logger.Info(types.EventTypeBeginRebalancing,
 			types.AttributeKeyDelegator, types.LiquidStakingProxyAcc.String(),
 			types.AttributeKeyRedelegationCount, strconv.Itoa(len(redelegations)),
-			types.AttributeKeyRedelegationFailCount, strconv.Itoa(failCound))
+			types.AttributeKeyRedelegationFailCount, strconv.Itoa(failCount))
 	}
 	return redelegations
 }
@@ -172,7 +174,7 @@ func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context) []types.Redelegation {
 			lv := types.LiquidValidator{
 				OperatorAddress: wv.ValidatorAddress,
 			}
-			if k.ActiveCondition(ctx, lv, true) {
+			if k.ActiveCondition(ctx, lv, true) { // Remove true argument. See ActiveCondition's comment for details.
 				k.SetLiquidValidator(ctx, lv)
 				liquidValidators = append(liquidValidators, lv)
 				ctx.EventManager().EmitEvents(sdk.Events{

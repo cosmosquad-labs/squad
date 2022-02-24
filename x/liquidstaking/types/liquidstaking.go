@@ -35,6 +35,7 @@ func (v LiquidValidator) Validate() error {
 
 func (v LiquidValidator) GetOperator() sdk.ValAddress {
 	if v.OperatorAddress == "" {
+		panic("?")
 		return nil
 	}
 	addr, err := sdk.ValAddressFromBech32(v.OperatorAddress)
@@ -44,6 +45,10 @@ func (v LiquidValidator) GetOperator() sdk.ValAddress {
 	return addr
 }
 
+// Remove this function.
+// It'll help decoupling types package with actual Keeper logic,
+// and reduces duplicate call of StkingKeeper.GetValidator.
+// See comments in where it is called.
 func (v LiquidValidator) IsTombstoned(ctx sdk.Context, stakingKeeper StakingKeeper, slashingKeeper SlashingKeeper) bool {
 	val, found := stakingKeeper.GetValidator(ctx, v.GetOperator())
 	if !found {
@@ -96,6 +101,9 @@ func (v LiquidValidator) GetStatus(activeCondition bool) ValidatorStatus {
 //- included on whitelist
 //- existed valid validator on staking module ( existed, not nil del shares and tokens, valid exchange rate)
 //- not tombstoned
+// Move this function's content into Keeper.ActiveCondition directly, because
+// there's the only location this being called.
+// Also note that `whitelisted` will always be true(except for the case in test).
 func ActiveCondition(validator stakingtypes.Validator, whitelisted bool, tombstoned bool) bool {
 	return whitelisted &&
 		!tombstoned &&
@@ -151,7 +159,7 @@ func (vs LiquidValidators) TotalLiquidTokens(ctx sdk.Context, sk StakingKeeper, 
 }
 
 func (vs LiquidValidators) Map() map[string]bool {
-	valMap := make(map[string]bool)
+	valMap := make(map[string]bool) // Using map[string]struct{} here makes more sense.
 	for _, val := range vs {
 		valMap[val.OperatorAddress] = true
 	}

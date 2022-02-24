@@ -6,11 +6,12 @@ import (
 	"strings"
 	"time"
 
-	squadtypes "github.com/cosmosquad-labs/squad/types"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	squadtypes "github.com/cosmosquad-labs/squad/types"
 )
 
 // Parameter store keys
@@ -42,13 +43,13 @@ func ParamKeyTable() paramtypes.KeyTable {
 
 func NewParams(
 	// TODO: []InflationSchedule or InflationSchedules
-	mintDenom string, BlockTimeThreshold time.Duration, InflationSchedules []InflationSchedule,
+	mintDenom string, blockTimeThreshold time.Duration, inflationSchedules []InflationSchedule,
 ) Params {
 
 	return Params{
 		MintDenom:          mintDenom,
-		BlockTimeThreshold: BlockTimeThreshold,
-		InflationSchedules: InflationSchedules,
+		BlockTimeThreshold: blockTimeThreshold,
+		InflationSchedules: inflationSchedules,
 	}
 }
 
@@ -124,12 +125,20 @@ func validateInflationSchedules(i interface{}) error {
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
-	for _, inflation := range v {
+	for i, inflation := range v {
 		if !inflation.Amount.IsPositive() {
 			return fmt.Errorf("inflation schedule amount must be positive: %s", v)
 		}
 		if !inflation.EndTime.After(inflation.StartTime) {
 			return fmt.Errorf("end time %s must be greater than start time %s", inflation.EndTime.Format(time.RFC3339), inflation.StartTime.Format(time.RFC3339))
+		}
+		// Check if the schedule's date range overlaps with previous schedules.
+		// It isn't the most efficient way to check it, but would be fine for
+		// most situations.
+		for j, inflation2 := range v[:i] {
+			if squadtypes.DateRangesOverlap(inflation.StartTime, inflation.EndTime, inflation2.StartTime, inflation2.EndTime) {
+				return fmt.Errorf("schedule %d and %d have overlapping date ranges", j, i)
+			}
 		}
 	}
 	return nil

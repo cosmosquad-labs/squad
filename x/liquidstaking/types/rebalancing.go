@@ -9,7 +9,7 @@ type Redelegation struct {
 	SrcValidator LiquidValidator
 	DstValidator LiquidValidator
 	Amount       sdk.Int
-	Last         bool
+	Last         bool // This field is never used
 }
 
 // DivideByWeight divide the input value by the ratio of the param weight of the liquid validator and return it with crumb

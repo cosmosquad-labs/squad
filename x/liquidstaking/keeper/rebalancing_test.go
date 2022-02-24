@@ -5,9 +5,35 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	squadtypes "github.com/cosmosquad-labs/squad/types"
 	"github.com/cosmosquad-labs/squad/x/liquidstaking/types"
 )
+
+func (s *KeeperTestSuite) TestEdgeCase() {
+	_, valAddrs, _ := s.CreateValidators([]int64{1000000, 1000000})
+	params := s.keeper.GetParams(s.ctx)
+	params.WhitelistedValidators = []types.WhitelistedValidator{
+		{ValidatorAddress: valAddrs[0].String(), TargetWeight: sdk.NewInt(100)},
+		{ValidatorAddress: valAddrs[1].String(), TargetWeight: sdk.NewInt(100)},
+	}
+	s.keeper.SetParams(s.ctx, params)
+	reds := s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	fmt.Println(reds)
+	newShares, bTokenMintAmt, err := s.keeper.LiquidStaking(s.ctx, types.LiquidStakingProxyAcc, s.delAddrs[0], squadtypes.ParseCoin("1000000stake"))
+	s.Require().NoError(err)
+	fmt.Println(newShares, bTokenMintAmt)
+
+	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	fmt.Println(reds)
+
+	params.WhitelistedValidators = []types.WhitelistedValidator{
+		{ValidatorAddress: valAddrs[0].String(), TargetWeight: sdk.NewInt(100)},
+	}
+	s.keeper.SetParams(s.ctx, params)
+	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	fmt.Println(reds)
+}
 
 func (s *KeeperTestSuite) TestRebalancingCase1() {
 	_, valOpers, pks := s.CreateValidators([]int64{1000000, 1000000, 1000000, 1000000, 1000000})

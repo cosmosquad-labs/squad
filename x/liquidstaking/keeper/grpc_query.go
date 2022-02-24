@@ -33,6 +33,8 @@ func (k Querier) LiquidValidators(c context.Context, req *types.QueryLiquidValid
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
+	// TODO: use Pagination
+
 	return &types.QueryLiquidValidatorsResponse{LiquidValidators: k.GetAllLiquidValidatorStates(ctx)}, nil
 }
 

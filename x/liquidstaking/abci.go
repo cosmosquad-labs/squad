@@ -16,6 +16,7 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	k.UpdateLiquidValidatorSet(ctx)
 }
 
+// There's no logic in EndBlocker, so it's OK to just remove it.
 func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyEndBlocker)
 }
