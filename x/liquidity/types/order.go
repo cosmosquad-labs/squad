@@ -34,6 +34,7 @@ type PriceComparator func(a, b amm.Order) bool
 // 3. Order type - pool orders take higher priority than user orders
 // 4. Time - early orders take higher priority. For pools, the pool with
 //    lower pool id takes higher priority
+// review: consider add unit test
 func SortOrders(orders []amm.Order, cmp PriceComparator) {
 	sort.SliceStable(orders, func(i, j int) bool {
 		switch orderA := orders[i].(type) {

@@ -29,6 +29,7 @@ func TestPoolCoinDenom(t *testing.T) {
 	}{
 		{1, "pool1"},
 		{10, "pool10"},
+		// review: need to add fail cases for coverage
 	} {
 		t.Run("", func(t *testing.T) {
 			poolCoinDenom := types.PoolCoinDenom(tc.poolId)

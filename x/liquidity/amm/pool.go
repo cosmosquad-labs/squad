@@ -21,6 +21,7 @@ type Pool interface {
 
 // BasicPool is the basic pool type.
 type BasicPool struct {
+	// Review: It would be better, add comments for each field
 	rx, ry sdk.Dec
 	ps     sdk.Dec
 }

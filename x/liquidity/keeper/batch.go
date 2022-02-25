@@ -18,6 +18,8 @@ func (k Keeper) ExecuteRequests(ctx sdk.Context) {
 		panic(err)
 	}
 	if err := k.IterateAllOrders(ctx, func(req types.Order) (stop bool, err error) {
+		// review : It Could refactor to function of req for !ctx.BlockTime().Before(req.ExpireAt)
+		// review: consider explicit checking target status not with !(not) for more intuition with tracking reference
 		if req.Status != types.OrderStatusCompleted && !req.Status.IsCanceledOrExpired() && !ctx.BlockTime().Before(req.ExpireAt) { // ExpireAt <= BlockTime
 			if err := k.FinishOrder(ctx, req, types.OrderStatusExpired); err != nil {
 				return false, err

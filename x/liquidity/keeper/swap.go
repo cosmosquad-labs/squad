@@ -281,6 +281,7 @@ func (k Keeper) ExecuteMatching(ctx sdk.Context, pair types.Pair) error {
 		case types.OrderStatusNotExecuted,
 			types.OrderStatusNotMatched,
 			types.OrderStatusPartiallyMatched:
+			// review : It Could refactor to function of req for !ctx.BlockTime().Before(req.ExpireAt)
 			if req.Status != types.OrderStatusNotExecuted && !ctx.BlockTime().Before(req.ExpireAt) {
 				if err := k.FinishOrder(ctx, req, types.OrderStatusExpired); err != nil {
 					return false, err
@@ -408,6 +409,9 @@ func (k Keeper) FinishOrder(ctx sdk.Context, req types.Order, status types.Order
 		}
 	}
 
+	// review: make function for set status to easy tracking of status changing
+	// - https://github.com/cosmos/cosmos-sdk/blob/be4a965599dfae6992451e4b5135c487ed45053b/x/staking/types/validator.go#L363-L368
+	// - https://github.com/cosmos/cosmos-sdk/blob/5cd741a8789e27ca210f7f9c34ab745757822bc6/x/staking/keeper/val_state_change.go#L344-L350
 	req.Status = status
 	k.SetOrder(ctx, req)
 

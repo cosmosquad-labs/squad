@@ -311,6 +311,9 @@ func (k Keeper) FinishDepositRequest(ctx sdk.Context, req types.DepositRequest, 
 			return err
 		}
 	}
+	// review: make function for set status to easy tracking of status changing
+	// - https://github.com/cosmos/cosmos-sdk/blob/be4a965599dfae6992451e4b5135c487ed45053b/x/staking/types/validator.go#L363-L368
+	// - https://github.com/cosmos/cosmos-sdk/blob/5cd741a8789e27ca210f7f9c34ab745757822bc6/x/staking/keeper/val_state_change.go#L344-L350
 	req.Status = status
 	k.SetDepositRequest(ctx, req)
 
@@ -401,6 +404,9 @@ func (k Keeper) FinishWithdrawRequest(ctx sdk.Context, req types.WithdrawRequest
 			return err
 		}
 	}
+	// review: make function for set status to easy tracking of status changing
+	// - https://github.com/cosmos/cosmos-sdk/blob/be4a965599dfae6992451e4b5135c487ed45053b/x/staking/types/validator.go#L363-L368
+	// - https://github.com/cosmos/cosmos-sdk/blob/5cd741a8789e27ca210f7f9c34ab745757822bc6/x/staking/keeper/val_state_change.go#L344-L350
 	req.Status = status
 	k.SetWithdrawRequest(ctx, req)
 
