@@ -20,7 +20,7 @@ func TestDecodeLastBlockTimeStore(t *testing.T) {
 	cdc := simapp.MakeTestEncodingConfig()
 	dec := simulation.NewDecodeStore(cdc.Marshaler)
 
-	tc := squadtypes.MustParseRFC3339("2022-01-01T00:00:00Z")
+	tc := squadtypes.ParseTime("2022-01-01T00:00:00Z")
 
 	kvPairs := kv.Pairs{
 		Pairs: []kv.Pair{

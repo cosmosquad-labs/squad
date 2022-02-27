@@ -49,8 +49,8 @@ func (v LiquidValidator) GetOperator() sdk.ValAddress {
 // It'll help decoupling types package with actual Keeper logic,
 // and reduces duplicate call of StkingKeeper.GetValidator.
 // See comments in where it is called.
-func (v LiquidValidator) IsTombstoned(ctx sdk.Context, stakingKeeper StakingKeeper, slashingKeeper SlashingKeeper) bool {
-	val, found := stakingKeeper.GetValidator(ctx, v.GetOperator())
+func (v LiquidValidator) IsTombstoned(ctx sdk.Context, sk StakingKeeper, slashingKeeper SlashingKeeper) bool {
+	val, found := sk.GetValidator(ctx, v.GetOperator())
 	if !found {
 		return false
 	}
@@ -208,13 +208,6 @@ func (nas NetAmountState) CalcMintRate() sdk.Dec {
 	}
 	return nas.BtokenTotalSupply.ToDec().QuoTruncate(nas.NetAmount)
 }
-
-// WIP: add state
-//type State struct {
-//	NetAmountState        NetAmountState
-//	LiquidValidatorStates LiquidValidatorStates
-//	// ValidatorMap  map[string]stakingtypes.Validator
-//}
 
 type LiquidValidatorStates []LiquidValidatorState
 

@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	squadtypes "github.com/cosmosquad-labs/squad/types"
 
 	"github.com/cosmosquad-labs/squad/x/mint/keeper"
 	"github.com/cosmosquad-labs/squad/x/mint/types"
@@ -23,7 +24,7 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 		inflationSchedules := k.GetInflationSchedules(ctx)
 		blockInflation := sdk.ZeroInt()
 		for _, schedule := range inflationSchedules {
-			if !schedule.EndTime.Before(ctx.BlockTime()) && !schedule.StartTime.After(ctx.BlockTime()) {
+			if squadtypes.DateRangeIncludes(schedule.StartTime, schedule.EndTime, ctx.BlockTime()) {
 				lastBlockTimeDiff := ctx.BlockTime().Sub(*lastBlockTime)
 				if lastBlockTimeDiff > params.BlockTimeThreshold {
 					lastBlockTimeDiff = params.BlockTimeThreshold
@@ -43,7 +44,7 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 			}
 
 			// send the minted coins to the fee collector account
-			err = k.AddCollectedFees(ctx, mintedCoins)
+			err = k.AddInfationToFeeCollector(ctx, mintedCoins)
 			if err != nil {
 				panic(err)
 			}

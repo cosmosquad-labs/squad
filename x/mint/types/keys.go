@@ -13,8 +13,6 @@ const (
 	// QuerierRoute is the querier route for the mint store.
 	QuerierRoute = StoreKey
 
-	// Below are not used anymore. They are for legacy querier.
-	//// Query endpoints supported by the mint querier
-	//QueryParameters = "parameters"
-	////QueryInflationSchedules        = "inflation"
+	// Query endpoints supported by the mint querier
+	QueryParameters = "parameters"
 )
