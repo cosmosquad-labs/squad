@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -138,6 +140,20 @@ func (s *KeeperTestSuite) TestCreatePoolAfterDisabled() {
 	// Now a new pool can be created with same denom pair because
 	// all pools with same denom pair are disabled.
 	s.createPool(s.addr(2), pair.Id, squad.ParseCoins("1000000denom1,1000000denom2"), true)
+}
+
+// review: When FindMatchPrice is called while the pool price is very low, an impossible case panic occurs in findFirstTrueCondition.
+func (s *KeeperTestSuite) TestFindMatchPriceEdgeCase1() {
+	pair := s.createPair(s.addr(0), "denom1", "denom2", true)
+	poolCreator := s.addr(1)
+	// create very small price pool
+	s.createPool(poolCreator, pair.Id, squad.ParseCoins("1000000000000000000000000000000000000000000denom1,1000000denom2"), true)
+	order := s.buyLimitOrder(poolCreator, pair.Id, squad.ParseDec("0.000000000000001000"), sdk.NewInt(10), 10*time.Second, true)
+	// Execute matching, panic occurred impossible case on FindMatchPrice, findFirstTrueCondition
+	s.Require().Panics(func() { liquidity.EndBlocker(s.ctx, s.keeper) })
+	order, found := s.keeper.GetOrder(s.ctx, order.PairId, order.Id)
+	s.Require().True(found)
+	s.Require().Equal(types.OrderStatusNotMatched, order.Status)
 }
 
 func (s *KeeperTestSuite) TestDeposit() {

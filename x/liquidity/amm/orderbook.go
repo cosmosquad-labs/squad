@@ -97,6 +97,7 @@ func (ticks *orderBookTicks) add(order Order) {
 }
 
 func (ticks orderBookTicks) highestPrice() (sdk.Dec, bool) {
+	// review: I think even if remove this length check, the results will be the same.
 	if len(ticks) == 0 {
 		return sdk.Dec{}, false
 	}
@@ -109,6 +110,7 @@ func (ticks orderBookTicks) highestPrice() (sdk.Dec, bool) {
 }
 
 func (ticks orderBookTicks) lowestPrice() (sdk.Dec, bool) {
+	// review: I think even if remove this length check, the results will be the same.
 	if len(ticks) == 0 {
 		return sdk.Dec{}, false
 	}

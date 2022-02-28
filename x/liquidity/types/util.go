@@ -19,6 +19,7 @@ func NewBulkSendCoinsOperation() *BulkSendCoinsOperation {
 	}
 }
 
+// review: SendCoins has the same name as BankKeeper.SendCoins, so it can confuse people, how about refactor to QueueSendCoins or QueueInputOutput.
 // SendCoins queues a BankKeeper.SendCoins operation for later execution.
 func (op *BulkSendCoinsOperation) SendCoins(fromAddr, toAddr sdk.AccAddress, amt sdk.Coins) {
 	if amt.IsValid() && !amt.IsZero() {

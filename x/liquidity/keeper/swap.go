@@ -290,6 +290,7 @@ func (k Keeper) ExecuteMatching(ctx sdk.Context, pair types.Pair) error {
 			}
 			ob.Add(types.NewUserOrder(req))
 			if req.Status == types.OrderStatusNotExecuted {
+				// review: refactor to use set status
 				req.Status = types.OrderStatusNotMatched
 				k.SetOrder(ctx, req)
 			}
@@ -379,6 +380,7 @@ func (k Keeper) ApplyMatchResult(ctx sdk.Context, pair types.Pair, orders []amm.
 					return err
 				}
 			} else {
+				// review: to use set Status
 				req.Status = types.OrderStatusPartiallyMatched
 				k.SetOrder(ctx, req)
 				// TODO: emit an event?

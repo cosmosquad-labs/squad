@@ -6,6 +6,7 @@ import (
 
 var _ OrderSource = (*mergedOrderSource)(nil)
 
+// reveiw: Add unit test for below types
 // OrderView is the interface which provides a view of orders.
 type OrderView interface {
 	HighestBuyPrice() (price sdk.Dec, found bool)
