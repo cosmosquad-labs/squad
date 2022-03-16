@@ -63,7 +63,7 @@ export USER_1="guard cream sadness conduct invite crumble clock pudding hole gri
 export USER_2="fuel obscure melt april direct second usual hair leave hobby beef bacon solid drum used law mercy worry fat super must ritual bring faculty"
 export VALIDATOR_1_GENESIS_COINS=100000000000000000stake,10000000000uatom,10000000000uusd
 export USER_1_GENESIS_COINS=10000000000stake,10000000000uatom,10000000000uusd
-export USER_2_GENESIS_COINS=10000000000stake,10000000000poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4,10000000000pool93E069B333B5ECEBFE24C6E1437E814003248E0DD7FF8B9F82119F4587449BA5,10000000000pool3036F43CB8131A1A63D2B3D3B11E9CF6FA2A2B6FEC17D5AD283C25C939614A8C,10000000000poolE4D2617BFE03E1146F6BBA1D9893F2B3D77BA29E7ED532BB721A39FF1ECC1B07
+export USER_2_GENESIS_COINS=10000000000stake,10000000000pool1,10000000000pool2,10000000000pool3,10000000000pool4
 
 # Bootstrap
 $BINARY init $CHAIN_ID --chain-id $CHAIN_ID
@@ -234,11 +234,11 @@ where the fields in the JSON file are:
       "termination_address": "cosmos1228ryjucdpdv3t87rxle0ew76a56ulvnfst0hq0sscd3nafgjpqqkcxcky",
       "staking_coin_weights": [
         {
-          "denom": "pool93E069B333B5ECEBFE24C6E1437E814003248E0DD7FF8B9F82119F4587449BA5",
+          "denom": "pool1",
           "amount": "0.500000000000000000"
         },
         {
-          "denom": "poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4",
+          "denom": "pool2",
           "amount": "0.500000000000000000"
         }
       ],
@@ -294,7 +294,7 @@ $BINARY q bank balances cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny \
 --output json | jq
 
 # Stake pool coin
-$BINARY tx farming stake 5000000poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4 \
+$BINARY tx farming stake 5000000pool1 \
 --chain-id localnet \
 --from user2 \
 --keyring-backend test \
@@ -309,7 +309,7 @@ $BINARY q farming stakings cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny \
 # You can also query using the following command
 # Query for all stakings by a staker address with the given staking coin denom
 $BINARY q farming stakings cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny \
---staking-coin-denom poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4 \
+--staking-coin-denom pool1 \
 --output json | jq
 ```
 
@@ -374,7 +374,7 @@ $BINARY q bank balances cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny \
 
 # You can also query with the following command
 # Harvest farming rewards from the farming plan with the staking coin
-$BINARY tx farming harvest poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4 \
+$BINARY tx farming harvest pool1 \
 --chain-id localnet \
 --from user2 \
 --keyring-backend test \
@@ -393,8 +393,8 @@ Update the following values of the fields:
 
 - `plan_id`: 1
 - `staking_coin_weights`
-    - `pool93E069B333B5ECEBFE24C6E1437E814003248E0DD7FF8B9F82119F4587449BA5` weight 50% → 100%
-    - `poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4` weight 50% → 0% ( deleted)
+    - `pool1` weight 50% → 100%
+    - `pool2` weight 50% → 0% ( deleted)
 - `epoch_ratio`: 0.500000000000000000 (50%)
 
 Add a second public ratio plan proposal:
@@ -403,8 +403,8 @@ Add a second public ratio plan proposal:
 - `farming_pool_address`: the Gravity DEX budget collector account address
 - `termination_address`: the Gravity DEX budget collector account address
 - `staking_coin_weights`
-    - `pool3036F43CB8131A1A63D2B3D3B11E9CF6FA2A2B6FEC17D5AD283C25C939614A8C`
-    - `poolE4D2617BFE03E1146F6BBA1D9893F2B3D77BA29E7ED532BB721A39FF1ECC1B07`
+    - `pool3`
+    - `pool4`
 - `start_time`: 2021-09-11T00:00:00Z
 - `end_time`: 2031-09-30T00:00:00Z
 - `epoch_ratio`: 0.500000000000000000 (50%)
@@ -421,7 +421,7 @@ Add a second public ratio plan proposal:
       "termination_address": "cosmos1228ryjucdpdv3t87rxle0ew76a56ulvnfst0hq0sscd3nafgjpqqkcxcky",
       "staking_coin_weights": [
         {
-          "denom": "pool93E069B333B5ECEBFE24C6E1437E814003248E0DD7FF8B9F82119F4587449BA5",
+          "denom": "pool1",
           "amount": "1.000000000000000000"
         }
       ],
@@ -437,11 +437,11 @@ Add a second public ratio plan proposal:
       "termination_address": "cosmos1228ryjucdpdv3t87rxle0ew76a56ulvnfst0hq0sscd3nafgjpqqkcxcky",
       "staking_coin_weights": [
         {
-          "denom": "pool3036F43CB8131A1A63D2B3D3B11E9CF6FA2A2B6FEC17D5AD283C25C939614A8C",
+          "denom": "pool3",
           "amount": "0.500000000000000000"
         },
         {
-          "denom": "poolE4D2617BFE03E1146F6BBA1D9893F2B3D77BA29E7ED532BB721A39FF1ECC1B07",
+          "denom": "pool4",
           "amount": "0.500000000000000000"
         }
       ],
@@ -507,7 +507,7 @@ $BINARY q farming rewards cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny \
 --output json | jq
 
 # Stake another pool coin that is defined in the second plan
-$BINARY tx farming stake 5000000pool3036F43CB8131A1A63D2B3D3B11E9CF6FA2A2B6FEC17D5AD283C25C939614A8C \
+$BINARY tx farming stake 5000000pool3 \
 --chain-id localnet \
 --from user2 \
 --keyring-backend test \
@@ -535,4 +535,4 @@ $BINARY q farming rewards cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny \
 
 ## Conclusion
 
-Throughout the demo, you learn what the budget and farming modules are and how they work to provide eseential functionalities in the Cosmos ecosystem. Thank you for taking your time and your interest. 
+Throughout the demo, you learn what the budget and farming modules are and how they work to provide essential functionalities in the Cosmos ecosystem. Thank you for taking your time and your interest.

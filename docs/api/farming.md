@@ -76,11 +76,11 @@ http://localhost:1317/cosmos/farming/v1beta1/plans
         "termination_address": "cosmos1228ryjucdpdv3t87rxle0ew76a56ulvnfst0hq0sscd3nafgjpqqkcxcky",
         "staking_coin_weights": [
           {
-            "denom": "pool3036F43CB8131A1A63D2B3D3B11E9CF6FA2A2B6FEC17D5AD283C25C939614A8C",
+            "denom": "pool1",
             "amount": "0.500000000000000000"
           },
           {
-            "denom": "poolE4D2617BFE03E1146F6BBA1D9893F2B3D77BA29E7ED532BB721A39FF1ECC1B07",
+            "denom": "pool2",
             "amount": "0.500000000000000000"
           }
         ],
@@ -129,11 +129,11 @@ http://localhost:1317/cosmos/farming/v1beta1/plans/1
       "termination_address": "cosmos1228ryjucdpdv3t87rxle0ew76a56ulvnfst0hq0sscd3nafgjpqqkcxcky",
       "staking_coin_weights": [
         {
-          "denom": "pool3036F43CB8131A1A63D2B3D3B11E9CF6FA2A2B6FEC17D5AD283C25C939614A8C",
+          "denom": "pool1",
           "amount": "0.500000000000000000"
         },
         {
-          "denom": "poolE4D2617BFE03E1146F6BBA1D9893F2B3D77BA29E7ED532BB721A39FF1ECC1B07",
+          "denom": "pool2",
           "amount": "0.500000000000000000"
         }
       ],
@@ -169,7 +169,7 @@ http://localhost:1317/cosmos/farming/v1beta1/stakings/cosmos185fflsvwrz0cx46w6qa
 {
   "staked_coins": [
     {
-      "denom": "poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4",
+      "denom": "pool1",
       "amount": "2500000"
     }
   ],
@@ -184,14 +184,14 @@ Example Request
 
 <!-- markdown-link-check-disable -->
 ```bash
-http://localhost:1317/cosmos/farming/v1beta1/stakings/cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny?staking_coin_denom=poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4 
+http://localhost:1317/cosmos/farming/v1beta1/stakings/cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny?staking_coin_denom=pool1
 ```
 
 ```json
 {
   "staked_coins": [
     {
-      "denom": "poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4",
+      "denom": "pool1",
       "amount": "2500000"
     }
   ],
@@ -208,7 +208,7 @@ Example Request
 
 <!-- markdown-link-check-disable -->
 ```bash
-http://localhost:1317/cosmos/farming/v1beta1/total_stakings/poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4 
+http://localhost:1317/cosmos/farming/v1beta1/total_stakings/pool1
 ```
 
 ```json
@@ -246,7 +246,7 @@ Example Request
 
 <!-- markdown-link-check-disable -->
 ```bash
-http://localhost:1317/cosmos/farming/v1beta1/rewards/cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny?staking_coin_denom=poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4
+http://localhost:1317/cosmos/farming/v1beta1/rewards/cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny?staking_coin_denom=pool1
 ```
 
 ```json

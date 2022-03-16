@@ -35,7 +35,7 @@ export USER_1="guard cream sadness conduct invite crumble clock pudding hole gri
 export USER_2="fuel obscure melt april direct second usual hair leave hobby beef bacon solid drum used law mercy worry fat super must ritual bring faculty"
 export VALIDATOR_1_GENESIS_COINS=10000000000stake,10000000000uatom,10000000000uusd
 export USER_1_GENESIS_COINS=10000000000stake,10000000000uatom,10000000000uusd
-export USER_2_GENESIS_COINS=10000000000stake,10000000000poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4
+export USER_2_GENESIS_COINS=10000000000stake,10000000000pool1
 
 # Bootstrap
 $BINARY init $CHAIN_ID --chain-id $CHAIN_ID
@@ -83,7 +83,7 @@ sdk.AccAddress(address.Module("farming", []byte("GravityDEXFarmingBudget")))
 
 ## AddPublicFarmingFixedAmountPlan
 
-Create `public-fixed-plan-proposal.json` file in your local directory and copy the below JSON into a file. To explain about what this public plan does is that i want to create a public fixed amount plan that provides `100000000uatom` as incentives for those who stake the denoms of `poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4` and `uatom` defined in `staking_coin_weights`.
+Create `public-fixed-plan-proposal.json` file in your local directory and copy the below JSON into a file. To explain about what this public plan does is that i want to create a public fixed amount plan that provides `100000000uatom` as incentives for those who stake the denoms of `pool1` and `uatom` defined in `staking_coin_weights`.
 
 ```json
 {
@@ -96,7 +96,7 @@ Create `public-fixed-plan-proposal.json` file in your local directory and copy t
       "termination_address": "cosmos1zaavvzxez0elundtn32qnk9lkm8kmcszzsv80v",
       "staking_coin_weights": [
         {
-          "denom": "poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4",
+          "denom": "pool1",
           "amount": "0.800000000000000000"
         },
         {
@@ -138,7 +138,7 @@ $BINARY tx gov vote 1 yes \
 
 ## AddPublicFarmingRatioPlan
 
-Create `public-ratio-plan-proposal.json` file in your local directory and copy the below JSON into a file. To explain about what this public plan does is that i want to create a public ratio plan that provides 10% of what `farming_pool_address` has in balances as incentives for every epoch to those who stake the `poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4` denom defined in `staking_coin_weights`. 
+Create `public-ratio-plan-proposal.json` file in your local directory and copy the below JSON into a file. To explain about what this public plan does is that i want to create a public ratio plan that provides 10% of what `farming_pool_address` has in balances as incentives for every epoch to those who stake the `pool1` denom defined in `staking_coin_weights`.
 
 ```json
 {
@@ -151,7 +151,7 @@ Create `public-ratio-plan-proposal.json` file in your local directory and copy t
       "termination_address": "cosmos1zaavvzxez0elundtn32qnk9lkm8kmcszzsv80v",
       "staking_coin_weights": [
         {
-          "denom": "poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4",
+          "denom": "pool1",
           "amount": "1.000000000000000000"
         }
       ],
@@ -197,7 +197,7 @@ Create `public-multiple-plans-proposal.json` file in your local directory and co
       "termination_address": "cosmos1zaavvzxez0elundtn32qnk9lkm8kmcszzsv80v",
       "staking_coin_weights": [
         {
-          "denom": "poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4",
+          "denom": "pool1",
           "amount": "1.000000000000000000"
         }
       ],
@@ -262,7 +262,7 @@ Create `update-plan-proposal.json` file in your local directory and copy the bel
       "termination_address": "cosmos13w4ueuk80d3kmwk7ntlhp84fk0arlm3mqf0w08",
       "staking_coin_weights": [
         {
-          "denom": "poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4",
+          "denom": "pool1",
           "amount": "1.000000000000000000"
         }
       ],
@@ -344,7 +344,7 @@ Create `private-fixed-plan.json` file in your local directory and copy the below
   "name": "This Farming Plan intends to incentivize ATOM HODLERS!",
   "staking_coin_weights": [
     {
-      "denom": "poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4",
+      "denom": "pool1",
       "amount": "0.200000000000000000"
     },
     {
@@ -385,7 +385,7 @@ Create `private-ratio-plan.json` file in your local directory and copy the below
   "name": "This Farming Plan intends to incentivize ATOM HODLERS!",
   "staking_coin_weights": [
     {
-      "denom": "poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4",
+      "denom": "pool1",
       "amount": "0.200000000000000000"
     },
     {
