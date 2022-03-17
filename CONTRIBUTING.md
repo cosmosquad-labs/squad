@@ -2,7 +2,7 @@
 
 We welcome contributions to our codebase and documentation. 
 
-Before you create a PR on the farming module, make sure that you read and comply with this document. See the [open issues](https://github.com/tendermint/farming/issues) that we need help with. 
+Before you create a PR on the farming module, make sure that you read and comply with this document. See the [open issues](https://github.com/cosmosquad-labs/squad/issues) that we need help with. 
 
 Feel free to inform us if you are willing to work on an issue. Note that the `main` branch contains the latest development version. 
 

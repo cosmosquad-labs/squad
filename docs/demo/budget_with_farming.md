@@ -19,24 +19,6 @@ The farming module is a Cosmos SDK-based module that implements farming function
 
 One use case is to use the module to provide incentives for liquidity pool investors for their pool participation.
 
-## Resources
-
-**Budget module**
-
-- [tendermint/budget GitHub repo](https://github.com/tendermint/budget)
-- [x/budget spec docs](https://github.com/tendermint/budget/blob/main/x/budget/spec/01_concepts.md)
-- Audit-ready [demo version](https://github.com/tendermint/budget/releases)
-- Other useful resources are available in the [budget docs](https://github.com/tendermint/budget/blob/main/docs) folder
-- Swagger Cosmos SDK Budget Module [REST and gRPC Gateway docs v1.0.0](https://app.swaggerhub.com/apis-docs/gravity-devs/budget/1.0.0)
-
-**Farming module**
-
-- [tendermint/farming GitHub repo](https://github.com/tendermint/farming)
-- [x/farming spec docs](https://github.com/tendermint/farming/blob/main/x/farming/spec/01_concepts.md)
-- Audit-ready [demo version](https://github.com/tendermint/farming/releases)
-- Other useful resources are available in the [farming docs](https://github.com/tendermint/farming/blob/main/docs) folder
-- Swagger Cosmos SDK Budget Module [REST and gRPC Gateway docs v1.0.0](https://app.swaggerhub.com/apis-docs/gravity-devs/farming/1.0.0)
-
 ## Demo
 
 ### Step 1. Build from source
@@ -319,7 +301,7 @@ To simulate reward distribution for this demo, enable a custom transaction messa
 
 When you send the `AdvanceEpoch` message to the network, it increases epoch by day 1.
 
-In this step, you might wonder why you need to increase 2 epochs by sending two transactions to the network. The reason is to ensure fairness of distribution. The global parameter called `next_epoch_days` can be updated through a param change governance proposal. If the value of `next_epoch_days` is changed, it can lead to an edge case. Let's say `next_epoch_days` is 7 and it is changed to 1 although it hasn't proceeded up to 7 days before it is changed. Therefore, the internal state `current_epoch_days` is used to process staking and reward distribution in an end blocker. This technical decision has been made by the Gravity DEX team. To understand more about this decision, feel free to jump right into [the code](https://github.com/tendermint/farming/blob/main/x/farming/abci.go#L13).
+In this step, you might wonder why you need to increase 2 epochs by sending two transactions to the network. The reason is to ensure fairness of distribution. The global parameter called `next_epoch_days` can be updated through a param change governance proposal. If the value of `next_epoch_days` is changed, it can lead to an edge case. Let's say `next_epoch_days` is 7 and it is changed to 1 although it hasn't proceeded up to 7 days before it is changed. Therefore, the internal state `current_epoch_days` is used to process staking and reward distribution in an end blocker. This technical decision has been made by the Gravity DEX team. To understand more about this decision, feel free to jump right into `x/farmingabci.go`.
 
 ```bash
 # Increase epoch by 1 
