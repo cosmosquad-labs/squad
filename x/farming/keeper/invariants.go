@@ -102,13 +102,13 @@ func StakingReservedAmountInvariant(k Keeper) sdk.Invariant {
 	}
 }
 
-// RemainingRewardsAmountInvariant checks that the balance of the RewardPoolAddresses of all plans greater than the total amount of unwithdrawn reward coins in all reward objects
+// RemainingRewardsAmountInvariant checks that the balance of the RewardsReserveAcc of all plans greater than the total amount of unwithdrawn reward coins in all reward objects
 func RemainingRewardsAmountInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		err := k.ValidateRemainingRewardsAmount(ctx)
 		broken := err != nil
 		return sdk.FormatInvariant(types.ModuleName, "remaining rewards amount",
-			"the balance of the RewardPoolAddresses of all plans less than the total amount of unwithdrawn reward coins in all reward objects",
+			"the balance of the RewardsReserveAcc of all plans less than the total amount of unwithdrawn reward coins in all reward objects",
 		), broken
 	}
 }

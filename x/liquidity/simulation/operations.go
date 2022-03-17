@@ -310,15 +310,19 @@ func SimulateMsgWithdraw(ak types.AccountKeeper, bk types.BankKeeper, k keeper.K
 
 		var simAccount simtypes.Account
 		var spendable sdk.Coins
-		var poolId uint64
+		var pool types.Pool
 		skip := true
 	loop:
 		for _, simAccount = range accs {
 			spendable = bk.SpendableCoins(ctx, simAccount.Address)
 			for _, coin := range spendable {
-				var err error
-				poolId, err = types.ParsePoolCoinDenom(coin.Denom)
-				if err == nil {
+				poolId, err := types.ParsePoolCoinDenom(coin.Denom)
+				if err != nil {
+					continue
+				}
+				var found bool
+				pool, found = k.GetPool(ctx, poolId)
+				if found {
 					skip = false
 					break loop
 				}
@@ -328,9 +332,8 @@ func SimulateMsgWithdraw(ak types.AccountKeeper, bk types.BankKeeper, k keeper.K
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgWithdraw, "no account to withdraw from pool"), nil, nil
 		}
 
-		pool, _ := k.GetPool(ctx, poolId)
 		poolCoin := sdk.NewCoin(pool.PoolCoinDenom, utils.RandomInt(r, sdk.OneInt(), spendable.AmountOf(pool.PoolCoinDenom)))
-		msg := types.NewMsgWithdraw(simAccount.Address, poolId, poolCoin)
+		msg := types.NewMsgWithdraw(simAccount.Address, pool.Id, poolCoin)
 
 		txCtx := simulation.OperationInput{
 			R:               r,

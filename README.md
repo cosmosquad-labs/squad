@@ -38,14 +38,7 @@ To get started to the project, visit the [TECHNICAL-SETUP.md](./TECHNICAL-SETUP.
 
 ## Documentation
 
-The Squad documentation is available in [docs](./docs) folder and technical specification is available in [specs](https://github.com/cosmosquad-labs/squad/blob/main/x/farming/spec/README.md) folder. 
-
-These are some of the documents that help you to quickly get you on board with the farming module.
-
-- [How to bootstrap a local network with farming module](./docs/Tutorials/localnet)
-- [How to use Command Line Interfaces](./docs/How-To/cli)
-- [How to use gRPC-gateway REST Routes](./docs/How-To)
-- [Demo for how to budget and farming modules](./docs/Tutorials/demo/budget_with_farming.md)
+The Squad documentation is available in [docs](./docs) folder and technical specification is available in `x/{module}/spec/` folder.
 
 ## Contributing
 

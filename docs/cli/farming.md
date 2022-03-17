@@ -59,7 +59,7 @@ Example JSON:
   "name": "This plan intends to provide incentives for liquidity pool investors and ATOM holders",
   "staking_coin_weights": [
     {
-      "denom": "poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4",
+      "denom": "pool1",
       "amount": "0.800000000000000000"
     },
     {
@@ -116,7 +116,7 @@ Example JSON
   "name": "This plan intends to provide incentives for Cosmonauts!",
   "staking_coin_weights": [
     {
-      "denom": "poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4",
+      "denom": "pool1",
       "amount": "0.800000000000000000"
     },
     {
@@ -157,7 +157,7 @@ Example
 
 ```bash
 # Stake pool coin
-squad tx farming stake 5000000poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4 \
+squad tx farming stake 5000000pool1 \
 --chain-id localnet \
 --from user2 \
 --keyring-backend test \
@@ -180,7 +180,7 @@ Example
 
 ```bash
 # Unstake coins from the farming plan
-squad tx farming unstake 2500000poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4 \
+squad tx farming unstake 2500000pool1 \
 --chain-id localnet \
 --from user2 \
 --keyring-backend test \
@@ -291,11 +291,6 @@ squad q farming plans \
 --farming-pool-addr cosmos13w4ueuk80d3kmwk7ntlhp84fk0arlm3mqf0w08 \
 --output json | jq
 
-# Query for all farmings plans with the given reward pool address
-squad q farming plans \
---reward-pool-addr cosmos1gshap5099dwjdlxk2ym9z8u40jtkm7hvux45pze8em08fwarww6qc0tvl0 \
---output json | jq
-
 # Query for all farmings plans with the given termination address
 squad q farming plans \
 --termination-addr cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny \
@@ -303,7 +298,7 @@ squad q farming plans \
 
 # Query for all farmings plans with the given staking coin denom
 squad q farming plans \
---staking-coin-denom poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4 \
+--staking-coin-denom pool1 \
 --output json | jq
 ```
 
@@ -338,7 +333,7 @@ squad q farming stakings cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny --output 
 
 # Query for all stakings by a farmer with the given staking coin denom
 squad q farming stakings cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny \
---staking-coin-denom poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4 \
+--staking-coin-denom pool1 \
 --output json | jq
 ```
 
@@ -354,7 +349,7 @@ Example
 
 ```bash
 # Query for total stakings by a staking coin denom 
-squad q farming total-stakings poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4 --output json | jq
+squad q farming total-stakings pool1 --output json | jq
 ```
 ### Rewards
 
@@ -372,7 +367,7 @@ squad q farming rewards cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny --output j
 
 # Query for all rewards by a farmer with the staking coin denom
 squad q farming rewards cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny \
---staking-coin-denom poolD35A0CC16EE598F90B044CE296A405BA9C381E38837599D96F2F70C2F02A23A4 \
+--staking-coin-denom pool1 \
 --output json | jq
 ```
 
