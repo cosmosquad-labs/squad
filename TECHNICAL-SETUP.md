@@ -1,5 +1,6 @@
 # Technical Setup
 
+<!-- markdown-link-check-disable -->
 To ensure you have a successful experience working with our farming module, we recommend this technical setup.
 
 ## Github Integration

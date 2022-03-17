@@ -1,5 +1,6 @@
 # Contributing
 
+<!-- markdown-link-check-disable -->
 We welcome contributions to our codebase and documentation. 
 
 Before you create a PR on the farming module, make sure that you read and comply with this document. See the [open issues](https://github.com/cosmosquad-labs/squad/issues) that we need help with. 
