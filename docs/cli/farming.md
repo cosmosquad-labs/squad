@@ -29,12 +29,12 @@ Note that [jq](https://stedolan.github.io/jq/) is recommended to be installed as
     * [Rewards](#Rewards)
     * [CurrentEpochDays](#CurrentEpochDays)
 
-## Transaction
+# Transaction
 
 <!-- markdown-link-check-disable -->
 ++ https://github.com/cosmosquad-labs/squad/blob/main/proto/squad/farming/v1beta1/tx.proto
 
-### CreateFixedAmountPlan
+## CreateFixedAmountPlan
 
 Anyone can create a private plan by paying a fee. A fixed amount plan plans to distribute amount of coins by a fixed amount defined in `EpochAmount`. Internally, `PrivatePlanFarmingPoolAddress` is generated and assigned to the plan. The creator queries the plan and sends amount of coins to the farming pool address so that the plan distributes as intended. To prevent spamming attacks, a `PlanCreationFee` fee must be paid on plan creation.
 
@@ -91,7 +91,7 @@ squad tx farming create-private-fixed-plan private-fixed-plan.json \
 --output json | jq
 ```
 
-### CreateRatioPlan
+## CreateRatioPlan
 
 Anyone can create this private plan type message. A ratio plan plans to distribute amount of coins by ratio that is defined in `EpochRatio`. Internally, `PrivatePlanFarmingPoolAddress` is generated and assigned to the plan. The creator must query the plan and send amount of coins to the farming pool address so that the plan distributes as intended. For a ratio plan, whichever coins that the farming pool address has in balances are used every epoch. To prevent spamming attacks, a `PlanCreationFee` fee must be paid on plan creation.
 
@@ -143,7 +143,7 @@ squad tx farming create-private-ratio-plan private-ratio-plan.json \
 --output json | jq
 ```
 
-### Stake
+## Stake
 
 Stake coins to receive farming rewards.
 
@@ -166,7 +166,7 @@ squad tx farming stake 5000000pool1 \
 --output json | jq
 ```
 
-### Unstake
+## Unstake
 
 Unstake coins from the network.
 
@@ -189,7 +189,7 @@ squad tx farming unstake 2500000pool1 \
 --output json | jq
 ```
 
-### Harvest
+## Harvest
 
 Harvest farming rewards.
 
@@ -223,7 +223,7 @@ squad tx farming harvest \
 --output json | jq
 ```
 
-### RemovePlan
+## RemovePlan
 
 Remove farming plan.
 
@@ -246,12 +246,12 @@ squad tx farming remove-plan 1 \
 ```
 
 
-## Query
+# Query
 
 <!-- markdown-link-check-disable -->
 ++ https://github.com/cosmosquad-labs/squad/blob/main/proto/squad/farming/v1beta1/query.proto
 
-### Params 
+## Params 
 
 Usage
 
@@ -266,7 +266,7 @@ Example
 squad q farming params --output json | jq
 ```
 
-### Plans 
+## Plans 
 
 Usage
 
@@ -302,7 +302,7 @@ squad q farming plans \
 --output json | jq
 ```
 
-### Plan 
+## Plan 
 
 Usage
 
@@ -317,7 +317,7 @@ Example
 squad q farming plan 1 --output json | jq
 ```
 
-### Stakings 
+## Stakings 
 
 Usage 
 
@@ -337,7 +337,7 @@ squad q farming stakings cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny \
 --output json | jq
 ```
 
-### TotalStakings
+## TotalStakings
 
 Usage
 
@@ -371,7 +371,7 @@ squad q farming rewards cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny \
 --output json | jq
 ```
 
-### CurrentEpochDays 
+## CurrentEpochDays 
 
 Usage
 

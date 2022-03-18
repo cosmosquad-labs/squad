@@ -362,7 +362,7 @@ squad tx liquidity cancel-all-orders 1,2,3 \
 --output json | jq
 ```
 
-# Queries
+# Query
 
 ## Params
 
