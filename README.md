@@ -1,3 +1,6 @@
+[![codecov](https://codecov.io/gh/cosmosquad-labs/squad/branch/main/graph/badge.svg?token=07gYNeGo88)](https://codecov.io/gh/cosmosquad-labs/squad)
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/cosmosquad-labs/squad)](https://pkg.go.dev/github.com/cosmosquad-labs/squad)
+
 # Squad
 
 The Squad containing below Cosmos SDK modules
