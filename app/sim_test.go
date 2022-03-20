@@ -11,11 +11,7 @@ import (
 
 	ibctransfertypes "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
 	ibchost "github.com/cosmos/ibc-go/v2/modules/core/24-host"
-	claimtypes "github.com/cosmosquad-labs/squad/x/claim/types"
-	liquiditytypes "github.com/cosmosquad-labs/squad/x/liquidity/types"
-	liquidstakingtypes "github.com/cosmosquad-labs/squad/x/liquidstaking/types"
 	"github.com/stretchr/testify/require"
-	budgettypes "github.com/tendermint/budget/x/budget/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/simapp"
@@ -34,13 +30,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	minttypes "github.com/cosmosquad-labs/squad/x/mint/types"
+	budgettypes "github.com/tendermint/budget/x/budget/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
+	claimtypes "github.com/cosmosquad-labs/squad/x/claim/types"
 	farmingtypes "github.com/cosmosquad-labs/squad/x/farming/types"
+	liquiditytypes "github.com/cosmosquad-labs/squad/x/liquidity/types"
+	liquidstakingtypes "github.com/cosmosquad-labs/squad/x/liquidstaking/types"
+	minttypes "github.com/cosmosquad-labs/squad/x/mint/types"
 )
 
 // Get flags every time the simulator is run
@@ -298,8 +298,8 @@ func TestAppStateDeterminism(t *testing.T) {
 	config.AllInvariants = false
 	config.ChainID = helpers.SimAppChainID
 
-	numSeeds := 1
-	numTimesToRunPerSeed := 1
+	numSeeds := 3
+	numTimesToRunPerSeed := 5
 	appHashList := make([]json.RawMessage, numTimesToRunPerSeed)
 
 	for i := 0; i < numSeeds; i++ {
