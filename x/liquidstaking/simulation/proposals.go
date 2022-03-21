@@ -174,12 +174,10 @@ func SimulateTallyWithLiquidStaking(ak types.AccountKeeper, bk types.BankKeeper,
 					targetProposal.DepositEndTime = ctx.BlockTime()
 					targetProposal.VotingEndTime = ctx.BlockTime()
 					ctx = ctx.WithBlockTime(ctx.BlockTime().Add(5 * time.Second))
-					_, _, res := gk.Tally(ctx, *targetProposal)
-
-					// set tally result to check deterministic
+					cachedCtx, _ := ctx.CacheContext()
+					_, _, res := gk.Tally(cachedCtx, *targetProposal)
 					targetProposal.FinalTallyResult = res
-					gk.SetProposal(ctx, *targetProposal)
-					fmt.Println("## SimulateTallyWithLiquidStaking", res)
+					fmt.Println("## SimulateTallyWithLiquidStaking", res, targetProposal.ProposalId)
 					break
 				}
 			}
