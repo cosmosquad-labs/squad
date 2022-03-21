@@ -7,7 +7,7 @@ Description: A high-level overview of gRPC-gateway REST routes in farming module
  
 ## Synopsis
 
-This document provides a high-level overview of what gRPC-gateway REST routes are supported in the farming module.
+This document provides a high-level overview of what gRPC-gateway REST routes are supported in the `farming` module.
 
 
 ## Swagger Documentation
