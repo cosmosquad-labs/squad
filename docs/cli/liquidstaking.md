@@ -7,7 +7,7 @@ Description: A high-level overview of how the command-line interfaces (CLI) work
 
 ## Synopsis
 
-This document provides a high-level overview of how the command line (CLI) interface works for the `liquidstaking` module. To set up a local testing environment, it requires the latest [Starport](https://starport.com/). If you don't have Starport set up in your local machine, see [this Starport guide](https://docs.starport.network/) to install it. Run this command under the project root directory `$ starport chain serve`.
+This document provides a high-level overview of how the command line (CLI) interface works for the `liquidstaking` module. To set up a local testing environment, it requires the latest [Starport](https://starport.com/). If you don't have Starport set up in your local machine, see [this Starport guide](https://docs.starport.network/) to install it. Run this command under the project root directory `$ starport chain serve -c config-test.yml`.
 
 Note that [jq](https://stedolan.github.io/jq/) is recommended to be installed as it is used to process JSON throughout the document.
 
@@ -102,7 +102,7 @@ squad q liquidstaking voting-power cosmos1mzgucqnfr2l8cj5apvdpllhzt4zeuh2cshz5xu
 
 ## Params
 
-Query the current liquidstaking parameters information
+Query the current liquidstaking parameters information.
 
 Usage
 
@@ -118,7 +118,7 @@ squad query liquidstaking params -o json | jq
 
 ## LiquidValidators
 
-Query all liquid validators
+Query all liquid validators.
 
 Usage
 
@@ -149,7 +149,7 @@ squad query liquidstaking states -o json | jq
 
 ## VotingPower
 
-Query the voter’s staking and liquid staking voting power 
+Query the voter’s staking and liquid staking voting power. 
 
 Usage
 

@@ -16,6 +16,9 @@ This document provides a high-level overview of what gRPC-gateway REST routes ar
 
 ## gRPC-gateway REST Routes
 
+<!-- markdown-link-check-disable -->
+++https://github.com/cosmosquad-labs/squad/blob/main/proto/squad/farming/v1beta1/query.proto 
+
 - [Params](#Params)
 - [Plans](#Plans)
 - [Plan](#Plan)
