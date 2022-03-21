@@ -76,7 +76,10 @@ func NewUserOrder(order Order) *UserOrder {
 	switch order.Direction {
 	case OrderDirectionBuy:
 		dir = amm.Buy
-		amt = order.RemainingOfferCoin.Amount.ToDec().QuoTruncate(order.Price).TruncateInt()
+		amt = sdk.MinInt(
+			order.OpenAmount,
+			order.RemainingOfferCoin.Amount.ToDec().QuoTruncate(order.Price).TruncateInt(),
+		)
 	case OrderDirectionSell:
 		dir = amm.Sell
 		amt = order.OpenAmount
