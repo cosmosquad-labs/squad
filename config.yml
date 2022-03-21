@@ -1,5 +1,7 @@
 init:
   home: "$HOME/.squadapp"
+build:
+  ldflags: ["-X github.com/cosmosquad-labs/squad/x/farming/keeper.enableAdvanceEpoch=true"]
 accounts:
   - name: alice # cosmos1zaavvzxez0elundtn32qnk9lkm8kmcszzsv80v
     mnemonic: "guard cream sadness conduct invite crumble clock pudding hole grit liar hotel maid produce squeeze return argue turtle know drive eight casino maze host"
@@ -36,15 +38,15 @@ genesis:
     farming:
       params:
         private_plan_creation_fee:
-          - amount: "1"
+          - amount: "100000"
             denom: "stake"
     liquidity:
       params:
         pair_creation_fee:
-          - amount: "1"
+          - amount: "100000"
             denom: "stake"
         pool_creation_fee:
-          - amount: "1"
+          - amount: "100000"
             denom: "stake"
     liquidstaking:
       params:
