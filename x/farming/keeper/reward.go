@@ -443,7 +443,7 @@ func (k Keeper) AllocateRewards(ctx sdk.Context) error {
 			totalStakingsPtr, ok := totalStakingsCache[weight.Denom]
 			if !ok {
 				totalStakings, found := k.GetTotalStakings(ctx, weight.Denom)
-				if !found {
+				if !found || !totalStakings.Amount.IsPositive() {
 					totalStakingsCache[weight.Denom] = nil
 					continue
 				}
