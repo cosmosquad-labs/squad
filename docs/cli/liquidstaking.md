@@ -26,7 +26,7 @@ Note that [jq](https://stedolan.github.io/jq/) is recommended to be installed as
 
 Liquid stake coin.
 
-It requires whitelisted_validators to be registered. The [config.yml](https://github.com/cosmosquad-labs/squad/blob/main/config.yml) file registers a single whitelist validator for testing purpose. 
+It requires `whitelisted_validators` to be registered. The [config.yml](https://github.com/cosmosquad-labs/squad/blob/main/config.yml) file registers a single whitelist validator for testing purpose. 
 
 Usage
 
@@ -71,9 +71,9 @@ Usage
 liquid-unstake [amount]
 ```
 
-| **Argument**  |  **Description**          |
-| :------------ | :------------------------ |
-| amount        | amount of coin to unstake |
+| **Argument**  |  **Description**                                      |
+| :------------ | :---------------------------------------------------- |
+| amount        | amount of coin to unstake; it must be the bToken denom|
 
 Example
 
