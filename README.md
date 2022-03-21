@@ -8,7 +8,7 @@ The Squad contains the following Cosmos SDK modules
 - liquidity
 - liquidstaking
 - farming
-- mint
+- mint (constant inflation)
 - claim
 
 <!-- markdown-link-check-disable -->
