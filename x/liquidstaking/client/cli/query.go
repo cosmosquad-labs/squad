@@ -161,9 +161,9 @@ func GetCmdQueryVotingPower() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "voting-power [voter]",
 		Args:  cobra.ExactArgs(1),
-		Short: "Query the voter's liquid staking voting power",
+		Short: "Query the voter's voting power",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query the voter's liquid staking voting power.
+			fmt.Sprintf(`Query the voter's staking and liquid staking voting power.
 
 Example:
 $ %s query %s voting-power %s1zaavvzxez0elundtn32qnk9lkm8kmcszzsv80v
