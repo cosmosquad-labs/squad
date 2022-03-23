@@ -1,12 +1,14 @@
 package types_test
 
 import (
+	"math/rand"
 	"testing"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmosquad-labs/squad/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/cosmosquad-labs/squad/types"
 )
 
 func TestGetShareValue(t *testing.T) {
@@ -41,6 +43,45 @@ func TestParseTime(t *testing.T) {
 	_, err = time.Parse(time.RFC3339, errorCase)
 	require.PanicsWithError(t, err.Error(), func() { types.ParseTime(errorCase) })
 	require.Equal(t, normalRes, types.ParseTime(normalCase))
+}
+
+func TestParseDec(t *testing.T) {
+	require.True(sdk.DecEq(t, sdk.NewDec(1), types.ParseDec("1.0")))
+	require.True(sdk.DecEq(t, sdk.NewDecWithPrec(5, 2), types.ParseDec("0.05")))
+	require.Panics(t, func() {
+		types.ParseDec("1.1.1")
+	})
+}
+
+func TestParseCoin(t *testing.T) {
+	require.True(t, sdk.NewInt64Coin("denom1", 1000000).IsEqual(types.ParseCoin("1000000denom1")))
+	require.Panics(t, func() {
+		types.ParseCoin("1000000")
+	})
+}
+
+func TestParseCoins(t *testing.T) {
+	coins := sdk.NewCoins(
+		sdk.NewInt64Coin("denom1", 1000000),
+		sdk.NewInt64Coin("denom2", 2000000),
+	)
+	require.True(t, coins.IsEqual(types.ParseCoins("1000000denom1,2000000denom2")))
+}
+
+func TestDecApproxEqual(t *testing.T) {
+	for _, tc := range []struct {
+		a, b     sdk.Dec
+		expected bool
+	}{
+		{types.ParseDec("1.0"), types.ParseDec("1.0"), true},
+		{types.ParseDec("100.0"), types.ParseDec("100.1"), true},
+		{types.ParseDec("100.0"), types.ParseDec("100.101"), false},
+		{types.ParseDec("0.000001"), types.ParseDec("0.000001001"), true},
+	} {
+		t.Run("", func(t *testing.T) {
+			require.Equal(t, tc.expected, types.DecApproxEqual(tc.a, tc.b))
+		})
+	}
 }
 
 func TestDateRangesOverlap(t *testing.T) {
@@ -129,7 +170,7 @@ func TestDateRangeIncludes(t *testing.T) {
 	testCases := []struct {
 		name           string
 		expectedResult bool
-		targeTime      time.Time
+		targetTime     time.Time
 		startTime      time.Time
 		endTime        time.Time
 	}{
@@ -171,7 +212,26 @@ func TestDateRangeIncludes(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			require.Equal(t, tc.expectedResult, types.DateRangeIncludes(tc.startTime, tc.endTime, tc.targeTime))
+			require.Equal(t, tc.expectedResult, types.DateRangeIncludes(tc.startTime, tc.endTime, tc.targetTime))
 		})
 	}
+}
+
+func TestRandomInt(t *testing.T) {
+	r := rand.New(rand.NewSource(1))
+	require.True(sdk.IntEq(t, sdk.NewInt(67), types.RandomInt(r, sdk.NewInt(1), sdk.NewInt(100))))
+	require.True(sdk.IntEq(t, sdk.NewInt(15), types.RandomInt(r, sdk.NewInt(1), sdk.NewInt(100))))
+	require.True(sdk.IntEq(t, sdk.NewInt(3), types.RandomInt(r, sdk.NewInt(1), sdk.NewInt(100))))
+}
+
+func TestRandomDec(t *testing.T) {
+	r := rand.New(rand.NewSource(1))
+	require.True(sdk.DecEq(t, types.ParseDec("49.573137597901179650"), types.RandomDec(r, types.ParseDec("0.01"), types.ParseDec("100"))))
+	require.True(sdk.DecEq(t, types.ParseDec("97.794564449098792592"), types.RandomDec(r, types.ParseDec("0.01"), types.ParseDec("100"))))
+	require.True(sdk.DecEq(t, types.ParseDec("7.031885751622762309"), types.RandomDec(r, types.ParseDec("0.01"), types.ParseDec("100"))))
+}
+
+func TestTestAddress(t *testing.T) {
+	require.Equal(t, "cosmos1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqnrql8a", types.TestAddress(0).String())
+	require.Equal(t, "cosmos16q8sqqqqqqqqqqqqqqqqqqqqqqqqqqqqn4c7e0", types.TestAddress(1000).String())
 }
