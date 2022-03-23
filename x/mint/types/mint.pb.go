@@ -34,7 +34,7 @@ type Params struct {
 	// mint_denom defines denomination of coin to be minted
 	MintDenom string `protobuf:"bytes,1,opt,name=mint_denom,json=mintDenom,proto3" json:"mint_denom,omitempty"`
 	// block_time_threshold defines block time threshold to prevent from any inflationary manipulation attacks
-	// it is used for current block time when calculating block inflation
+	// it is used for maximum block duration when calculating block inflation
 	BlockTimeThreshold time.Duration `protobuf:"bytes,2,opt,name=block_time_threshold,json=blockTimeThreshold,proto3,stdduration" json:"block_time_threshold"`
 	// inflation_schedules defines a list of inflation schedules
 	InflationSchedules []InflationSchedule `protobuf:"bytes,3,rep,name=inflation_schedules,json=inflationSchedules,proto3" json:"inflation_schedules"`

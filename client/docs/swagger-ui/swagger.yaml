@@ -25275,8 +25275,8 @@ paths:
                       block_time_threshold defines block time threshold to
                       prevent from any inflationary manipulation attacks
 
-                      it is used for current block time when calculating block
-                      inflation
+                      it is used for maximum block duration when calculating
+                      block inflation
                   inflation_schedules:
                     type: array
                     items:
@@ -44802,7 +44802,7 @@ definitions:
           block_time_threshold defines block time threshold to prevent from any
           inflationary manipulation attacks
 
-          it is used for current block time when calculating block inflation
+          it is used for maximum block duration when calculating block inflation
       inflation_schedules:
         type: array
         items:
@@ -44844,7 +44844,8 @@ definitions:
               block_time_threshold defines block time threshold to prevent from
               any inflationary manipulation attacks
 
-              it is used for current block time when calculating block inflation
+              it is used for maximum block duration when calculating block
+              inflation
           inflation_schedules:
             type: array
             items:

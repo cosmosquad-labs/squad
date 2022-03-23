@@ -6,6 +6,7 @@ parent:
 -->
 
 # `mint`
+
 ## Contents
 
 1. **[Concept](01_concepts.md)**

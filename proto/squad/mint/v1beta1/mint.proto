@@ -13,7 +13,7 @@ message Params {
   string mint_denom = 1;
 
   // block_time_threshold defines block time threshold to prevent from any inflationary manipulation attacks
-  // it is used for current block time when calculating block inflation
+  // it is used for maximum block duration when calculating block inflation
   google.protobuf.Duration block_time_threshold = 2 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
 
   // inflation_schedules defines a list of inflation schedules
