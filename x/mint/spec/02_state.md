@@ -3,7 +3,6 @@ order: 2
 -->
 
 # State
-
 ## LastBlockTime
 
 LastBlockTime defines block time of the last block, It is used to calculate inflation.
