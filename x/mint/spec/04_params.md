@@ -22,10 +22,7 @@ It is a parameter to prevent from inflationary manipulation attacks. Although it
 
 ## InflationSchedules
 
-It is a list of inflation schedules to mint coins to be sent to the fee collector account. The inflation schedules cannot overlap from one another, start time is inclusive of the current time, and end time is exclusive for each schedule so the end times and other start times could be the same. 
-
-- `InflationSchedule` defines the start and end time of the inflation period, and the amount of inflation during that period.
-- `InflationSchedule.Amount` should be over the inflation schedule duration seconds to avoid decimal loss
+It is a list of inflation schedules to mint coins to be sent to the fee collector account. Each `InflationSchedule` defines start time, end time, and an amount of inflation. The start and end times of inflation schedules can't overlap from one another. While `StartTime` is inclusive of the current time, `EndTime` is exclusive. And, `Amount` for each schedule must be greater than the amount that is converted by subtracting the `EndTime` from the `StartTime` in seconds. Reference the [validate function](https://github.com/cosmosquad-labs/squad/blob/83e40f9204e1554cf3a0f45089fba71bb5685c70/x/mint/types/params.go#L104-L126) to fully understand them.
 
 ```go
 type InflationSchedule struct {
