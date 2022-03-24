@@ -14,6 +14,7 @@ import (
 
 	chain "github.com/cosmosquad-labs/squad/app"
 	"github.com/cosmosquad-labs/squad/app/params"
+	"github.com/cosmosquad-labs/squad/x/farming/keeper"
 	"github.com/cosmosquad-labs/squad/x/farming/simulation"
 	"github.com/cosmosquad-labs/squad/x/farming/types"
 	minttypes "github.com/cosmosquad-labs/squad/x/mint/types"
@@ -100,6 +101,7 @@ func TestSimulateMsgCreateFixedAmountPlan(t *testing.T) {
 // Abnormal scenarios, where the message are created by an errors are not tested here.
 func TestSimulateMsgCreateRatioPlan(t *testing.T) {
 	app, ctx := createTestApp(false)
+	keeper.EnableRatioPlan = true
 
 	// setup a single account
 	s := rand.NewSource(1)
