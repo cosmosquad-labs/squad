@@ -28,6 +28,10 @@ var _ types.MsgServer = msgServer{}
 
 func (k msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake) (*types.MsgLiquidStakeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// [Suggestion]
+	// Can this validation check be handled inside the LiquidStaking?
+	// Because k.GetParams(ctx) is used in the function
 	params := k.GetParams(ctx)
 	if msg.Amount.Amount.LT(params.MinLiquidStakingAmount) {
 		return nil, types.ErrLessThanMinLiquidStakingAmount
@@ -38,6 +42,11 @@ func (k msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 		return nil, err
 	}
 
+	// [Suggestion]
+	// Do we have to emit events here? Not inside the LiquidStaking function?
+	// That way k.LiquidStaking don't have to receive newShares and bTokenMintAmount in this LiquidStake
+	// (understand that it must return those params for tests) and it makes it consistent with other modules' convention
+	//
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -62,6 +71,10 @@ func (k msgServer) LiquidUnstake(goCtx context.Context, msg *types.MsgLiquidUnst
 		return nil, err
 	}
 
+	// [Suggestion]
+	// Do we have to emit events here? Not inside the LiquidUnstaking function?
+	// Same reason as LiquidStake, k.stakingKeeper.BondDenom(ctx) don't need to be called here
+	//
 	bondDenom := k.stakingKeeper.BondDenom(ctx)
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(

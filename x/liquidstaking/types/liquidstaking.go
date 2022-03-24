@@ -163,16 +163,29 @@ func (avs ActiveLiquidValidators) TotalWeight(whitelistedValMap WhitelistedValMa
 	return totalWeight
 }
 
+// [Qs]
+// Do we use Token here instead of Coin?
+//
+// [Suggestion]
+// 1. NativeTokenToBToken -> ConvertToBToken
+// 2. Update the comment to "returns bTokenTotalSupply * nativeTokenAmount / netAmount"
+//
 // NativeTokenToBToken returns nativeTokenAmount * bTokenTotalSupply / netAmount
 func NativeTokenToBToken(nativeTokenAmount, bTokenTotalSupplyAmount sdk.Int, netAmount sdk.Dec) (bTokenAmount sdk.Int) {
 	return bTokenTotalSupplyAmount.ToDec().MulTruncate(nativeTokenAmount.ToDec()).QuoTruncate(netAmount.TruncateDec()).TruncateInt()
 }
 
+// [Suggestion]
+// BTokenToNativeToken -> ConvertToNativeToken
+//
 // BTokenToNativeToken returns bTokenAmount * netAmount / bTokenTotalSupply with truncations
 func BTokenToNativeToken(bTokenAmount, bTokenTotalSupplyAmount sdk.Int, netAmount sdk.Dec) (nativeTokenAmount sdk.Dec) {
 	return bTokenAmount.ToDec().MulTruncate(netAmount).Quo(bTokenTotalSupplyAmount.ToDec()).TruncateDec()
 }
 
+// [Qs]
+// Can DeductFeeRate return sdk.Int? So that calling function don't need to truncate to sdk.Int
+//
 // DeductFeeRate returns Input * (1-FeeRate) with truncations
 func DeductFeeRate(input sdk.Dec, feeRate sdk.Dec) (feeDeductedOutput sdk.Dec) {
 	return input.MulTruncate(sdk.OneDec().Sub(feeRate)).TruncateDec()

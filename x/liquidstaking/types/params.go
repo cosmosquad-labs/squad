@@ -94,6 +94,8 @@ func (p Params) Validate() error {
 	return nil
 }
 
+// [Qs]
+// Is there any reason why validate functions are public?
 func ValidateLiquidBondDenom(i interface{}) error {
 	v, ok := i.(string)
 	if !ok {

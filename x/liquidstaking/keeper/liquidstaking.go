@@ -14,6 +14,12 @@ func (k Keeper) LiquidBondDenom(ctx sdk.Context) (res string) {
 	return
 }
 
+// [Suggestion]
+// Use verb in front of NetAmountState (e.g: CalculateNetAmountState, GetNetAmountState...)
+// Instead of inserting value for each parameter, I suggest to return types.NetAmountState{}
+// to improve readability. This may be personal preference. At least organizing them will improve readability
+// as long as the order doesn't matter.
+//
 // NetAmountState calculates the sum of bondedDenom balance, total delegation tokens(slash applied LiquidTokens), total remaining reward of types.LiquidStakingProxyAcc
 // During liquid unstaking, btoken immediately burns and the unbonding queue belongs to the requester, so the liquid staker's unbonding values are excluded on netAmount
 // It is used only for calculation and query and is not stored in kv.
@@ -40,6 +46,9 @@ func (k Keeper) NetAmountState(ctx sdk.Context) (nas types.NetAmountState) {
 	return
 }
 
+// [Suggestion]
+// Rename LiquidStaking to LiquidStake in order to follow convention with other modules
+//
 // LiquidStaking mints bToken worth of staking coin value according to NetAmount and performs LiquidDelegate.
 func (k Keeper) LiquidStaking(
 	ctx sdk.Context, proxyAcc, liquidStaker sdk.AccAddress, stakingCoin sdk.Coin) (newShares sdk.Dec, bTokenMintAmount sdk.Int, err error) {
@@ -52,6 +61,12 @@ func (k Keeper) LiquidStaking(
 		)
 	}
 
+	// [Suggestion]
+	// whitelistedValMap -> whitelistedValsMap (use plural)
+	// [Qs]
+	// It makes sense to return ErrActiveLiquidValidatorsNotExists when activeVals is 0
+	// However, does it make sense to return the same error when TotalWeight is not positive?
+	//
 	params := k.GetParams(ctx)
 	whitelistedValMap := types.GetWhitelistedValMap(params.WhitelistedValidators)
 	activeVals := k.GetActiveLiquidValidators(ctx, whitelistedValMap)
@@ -79,6 +94,10 @@ func (k Keeper) LiquidStaking(
 		return sdk.ZeroDec(), sdk.ZeroInt(), types.ErrTooSmallLiquidStakingAmount
 	}
 
+	// [Suggestion]
+	// 1. Have space between two different logics
+	// 2. Handle err for k.LiquidDelegate()
+	//
 	// mint on module acc and send
 	mintCoin := sdk.NewCoins(sdk.NewCoin(liquidBondDenom, bTokenMintAmount))
 	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, mintCoin)
@@ -116,6 +135,9 @@ func (k Keeper) LiquidDelegate(ctx sdk.Context, proxyAcc sdk.AccAddress, activeV
 	return totalNewShares, nil
 }
 
+// [Suggestion]
+// Rename LiquidStaking -> LiquidStake
+//
 // LiquidUnstaking burns unstakingBtoken and performs LiquidUnbond to active liquid validators with del shares worth of shares according to NetAmount with each validators current weight.
 func (k Keeper) LiquidUnstaking(
 	ctx sdk.Context, proxyAcc, liquidStaker sdk.AccAddress, unstakingBtoken sdk.Coin,
@@ -159,6 +181,9 @@ func (k Keeper) LiquidUnstaking(
 	liquidVals := k.GetAllLiquidValidators(ctx)
 	totalLiquidTokens, liquidTokenMap := liquidVals.TotalLiquidTokens(ctx, k.stakingKeeper, false)
 
+	// [Suggestion]
+	// Break up the long line (k.bankKeeper.SendCoins) since editor may not show them in a small screen
+	//
 	// if no totalLiquidTokens, withdraw directly from balance of proxy acc
 	if !totalLiquidTokens.IsPositive() {
 		if nas.ProxyAccBalance.GTE(unbondingAmountInt) {
