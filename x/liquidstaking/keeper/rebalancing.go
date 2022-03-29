@@ -161,6 +161,9 @@ func (k Keeper) WithdrawRewardsAndReStaking(ctx sdk.Context, whitelistedValMap t
 		sdk.AttributeKeyAmount, proxyAccBalance.String())
 }
 
+// [Qs]
+// It seems like return value []types.Redelegation is not used anywhere.
+//
 func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context) []types.Redelegation {
 	logger := k.Logger(ctx)
 	params := k.GetParams(ctx)
