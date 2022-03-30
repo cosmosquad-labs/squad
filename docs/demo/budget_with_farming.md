@@ -23,6 +23,8 @@ One use case is to use the module to provide incentives for liquidity pool inves
 
 ### Step 1. Build from source
 
+***Since the creation of ratio plans through msg server or gov proposal is disabled by default, you have to build the binary with `make install-testing` to activate it.***
+
 ```bash
 # Clone the demo project and build `squad` for testing
 git clone https://github.com/cosmosquad-labs/squad.git
@@ -503,6 +505,14 @@ $BINARY q farming stakings cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny \
 
 # Increase epoch by 2 again to distribute rewards
 $BINARY tx farming advance-epoch \
+--chain-id localnet \
+--from user2 \
+--keyring-backend test \
+--broadcast-mode block \
+--yes \
+--output json | jq
+
+farmingd tx farming advance-epoch \
 --chain-id localnet \
 --from user2 \
 --keyring-backend test \

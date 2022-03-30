@@ -11,6 +11,7 @@ BINDIR ?= $(GOPATH)/bin
 DOCKER := $(shell which docker)
 DOCKER_BUF := $(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace bufbuild/buf
 BUILDDIR ?= $(CURDIR)/build
+LEDGER_ENABLED ?= true
 SIMAPP = ./app
 
 export GO111MODULE = on
@@ -67,7 +68,8 @@ endif
 ldflags += $(LDFLAGS)
 ldflags := $(strip $(ldflags))
 
-testing_ldflags = -X $(REPO)/x/farming/keeper.enableAdvanceEpoch=true
+testing_ldflags = -X github.com/tendermint/farming/x/farming/keeper.enableAdvanceEpoch=true \
+                  -X github.com/tendermint/farming/x/farming/keeper.enableRatioPlan=true
 
 BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 TESTING_BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags) $(testing_ldflags)'
