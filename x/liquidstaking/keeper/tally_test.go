@@ -187,9 +187,8 @@ func (s *KeeperTestSuite) TestSetLiquidStakingVotingPowers() {
 	// Test Farming Queued Staking of bToken
 	s.CreateFixedAmountPlan(s.addrs[0], map[string]string{params.LiquidBondDenom: "0.4", pool1.PoolCoinDenom: "0.3", pool2.PoolCoinDenom: "0.3"}, map[string]int64{"stake": 1})
 	s.Stake(delD, sdk.NewCoins(sdk.NewCoin(params.LiquidBondDenom, sdk.NewInt(10000000))))
-	queuedStaking, found := s.app.FarmingKeeper.GetQueuedStaking(s.ctx, params.LiquidBondDenom, delD)
-	s.True(found)
-	s.Equal(queuedStaking.Amount, sdk.NewInt(10000000))
+	queuedStakingAmt := s.app.FarmingKeeper.GetAllQueuedStakingAmountByFarmerAndDenom(s.ctx, delD, params.LiquidBondDenom)
+	s.Equal(queuedStakingAmt, sdk.NewInt(10000000))
 	setLiquidStakingVotingPowers()
 
 	// Test Farming Staking Position Staking of bToken
@@ -201,9 +200,8 @@ func (s *KeeperTestSuite) TestSetLiquidStakingVotingPowers() {
 
 	// Test Farming Queued Staking of PoolTokens including bToken
 	s.Stake(delC, sdk.NewCoins(sdk.NewCoin(pool2.PoolCoinDenom, sdk.NewInt(10000000))))
-	queuedStaking, found = s.app.FarmingKeeper.GetQueuedStaking(s.ctx, pool2.PoolCoinDenom, delC)
-	s.True(found)
-	s.Equal(queuedStaking.Amount, sdk.NewInt(10000000))
+	queuedStakingAmt = s.app.FarmingKeeper.GetAllQueuedStakingAmountByFarmerAndDenom(s.ctx, delC, pool2.PoolCoinDenom)
+	s.Equal(queuedStakingAmt, sdk.NewInt(10000000))
 	setLiquidStakingVotingPowers()
 
 	// Test Farming Staking Position of PoolTokens including bToken
