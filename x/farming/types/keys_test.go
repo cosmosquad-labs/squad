@@ -2,6 +2,7 @@ package types_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 
@@ -117,35 +118,40 @@ func (s *keysTestSuite) TestGetQueuedStakingKey() {
 	testCases := []struct {
 		stakingCoinDenom string
 		farmerAcc        sdk.AccAddress
+		endTime          time.Time
 		expected         []byte
 	}{
 		{
 			sdk.DefaultBondDenom,
 			sdk.AccAddress(crypto.AddressHash([]byte("farmer1"))),
+			types.ParseTime("2022-01-01T00:00:00Z"),
 			[]byte{0x23, 0x5, 0x73, 0x74, 0x61, 0x6b, 0x65, 0xd3, 0x7a, 0x85, 0xec, 0x75, 0xf, 0x3,
 				0xaa, 0xe5, 0x36, 0xcf, 0x1b, 0xb7, 0x59, 0xb7, 0xbc, 0xbd, 0x5c, 0xfe, 0x3d},
 		},
 		{
 			sdk.DefaultBondDenom,
 			sdk.AccAddress(crypto.AddressHash([]byte("farmer2"))),
+			types.ParseTime("2022-01-01T12:00:00Z"),
 			[]byte{0x23, 0x5, 0x73, 0x74, 0x61, 0x6b, 0x65, 0x15, 0x1, 0x20, 0x25, 0x5a, 0x5d, 0xe8,
 				0x6b, 0xa1, 0xed, 0xfb, 0x6f, 0x45, 0x48, 0xcb, 0xfb, 0x6f, 0x28, 0x66, 0xf3},
 		},
 		{
 			sdk.DefaultBondDenom,
 			sdk.AccAddress(crypto.AddressHash([]byte("farmer3"))),
+			types.ParseTime("2022-01-02T00:00:00Z"),
 			[]byte{0x23, 0x5, 0x73, 0x74, 0x61, 0x6b, 0x65, 0xdf, 0xb0, 0x6d, 0xbf, 0xc6, 0x9a, 0xcd,
 				0xf5, 0x7b, 0xb, 0xe7, 0x69, 0x75, 0x50, 0x9e, 0x69, 0x54, 0xa6, 0x1e, 0xe2},
 		},
 	}
 
 	for _, tc := range testCases {
-		key := types.GetQueuedStakingKey(tc.stakingCoinDenom, tc.farmerAcc)
+		key := types.GetQueuedStakingKey(tc.endTime, tc.stakingCoinDenom, tc.farmerAcc)
 		s.Require().Equal(tc.expected, key)
 
-		stakingCoinDenom, farmerAcc := types.ParseQueuedStakingKey(key)
+		endTime, stakingCoinDenom, farmerAcc := types.ParseQueuedStakingKey(key)
 		s.Require().Equal(tc.stakingCoinDenom, stakingCoinDenom)
 		s.Require().Equal(tc.farmerAcc, farmerAcc)
+		s.Require().True(tc.endTime.Equal(endTime))
 	}
 }
 
@@ -153,35 +159,40 @@ func (s *keysTestSuite) TestGetQueuedStakingIndexKey() {
 	testCases := []struct {
 		farmerAcc        sdk.AccAddress
 		stakingCoinDenom string
+		endTime          time.Time
 		expected         []byte
 	}{
 		{
 			sdk.AccAddress(crypto.AddressHash([]byte("farmer1"))),
 			sdk.DefaultBondDenom,
+			types.ParseTime("2022-01-01T00:00:00Z"),
 			[]byte{0x24, 0x14, 0xd3, 0x7a, 0x85, 0xec, 0x75, 0xf, 0x3, 0xaa, 0xe5, 0x36, 0xcf, 0x1b,
 				0xb7, 0x59, 0xb7, 0xbc, 0xbd, 0x5c, 0xfe, 0x3d, 0x73, 0x74, 0x61, 0x6b, 0x65},
 		},
 		{
 			sdk.AccAddress(crypto.AddressHash([]byte("farmer2"))),
 			sdk.DefaultBondDenom,
+			types.ParseTime("2022-01-01T12:00:00Z"),
 			[]byte{0x24, 0x14, 0x15, 0x1, 0x20, 0x25, 0x5a, 0x5d, 0xe8, 0x6b, 0xa1, 0xed, 0xfb, 0x6f,
 				0x45, 0x48, 0xcb, 0xfb, 0x6f, 0x28, 0x66, 0xf3, 0x73, 0x74, 0x61, 0x6b, 0x65},
 		},
 		{
 			sdk.AccAddress(crypto.AddressHash([]byte("farmer3"))),
 			sdk.DefaultBondDenom,
+			types.ParseTime("2022-01-02T00:00:00Z"),
 			[]byte{0x24, 0x14, 0xdf, 0xb0, 0x6d, 0xbf, 0xc6, 0x9a, 0xcd, 0xf5, 0x7b, 0xb, 0xe7, 0x69,
 				0x75, 0x50, 0x9e, 0x69, 0x54, 0xa6, 0x1e, 0xe2, 0x73, 0x74, 0x61, 0x6b, 0x65},
 		},
 	}
 
 	for _, tc := range testCases {
-		key := types.GetQueuedStakingIndexKey(tc.farmerAcc, tc.stakingCoinDenom)
+		key := types.GetQueuedStakingIndexKey(tc.farmerAcc, tc.stakingCoinDenom, tc.endTime)
 		s.Require().Equal(tc.expected, key)
 
-		farmerAcc, stakingCoinDenom := types.ParseQueuedStakingIndexKey(key)
+		farmerAcc, stakingCoinDenom, endTime := types.ParseQueuedStakingIndexKey(key)
 		s.Require().Equal(tc.farmerAcc, farmerAcc)
 		s.Require().Equal(tc.stakingCoinDenom, stakingCoinDenom)
+		s.Require().True(tc.endTime.Equal(endTime))
 	}
 }
 

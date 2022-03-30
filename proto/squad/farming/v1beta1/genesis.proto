@@ -93,11 +93,14 @@ message QueuedStakingRecord {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string staking_coin_denom = 1 [(gogoproto.moretags) = "yaml:\"staking_coin_denom\""];
+  google.protobuf.Timestamp end_time = 1
+      [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"end_time\""];
 
-  string farmer = 2;
+  string staking_coin_denom = 2 [(gogoproto.moretags) = "yaml:\"staking_coin_denom\""];
 
-  QueuedStaking queued_staking = 3 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"queued_staking\""];
+  string farmer = 3;
+
+  QueuedStaking queued_staking = 4 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"queued_staking\""];
 }
 
 // TotalStakingsRecord is used for import/export via genesis json.

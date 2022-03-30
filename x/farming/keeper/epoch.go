@@ -45,7 +45,6 @@ func (k Keeper) AdvanceEpoch(ctx sdk.Context) error {
 	if err := k.AllocateRewards(ctx); err != nil {
 		return err
 	}
-	k.ProcessQueuedCoins(ctx)
 	k.SetLastEpochTime(ctx, ctx.BlockTime())
 
 	return nil
