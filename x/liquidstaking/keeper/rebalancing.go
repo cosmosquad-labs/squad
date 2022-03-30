@@ -118,6 +118,9 @@ func (k Keeper) Rebalance(ctx sdk.Context, proxyAcc sdk.AccAddress, liquidVals t
 	return redelegations
 }
 
+// [Suggestion]
+// Rename WithdrawRewardsAndReStaking to WithdrawRewardsAndReStake
+//
 // WithdrawRewardsAndReStaking withdraw rewards and re-staking when over threshold
 func (k Keeper) WithdrawRewardsAndReStaking(ctx sdk.Context, whitelistedValMap types.WhitelistedValMap) {
 	totalRemainingRewards, _, totalLiquidTokens := k.CheckDelegationStates(ctx, types.LiquidStakingProxyAcc)
@@ -196,6 +199,9 @@ func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context) []types.Redelegation {
 	// tombstone status also handled on Rebalance
 	reds := k.Rebalance(ctx, types.LiquidStakingProxyAcc, liquidValidators, whitelistedValMap, types.RebalancingTrigger)
 
+	// [Suggestion]
+	// I suggest to add inline comments for this logic
+	//
 	for _, lv := range liquidValidators {
 		if !k.IsActiveLiquidValidator(ctx, lv, whitelistedValMap) {
 			// unbond all delShares to proxyAcc if delShares exist on inactive validators
