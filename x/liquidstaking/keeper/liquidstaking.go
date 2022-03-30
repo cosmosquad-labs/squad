@@ -15,10 +15,9 @@ func (k Keeper) LiquidBondDenom(ctx sdk.Context) (res string) {
 }
 
 // [Suggestion]
-// Use verb in front of NetAmountState (e.g: CalculateNetAmountState, GetNetAmountState...)
-// Instead of inserting value for each parameter, I suggest to return types.NetAmountState{}
-// to improve readability. This may be personal preference. At least organizing them will improve readability
-// as long as the order doesn't matter.
+// I suggest to add verb in front of NetAmountState (e.g: CalculateNetAmountState, GetNetAmountState...)
+// And I think it improves readability to return types.NetAmountState{} instead of inserting value for each parameter (This may be personal preference)
+// At least organizing the order will improve readability.
 //
 // NetAmountState calculates the sum of bondedDenom balance, total delegation tokens(slash applied LiquidTokens), total remaining reward of types.LiquidStakingProxyAcc
 // During liquid unstaking, btoken immediately burns and the unbonding queue belongs to the requester, so the liquid staker's unbonding values are excluded on netAmount
@@ -47,7 +46,7 @@ func (k Keeper) NetAmountState(ctx sdk.Context) (nas types.NetAmountState) {
 }
 
 // [Suggestion]
-// Rename LiquidStaking to LiquidStake in order to follow convention with other modules
+// I suggest to rename LiquidStaking to LiquidStake in order to follow convention with other modules
 //
 // LiquidStaking mints bToken worth of staking coin value according to NetAmount and performs LiquidDelegate.
 func (k Keeper) LiquidStaking(
@@ -63,9 +62,10 @@ func (k Keeper) LiquidStaking(
 
 	// [Suggestion]
 	// whitelistedValMap -> whitelistedValsMap (use plural)
+	//
 	// [Qs]
-	// It makes sense to return ErrActiveLiquidValidatorsNotExists when activeVals is 0
-	// However, does it make sense to return the same error when TotalWeight is not positive?
+	// I understand that it returns ErrActiveLiquidValidatorsNotExists when activeVals is 0
+	// But, does it make sense to return the same error when TotalWeight is not positive?
 	//
 	params := k.GetParams(ctx)
 	whitelistedValMap := types.GetWhitelistedValMap(params.WhitelistedValidators)

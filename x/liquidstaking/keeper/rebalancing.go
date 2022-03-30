@@ -163,6 +163,7 @@ func (k Keeper) WithdrawRewardsAndReStaking(ctx sdk.Context, whitelistedValMap t
 
 // [Qs]
 // It seems like return value []types.Redelegation is not used anywhere.
+// Is it intended?
 //
 func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context) []types.Redelegation {
 	logger := k.Logger(ctx)
