@@ -73,7 +73,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {
 		if err != nil {
 			panic(err)
 		}
-		k.SetQueuedStaking(ctx, record.StakingCoinDenom, farmerAcc, record.QueuedStaking)
+		k.SetQueuedStaking(ctx, record.EndTime, record.StakingCoinDenom, farmerAcc, record.QueuedStaking)
 	}
 
 	for _, record := range genState.HistoricalRewardsRecords {
@@ -141,8 +141,9 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	})
 
 	queuedStakings := []types.QueuedStakingRecord{}
-	k.IterateQueuedStakings(ctx, func(stakingCoinDenom string, farmerAcc sdk.AccAddress, queuedStaking types.QueuedStaking) (stop bool) {
+	k.IterateQueuedStakings(ctx, func(endTime time.Time, stakingCoinDenom string, farmerAcc sdk.AccAddress, queuedStaking types.QueuedStaking) (stop bool) {
 		queuedStakings = append(queuedStakings, types.QueuedStakingRecord{
+			EndTime:          endTime,
 			StakingCoinDenom: stakingCoinDenom,
 			Farmer:           farmerAcc.String(),
 			QueuedStaking:    queuedStaking,

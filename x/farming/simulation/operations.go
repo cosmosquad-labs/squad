@@ -306,37 +306,14 @@ func SimulateMsgUnstake(ak farmingtypes.AccountKeeper, bk farmingtypes.BankKeepe
 		spendable := bk.SpendableCoins(ctx, account.GetAddress())
 
 		farmer := account.GetAddress()
-		unstakingCoins := sdk.NewCoins(
-			sdk.NewInt64Coin(sdk.DefaultBondDenom, int64(simtypes.RandIntBetween(r, 1_000_000, 100_000_000))),
-		)
-
-		// staking must exist in order to unstake
-		staking, sf := k.GetStaking(ctx, sdk.DefaultBondDenom, farmer)
-		if !sf {
-			staking = farmingtypes.Staking{
-				Amount: sdk.ZeroInt(),
-			}
-		}
-		queuedStaking, qsf := k.GetQueuedStaking(ctx, sdk.DefaultBondDenom, farmer)
-		if !qsf {
-			if !qsf {
-				queuedStaking = farmingtypes.QueuedStaking{
-					Amount: sdk.ZeroInt(),
-				}
-			}
-		}
-		if !sf && !qsf {
-			return simtypes.NoOpMsg(farmingtypes.ModuleName, farmingtypes.TypeMsgUnstake, "unable to find staking and queued staking"), nil, nil
-		}
-		// sum of staked and queued coins must be greater than unstaking coins
-		if !staking.Amount.Add(queuedStaking.Amount).GTE(unstakingCoins[0].Amount) {
-			return simtypes.NoOpMsg(farmingtypes.ModuleName, farmingtypes.TypeMsgUnstake, "insufficient funds"), nil, nil
+		stakedCoins := k.GetAllStakedCoinsByFarmer(ctx, farmer)
+		queuedCoins := k.GetAllQueuedCoinsByFarmer(ctx, farmer)
+		totalCoins := stakedCoins.Add(queuedCoins...)
+		if totalCoins.IsZero() {
+			return simtypes.NoOpMsg(farmingtypes.ModuleName, farmingtypes.TypeMsgUnstake, "not enough staked coins to unstake"), nil, nil
 		}
 
-		// spendable must be greater than unstaking coins
-		if !spendable.IsAllGT(unstakingCoins) {
-			return simtypes.NoOpMsg(farmingtypes.ModuleName, farmingtypes.TypeMsgUnstake, "insufficient funds"), nil, nil
-		}
+		unstakingCoins := simtypes.RandSubsetCoins(r, totalCoins)
 
 		msg := farmingtypes.NewMsgUnstake(farmer, unstakingCoins)
 		txCtx := simulation.OperationInput{

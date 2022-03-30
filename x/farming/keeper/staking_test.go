@@ -40,9 +40,8 @@ func (suite *KeeperTestSuite) TestStake() {
 				_, found := suite.keeper.GetStaking(suite.ctx, denom1, suite.addrs[0])
 				suite.Require().False(found)
 
-				queuedStaking, found := suite.keeper.GetQueuedStaking(suite.ctx, denom1, suite.addrs[0])
-				suite.Require().True(found, "queued staking should be present")
-				suite.Require().True(intEq(sdk.NewInt(tc.amt), queuedStaking.Amount))
+				queuedStakingAmt := suite.keeper.GetAllQueuedStakingAmountByFarmerAndDenom(suite.ctx, suite.addrs[0], denom1)
+				suite.Require().True(intEq(sdk.NewInt(tc.amt), queuedStakingAmt))
 			}
 		})
 	}

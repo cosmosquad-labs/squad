@@ -177,9 +177,9 @@ func (k Querier) Stakings(c context.Context, req *types.QueryStakingsRequest) (*
 		if found {
 			resp.StakedCoins = resp.StakedCoins.Add(sdk.NewCoin(req.StakingCoinDenom, staking.Amount))
 		}
-		queuedStaking, found := k.Keeper.GetQueuedStaking(ctx, req.StakingCoinDenom, farmerAcc)
-		if found {
-			resp.QueuedCoins = resp.QueuedCoins.Add(sdk.NewCoin(req.StakingCoinDenom, queuedStaking.Amount))
+		queuedStakingAmt := k.Keeper.GetAllQueuedStakingAmountByFarmerAndDenom(ctx, farmerAcc, req.StakingCoinDenom)
+		if queuedStakingAmt.IsPositive() {
+			resp.QueuedCoins = resp.QueuedCoins.Add(sdk.NewCoin(req.StakingCoinDenom, queuedStakingAmt))
 		}
 	}
 

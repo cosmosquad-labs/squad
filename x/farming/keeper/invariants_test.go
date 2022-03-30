@@ -38,22 +38,24 @@ func (suite *KeeperTestSuite) TestPositiveStakingAmountInvariant() {
 func (suite *KeeperTestSuite) TestPositiveQueuedStakingAmountInvariant() {
 	k, ctx := suite.keeper, suite.ctx
 
+	endTime := ctx.BlockTime().Add(types.Day)
+
 	// Normal queued staking
-	k.SetQueuedStaking(ctx, denom1, suite.addrs[0], types.QueuedStaking{
+	k.SetQueuedStaking(ctx, endTime, denom1, suite.addrs[0], types.QueuedStaking{
 		Amount: sdk.NewInt(1000000),
 	})
 	_, broken := farmingkeeper.PositiveQueuedStakingAmountInvariant(k)(ctx)
 	suite.Require().False(broken)
 
 	// Zero-amount queued staking
-	k.SetQueuedStaking(ctx, denom1, suite.addrs[1], types.QueuedStaking{
+	k.SetQueuedStaking(ctx, endTime, denom1, suite.addrs[1], types.QueuedStaking{
 		Amount: sdk.ZeroInt(),
 	})
 	_, broken = farmingkeeper.PositiveQueuedStakingAmountInvariant(k)(ctx)
 	suite.Require().True(broken)
 
 	// Negative-amount queued staking
-	k.SetQueuedStaking(ctx, denom1, suite.addrs[1], types.QueuedStaking{
+	k.SetQueuedStaking(ctx, endTime, denom1, suite.addrs[1], types.QueuedStaking{
 		Amount: sdk.NewInt(-1),
 	})
 	_, broken = farmingkeeper.PositiveQueuedStakingAmountInvariant(k)(ctx)

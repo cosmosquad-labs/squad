@@ -47,4 +47,6 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 			}
 		}
 	}
+
+	k.ProcessQueuedCoins(ctx)
 }

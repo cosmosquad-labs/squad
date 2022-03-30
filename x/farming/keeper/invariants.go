@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -75,7 +76,7 @@ func PositiveQueuedStakingAmountInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		msg := ""
 		count := 0
-		k.IterateQueuedStakings(ctx, func(stakingCoinDenom string, farmerAcc sdk.AccAddress, queuedStaking types.QueuedStaking) (stop bool) {
+		k.IterateQueuedStakings(ctx, func(_ time.Time, stakingCoinDenom string, farmerAcc sdk.AccAddress, queuedStaking types.QueuedStaking) (stop bool) {
 			if !queuedStaking.Amount.IsPositive() {
 				msg += fmt.Sprintf("\t%v has non-positive queued staking amount: %v\n",
 					farmerAcc, sdk.Coin{Denom: stakingCoinDenom, Amount: queuedStaking.Amount})
