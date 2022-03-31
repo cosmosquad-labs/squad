@@ -221,7 +221,7 @@ func (suite *KeeperTestSuite) TestGRPCPlan() {
 func (suite *KeeperTestSuite) TestGRPCStakings() {
 	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000), sdk.NewInt64Coin(denom2, 1500)))
 	suite.Stake(suite.addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom1, 500), sdk.NewInt64Coin(denom2, 2000)))
-	suite.advanceDay()
+	suite.advanceEpochDays()
 	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000), sdk.NewInt64Coin(denom2, 1500)))
 	suite.Stake(suite.addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom1, 500), sdk.NewInt64Coin(denom2, 2000)))
 
@@ -297,7 +297,7 @@ func (suite *KeeperTestSuite) TestGRPCStakings() {
 func (suite *KeeperTestSuite) TestGRPCTotalStakings() {
 	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000), sdk.NewInt64Coin(denom2, 1500)))
 	suite.Stake(suite.addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom1, 500), sdk.NewInt64Coin(denom2, 2000)))
-	suite.advanceDay()
+	suite.advanceEpochDays()
 	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000), sdk.NewInt64Coin(denom2, 1500)))
 	suite.Stake(suite.addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom1, 500), sdk.NewInt64Coin(denom2, 2000)))
 

@@ -170,8 +170,9 @@ func (suite *KeeperTestSuite) AllRewards(farmerAcc sdk.AccAddress) sdk.Coins {
 	return suite.keeper.AllRewards(suite.ctx, farmerAcc)
 }
 
-func (suite *KeeperTestSuite) advanceDay() {
-	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(types.Day))
+func (suite *KeeperTestSuite) advanceEpochDays() {
+	currentEpochDays := suite.keeper.GetCurrentEpochDays(suite.ctx)
+	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Duration(currentEpochDays) * types.Day))
 	farming.EndBlocker(suite.ctx, suite.keeper)
 }
 

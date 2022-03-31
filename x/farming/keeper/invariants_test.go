@@ -66,7 +66,7 @@ func (suite *KeeperTestSuite) TestStakingReservedAmountInvariant() {
 	k, ctx := suite.keeper, suite.ctx
 
 	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)))
-	suite.advanceDay()
+	suite.advanceEpochDays()
 	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 500000)))
 
 	// Check staked/queued coin amounts.
@@ -126,9 +126,9 @@ func (suite *KeeperTestSuite) TestRemainingRewardsAmountInvariant() {
 	suite.CreateFixedAmountPlan(suite.addrs[4], map[string]string{denom1: "1"}, map[string]int64{denom3: 1000000})
 
 	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)))
-	suite.advanceDay()
-	suite.advanceDay()
-	suite.advanceDay()
+	suite.advanceEpochDays()
+	suite.advanceEpochDays()
+	suite.advanceEpochDays()
 
 	_, broken := farmingkeeper.RemainingRewardsAmountInvariant(k)(ctx)
 	suite.Require().False(broken)
@@ -208,8 +208,8 @@ func (suite *KeeperTestSuite) TestOutstandingRewardsAmountInvariant() {
 	suite.CreateFixedAmountPlan(suite.addrs[4], map[string]string{denom1: "1"}, map[string]int64{denom3: 1000000})
 
 	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)))
-	suite.advanceDay()
-	suite.advanceDay()
+	suite.advanceEpochDays()
+	suite.advanceEpochDays()
 
 	_, broken := farmingkeeper.OutstandingRewardsAmountInvariant(k)(ctx)
 	suite.Require().False(broken)
