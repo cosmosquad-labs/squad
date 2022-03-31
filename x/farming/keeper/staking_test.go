@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"math/rand"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -148,6 +149,32 @@ func (suite *KeeperTestSuite) TestQueuedStaking() {
 	suite.Require().True(intEq(sdk.NewInt(2250000), staking.Amount))
 	queuedCoins = suite.keeper.GetAllQueuedCoinsByFarmer(suite.ctx, suite.addrs[0])
 	suite.Require().True(coinsEq(sdk.Coins{}, queuedCoins))
+}
+
+func (suite *KeeperTestSuite) TestStakeTwice() {
+	// Stake twice in the same block.
+	// Queued stakings are merged into one queued staking which ends
+	// one day later.
+	suite.ctx = suite.ctx.WithBlockTime(types.ParseTime("2022-01-01T00:00:00Z"))
+	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)))
+	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 500000)))
+	farming.EndBlocker(suite.ctx, suite.keeper)
+	amt := suite.keeper.GetAllQueuedStakingAmountByFarmerAndDenom(suite.ctx, suite.addrs[0], denom1)
+	suite.Require().True(intEq(sdk.NewInt(1500000), amt))
+	cnt := 0
+	suite.keeper.IterateQueuedStakingsByFarmer(suite.ctx, suite.addrs[0], func(_ string, _ time.Time, _ types.QueuedStaking) (stop bool) {
+		cnt++
+		return false
+	})
+	suite.Require().Equal(1, cnt) // There should be only one queued staking object.
+
+	suite.ctx = suite.ctx.WithBlockTime(types.ParseTime("2022-01-02T00:00:00Z"))
+	farming.EndBlocker(suite.ctx, suite.keeper)
+	amt = suite.keeper.GetAllQueuedStakingAmountByFarmerAndDenom(suite.ctx, suite.addrs[0], denom1)
+	suite.Require().True(intEq(sdk.ZeroInt(), amt))
+	staking, found := suite.keeper.GetStaking(suite.ctx, denom1, suite.addrs[0])
+	suite.Require().True(found)
+	suite.Require().True(intEq(sdk.NewInt(1500000), staking.Amount))
 }
 
 func (suite *KeeperTestSuite) TestUnstake() {
