@@ -89,6 +89,67 @@ func (suite *KeeperTestSuite) TestStakeInAdvance() {
 	suite.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(denom3, 1000000)), suite.AllRewards(suite.addrs[0])))
 }
 
+func (suite *KeeperTestSuite) TestQueuedStaking() {
+	suite.ctx = suite.ctx.WithBlockTime(types.ParseTime("2022-01-01T09:00:00Z"))
+	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)))
+	farming.EndBlocker(suite.ctx, suite.keeper)
+
+	// Stake more after 30 minutes.
+	suite.ctx = suite.ctx.WithBlockTime(types.ParseTime("2022-01-01T09:30:00Z"))
+	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 500000)))
+	farming.EndBlocker(suite.ctx, suite.keeper)
+
+	// Stake more just before the day ends.
+	suite.ctx = suite.ctx.WithBlockTime(types.ParseTime("2022-01-01T23:59:59Z"))
+	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 750000)))
+	farming.EndBlocker(suite.ctx, suite.keeper)
+
+	queuedCoins := suite.keeper.GetAllQueuedCoinsByFarmer(suite.ctx, suite.addrs[0])
+	suite.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(denom1, 2250000)), queuedCoins))
+
+	// The next day.
+	suite.ctx = suite.ctx.WithBlockTime(types.ParseTime("2022-01-02T00:00:00Z"))
+	farming.EndBlocker(suite.ctx, suite.keeper)
+	// There shouldn't be any staking yet.
+	_, found := suite.keeper.GetStaking(suite.ctx, denom1, suite.addrs[0])
+	suite.Require().False(found)
+	queuedCoins = suite.keeper.GetAllQueuedCoinsByFarmer(suite.ctx, suite.addrs[0])
+	suite.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(denom1, 2250000)), queuedCoins))
+
+	// Not yet...
+	suite.ctx = suite.ctx.WithBlockTime(types.ParseTime("2022-01-02T08:59:59.999Z"))
+	farming.EndBlocker(suite.ctx, suite.keeper)
+	_, found = suite.keeper.GetStaking(suite.ctx, denom1, suite.addrs[0])
+	suite.Require().False(found)
+	queuedCoins = suite.keeper.GetAllQueuedCoinsByFarmer(suite.ctx, suite.addrs[0])
+	suite.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(denom1, 2250000)), queuedCoins))
+
+	// The first queued staking has been staked.
+	suite.ctx = suite.ctx.WithBlockTime(types.ParseTime("2022-01-02T09:00:00Z"))
+	farming.EndBlocker(suite.ctx, suite.keeper)
+	staking, found := suite.keeper.GetStaking(suite.ctx, denom1, suite.addrs[0])
+	suite.Require().True(found)
+	suite.Require().True(intEq(sdk.NewInt(1000000), staking.Amount))
+	queuedCoins = suite.keeper.GetAllQueuedCoinsByFarmer(suite.ctx, suite.addrs[0])
+	suite.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(denom1, 1250000)), queuedCoins))
+
+	// The second queued staking has been staked.
+	suite.ctx = suite.ctx.WithBlockTime(types.ParseTime("2022-01-02T10:00:00Z"))
+	farming.EndBlocker(suite.ctx, suite.keeper)
+	staking, _ = suite.keeper.GetStaking(suite.ctx, denom1, suite.addrs[0])
+	suite.Require().True(intEq(sdk.NewInt(1500000), staking.Amount))
+	queuedCoins = suite.keeper.GetAllQueuedCoinsByFarmer(suite.ctx, suite.addrs[0])
+	suite.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(denom1, 750000)), queuedCoins))
+
+	// Finally, the last queued staking has been staked.
+	suite.ctx = suite.ctx.WithBlockTime(types.ParseTime("2022-01-03T00:00:00Z"))
+	farming.EndBlocker(suite.ctx, suite.keeper)
+	staking, _ = suite.keeper.GetStaking(suite.ctx, denom1, suite.addrs[0])
+	suite.Require().True(intEq(sdk.NewInt(2250000), staking.Amount))
+	queuedCoins = suite.keeper.GetAllQueuedCoinsByFarmer(suite.ctx, suite.addrs[0])
+	suite.Require().True(coinsEq(sdk.Coins{}, queuedCoins))
+}
+
 func (suite *KeeperTestSuite) TestUnstake() {
 	for _, tc := range []struct {
 		name            string
