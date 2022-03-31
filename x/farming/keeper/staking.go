@@ -129,11 +129,11 @@ func (k Keeper) IterateQueuedStakings(ctx sdk.Context, cb func(endTime time.Time
 }
 
 // IterateMatureQueuedStakings iterates through all the queued stakings
-// that are mature at the moment block is produced.
+// that are mature at currTime.
 // Stops the iteration when the callback function returns true.
-func (k Keeper) IterateMatureQueuedStakings(ctx sdk.Context, cb func(endTime time.Time, stakingCoinDenom string, farmerAcc sdk.AccAddress, queuedStaking types.QueuedStaking) (stop bool)) {
+func (k Keeper) IterateMatureQueuedStakings(ctx sdk.Context, currTime time.Time, cb func(endTime time.Time, stakingCoinDenom string, farmerAcc sdk.AccAddress, queuedStaking types.QueuedStaking) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-	iter := store.Iterator(types.QueuedStakingKeyPrefix, types.GetQueuedStakingEndBytes(ctx.BlockTime()))
+	iter := store.Iterator(types.QueuedStakingKeyPrefix, types.GetQueuedStakingEndBytes(currTime))
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		var queuedStaking types.QueuedStaking
@@ -488,7 +488,7 @@ func (k Keeper) Unstake(ctx sdk.Context, farmerAcc sdk.AccAddress, amount sdk.Co
 
 // ProcessQueuedCoins moves queued coins into staked coins.
 // It causes accumulated rewards to be withdrawn to the farmer.
-func (k Keeper) ProcessQueuedCoins(ctx sdk.Context) {
+func (k Keeper) ProcessQueuedCoins(ctx sdk.Context, currTime time.Time) {
 	type farmerDenomPair struct {
 		farmerAcc        string
 		stakingCoinDenom string
@@ -496,7 +496,7 @@ func (k Keeper) ProcessQueuedCoins(ctx sdk.Context) {
 	newStakingMap := map[farmerDenomPair]sdk.Int{} // (farmerAcc, stakingCoinDenom) => newStakingAmt
 	newTotalStakingsMap := map[string]sdk.Int{}    // stakingCoinDenom => newTotalStakingsAmt
 
-	k.IterateMatureQueuedStakings(ctx, func(endTime time.Time, stakingCoinDenom string, farmerAcc sdk.AccAddress, queuedStaking types.QueuedStaking) (stop bool) {
+	k.IterateMatureQueuedStakings(ctx, currTime, func(endTime time.Time, stakingCoinDenom string, farmerAcc sdk.AccAddress, queuedStaking types.QueuedStaking) (stop bool) {
 		newStakingKey := farmerDenomPair{farmerAcc.String(), stakingCoinDenom}
 		newStakingAmt, ok := newStakingMap[newStakingKey]
 		if !ok {
