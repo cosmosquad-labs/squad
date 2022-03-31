@@ -14,6 +14,7 @@ import (
 
 	chain "github.com/cosmosquad-labs/squad/app"
 	"github.com/cosmosquad-labs/squad/app/params"
+	"github.com/cosmosquad-labs/squad/x/farming"
 	"github.com/cosmosquad-labs/squad/x/farming/keeper"
 	"github.com/cosmosquad-labs/squad/x/farming/simulation"
 	"github.com/cosmosquad-labs/squad/x/farming/types"
@@ -258,9 +259,7 @@ func TestSimulateMsgHarvest(t *testing.T) {
 	// begin a new block and advance epoch
 	app.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: app.LastBlockHeight() + 1, AppHash: app.LastCommitID().Hash}})
 	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(types.Day))
-	err = app.FarmingKeeper.AdvanceEpoch(ctx)
-	require.NoError(t, err)
-	app.FarmingKeeper.ProcessQueuedCoins(ctx)
+	farming.EndBlocker(ctx, app.FarmingKeeper)
 
 	// check that queue coins are moved to staked coins
 	_, sf := app.FarmingKeeper.GetStaking(ctx, sdk.DefaultBondDenom, accounts[1].Address)
