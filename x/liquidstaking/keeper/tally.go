@@ -50,7 +50,10 @@ func (k Keeper) TokenAmountFromFarmingPositions(ctx sdk.Context, addr sdk.AccAdd
 	})
 
 	// add worth of staked amount of Farming Queued Staking of bToken and PoolTokens including bToken
-	k.farmingKeeper.IterateQueuedStakingsByFarmer(ctx, addr, func(stakingCoinDenom string, _ time.Time, queuedStaking farmingtypes.QueuedStaking) (stop bool) {
+	k.farmingKeeper.IterateQueuedStakingsByFarmer(ctx, addr, func(stakingCoinDenom string, endTime time.Time, queuedStaking farmingtypes.QueuedStaking) (stop bool) {
+		if !endTime.After(ctx.BlockTime()) { // sanity check
+			return false
+		}
 		if stakingCoinDenom == targetDenom {
 			tokenAmount = tokenAmount.Add(queuedStaking.Amount)
 		} else if ratio, ok := tokenSharePerPoolCoinMap[stakingCoinDenom]; ok {
