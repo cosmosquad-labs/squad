@@ -442,7 +442,7 @@ func (k Keeper) Unstake(ctx sdk.Context, farmerAcc sdk.AccAddress, amount sdk.Co
 			if staking.Amount.LT(amtToUnstake) {
 				return sdkerrors.Wrapf(
 					sdkerrors.ErrInsufficientFunds, "not enough staked coins, %s%s is less than %s%s",
-					staking.Amount, coin.Denom, amtToUnstake, coin.Denom)
+					unstaked.Add(staking.Amount), coin.Denom, unstaked.Add(amtToUnstake), coin.Denom)
 			}
 
 			if _, err := k.WithdrawRewards(cacheCtx, farmerAcc, coin.Denom); err != nil {

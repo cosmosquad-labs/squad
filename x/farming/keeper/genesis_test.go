@@ -77,22 +77,20 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	suite.Stake(suite.addrs[1], sdk.NewCoins(
 		sdk.NewInt64Coin(denom1, 1_000_000),
 		sdk.NewInt64Coin(denom2, 1_000_000)))
-	suite.keeper.ProcessQueuedCoins(suite.ctx)
+	suite.advanceDay()
 
 	suite.ctx = suite.ctx.WithBlockTime(types.ParseTime("2021-07-31T00:00:00Z"))
 
 	// Advance 2 epochs
-	err := suite.keeper.AdvanceEpoch(suite.ctx)
-	suite.Require().NoError(err)
-	err = suite.keeper.AdvanceEpoch(suite.ctx)
-	suite.Require().NoError(err)
+	suite.advanceDay()
+	suite.advanceDay()
 
 	var genState *types.GenesisState
 	suite.Require().NotPanics(func() {
 		genState = suite.keeper.ExportGenesis(suite.ctx)
 	})
 
-	err = types.ValidateGenesis(*genState)
+	err := types.ValidateGenesis(*genState)
 	suite.Require().NoError(err)
 
 	suite.Require().NotPanics(func() {
@@ -117,10 +115,10 @@ func (suite *KeeperTestSuite) TestInitGenesisPanics() {
 	err = suite.keeper.Stake(cacheCtx, suite.addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom1, 700000), sdk.NewInt64Coin(denom2, 500000)))
 	suite.Require().NoError(err)
 
-	err = suite.keeper.AdvanceEpoch(cacheCtx)
-	suite.Require().NoError(err)
-	err = suite.keeper.AdvanceEpoch(cacheCtx)
-	suite.Require().NoError(err)
+	cacheCtx = cacheCtx.WithBlockTime(cacheCtx.BlockTime().Add(types.Day))
+	farming.EndBlocker(cacheCtx, suite.keeper)
+	cacheCtx = cacheCtx.WithBlockTime(cacheCtx.BlockTime().Add(types.Day))
+	farming.EndBlocker(cacheCtx, suite.keeper)
 
 	err = suite.keeper.Stake(cacheCtx, suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom2, 800000)))
 	suite.Require().NoError(err)
@@ -225,7 +223,7 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	farming.EndBlocker(suite.ctx, suite.keeper)
 	suite.Stake(suite.addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000), sdk.NewInt64Coin(denom2, 800000)))
 	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 500000), sdk.NewInt64Coin(denom2, 700000)))
-	suite.ctx = suite.ctx.WithBlockTime(types.ParseTime("2021-08-05T00:00:00Z"))
+	suite.ctx = suite.ctx.WithBlockTime(types.ParseTime("2021-08-05T23:00:00Z"))
 	farming.EndBlocker(suite.ctx, suite.keeper) // queued coins => staked coins
 	suite.ctx = suite.ctx.WithBlockTime(types.ParseTime("2021-08-06T00:00:00Z"))
 	farming.EndBlocker(suite.ctx, suite.keeper) // allocate rewards

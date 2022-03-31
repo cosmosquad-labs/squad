@@ -170,9 +170,9 @@ func (suite *KeeperTestSuite) AllRewards(farmerAcc sdk.AccAddress) sdk.Coins {
 	return suite.keeper.AllRewards(suite.ctx, farmerAcc)
 }
 
-func (suite *KeeperTestSuite) AdvanceEpoch() {
-	err := suite.keeper.AdvanceEpoch(suite.ctx)
-	suite.Require().NoError(err)
+func (suite *KeeperTestSuite) advanceDay() {
+	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(types.Day))
+	farming.EndBlocker(suite.ctx, suite.keeper)
 }
 
 func (suite *KeeperTestSuite) createPrivateFixedAmountPlan(

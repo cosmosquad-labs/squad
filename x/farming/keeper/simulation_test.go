@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	chain "github.com/cosmosquad-labs/squad/app"
+	"github.com/cosmosquad-labs/squad/x/farming"
 	"github.com/cosmosquad-labs/squad/x/farming/types"
 )
 
@@ -46,12 +47,12 @@ func (ha HarvestAction) Do(suite *KeeperTestSuite) {
 	suite.Require().NoError(err)
 }
 
-type AdvanceEpochAction struct{}
+type AdvanceDayAction struct{}
 
-func (AdvanceEpochAction) Do(suite *KeeperTestSuite) {
-	fmt.Println("AdvanceEpoch()")
-	err := suite.keeper.AdvanceEpoch(suite.ctx)
-	suite.Require().NoError(err)
+func (AdvanceDayAction) Do(suite *KeeperTestSuite) {
+	fmt.Println("AdvanceDay()")
+	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(types.Day))
+	farming.EndBlocker(suite.ctx, suite.keeper)
 }
 
 type BalanceAssertion struct {
@@ -118,20 +119,20 @@ func (suite *KeeperTestSuite) TestSimulation() {
 
 		StakeAction{addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000))},
 		StakeAction{addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom1, 500000), sdk.NewInt64Coin(denom2, 500000))},
-		AdvanceEpochAction{},
+		AdvanceDayAction{},
 		BalanceAssertion{addrs[0], denom3, sdk.ZeroInt()},
 		TotalRewardsAssertion{addrs[0], sdk.NewCoins()},
 		BalanceAssertion{addrs[1], denom3, sdk.ZeroInt()},
 		TotalRewardsAssertion{addrs[1], sdk.NewCoins()},
 
-		AdvanceEpochAction{},
+		AdvanceDayAction{},
 		BalanceAssertion{addrs[0], denom3, sdk.ZeroInt()},
 		TotalRewardsAssertion{addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom3, 200000))}, // 300000 * 2/3
 		BalanceAssertion{addrs[1], denom3, sdk.ZeroInt()},
 		TotalRewardsAssertion{addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom3, 800000))}, // 300000 * 1/3 + 700000
 
 		StakeAction{addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 500000))},
-		AdvanceEpochAction{},
+		AdvanceDayAction{},
 		BalanceAssertion{addrs[0], denom3, sdk.NewInt(400000)},
 		TotalRewardsAssertion{addrs[0], sdk.NewCoins()},
 		BalanceAssertion{addrs[1], denom3, sdk.ZeroInt()},
@@ -143,7 +144,7 @@ func (suite *KeeperTestSuite) TestSimulation() {
 		// 250000denom1, 250000denom2
 		BalanceAssertion{addrs[1], denom3, sdk.NewInt(1600000)},
 		TotalRewardsAssertion{addrs[1], sdk.NewCoins()},
-		AdvanceEpochAction{},
+		AdvanceDayAction{},
 		BalanceAssertion{addrs[0], denom3, sdk.NewInt(400000)},
 		TotalRewardsAssertion{addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom3, 257142))}, // 300000 * (6/7)
 		BalanceAssertion{addrs[1], denom3, sdk.NewInt(1600000)},
@@ -158,7 +159,7 @@ func (suite *KeeperTestSuite) TestSimulation() {
 		BalanceAssertion{addrs[0], denom3, sdk.NewInt(657142)},
 		BalanceAssertion{addrs[1], denom3, sdk.NewInt(2342857)},
 		TotalRewardsAssertion{addrs[0], sdk.NewCoins()},
-		AdvanceEpochAction{},
+		AdvanceDayAction{},
 		TotalRewardsAssertion{addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom3, 257142))},
 		TotalRewardsAssertion{addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom3, 742857))},
 	} {
