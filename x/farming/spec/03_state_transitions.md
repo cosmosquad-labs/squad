@@ -31,7 +31,7 @@ const (
 When a farmer stakes an amount of coins, the following state transitions occur:
 
 - Reserves the amount of coins to the staking reserve account for each staking coin denom `address.Module(ModuleName, []byte("StakingReserveAcc|"+stakingCoinDenom))` 
-- Creates `QueuedStaking` object and stores the staking coins in `QueueStaking`, which then  wait in a queue until the end of epoch to move to the `Staking` object
+- Creates `QueuedStaking` object, which waits in a queue for `CurrentEpochDays` days and then moves to the `Staking` object
 - Imposes more gas if the farmer already has `Staking` with the same coin denom. See [Parameters](07_params.md#DelayedStakingGasFee) for details.
 
 ## Unstake
@@ -40,7 +40,7 @@ When a farmer unstakes an amount of coins, the following state transitions occur
 
 - Adds `Staking` and `QueueStaking` amounts to see if the unstaking amount is sufficient
 - Automatically withdraws rewards for the coin denom that are accumulated over the last epochs
-- Subtracts the unstaking amount of coins from `QueueStaking` first, and if not sufficient then subtracts from `Staking`
+- Subtracts the unstaking amount of coins from `QueueStaking` first(in last-in-first-out manner), and if not sufficient then subtracts from `Staking`
 - Releases the unstaking amount of coins to the farmer
 
 ## Harvest (Reward Withdrawal)
