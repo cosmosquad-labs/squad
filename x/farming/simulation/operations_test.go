@@ -207,7 +207,7 @@ func TestSimulateMsgUnstake(t *testing.T) {
 	require.True(t, operationMsg.OK)
 	require.Equal(t, types.TypeMsgUnstake, msg.Type())
 	require.Equal(t, "cosmos1tnh2q55v8wyygtt9srz5safamzdengsnqeycj3", msg.Farmer)
-	require.Equal(t, "21902081stake", msg.UnstakingCoins.String())
+	require.Equal(t, "1156441stake", msg.UnstakingCoins.String())
 	require.Len(t, futureOperations, 0)
 }
 
@@ -257,8 +257,10 @@ func TestSimulateMsgHarvest(t *testing.T) {
 
 	// begin a new block and advance epoch
 	app.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: app.LastBlockHeight() + 1, AppHash: app.LastCommitID().Hash}})
+	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(types.Day))
 	err = app.FarmingKeeper.AdvanceEpoch(ctx)
 	require.NoError(t, err)
+	app.FarmingKeeper.ProcessQueuedCoins(ctx)
 
 	// check that queue coins are moved to staked coins
 	_, sf := app.FarmingKeeper.GetStaking(ctx, sdk.DefaultBondDenom, accounts[1].Address)
