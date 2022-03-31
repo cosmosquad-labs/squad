@@ -197,8 +197,10 @@ func (k Keeper) IterateQueuedStakingsByFarmerAndDenomReverse(ctx sdk.Context, fa
 // stakings by the farmer for given staking coin denom.
 func (k Keeper) GetAllQueuedStakingAmountByFarmerAndDenom(ctx sdk.Context, farmerAcc sdk.AccAddress, stakingCoinDenom string) sdk.Int {
 	amt := sdk.ZeroInt()
-	k.IterateQueuedStakingsByFarmerAndDenom(ctx, farmerAcc, stakingCoinDenom, func(_ time.Time, queuedStaking types.QueuedStaking) (stop bool) {
-		amt = amt.Add(queuedStaking.Amount)
+	k.IterateQueuedStakingsByFarmerAndDenom(ctx, farmerAcc, stakingCoinDenom, func(endTime time.Time, queuedStaking types.QueuedStaking) (stop bool) {
+		if endTime.After(ctx.BlockTime()) { // sanity check
+			amt = amt.Add(queuedStaking.Amount)
+		}
 		return false
 	})
 	return amt
@@ -208,8 +210,10 @@ func (k Keeper) GetAllQueuedStakingAmountByFarmerAndDenom(ctx sdk.Context, farme
 // by a farmer.
 func (k Keeper) GetAllQueuedCoinsByFarmer(ctx sdk.Context, farmerAcc sdk.AccAddress) sdk.Coins {
 	stakedCoins := sdk.NewCoins()
-	k.IterateQueuedStakingsByFarmer(ctx, farmerAcc, func(stakingCoinDenom string, _ time.Time, queuedStaking types.QueuedStaking) (stop bool) {
-		stakedCoins = stakedCoins.Add(sdk.NewCoin(stakingCoinDenom, queuedStaking.Amount))
+	k.IterateQueuedStakingsByFarmer(ctx, farmerAcc, func(stakingCoinDenom string, endTime time.Time, queuedStaking types.QueuedStaking) (stop bool) {
+		if endTime.After(ctx.BlockTime()) { // sanity check
+			stakedCoins = stakedCoins.Add(sdk.NewCoin(stakingCoinDenom, queuedStaking.Amount))
+		}
 		return false
 	})
 	return stakedCoins
@@ -375,7 +379,8 @@ func (k Keeper) Stake(ctx sdk.Context, farmerAcc sdk.AccAddress, amount sdk.Coin
 		return err
 	}
 
-	endTime := ctx.BlockTime().Add(types.Day)
+	currentEpochDays := k.GetCurrentEpochDays(ctx)
+	endTime := ctx.BlockTime().Add(time.Duration(currentEpochDays) * types.Day)
 
 	numStakingCoinDenoms := 0
 	for _, coin := range amount {
@@ -445,8 +450,10 @@ func (k Keeper) Unstake(ctx sdk.Context, farmerAcc sdk.AccAddress, amount sdk.Co
 					unstaked.Add(staking.Amount), coin.Denom, unstaked.Add(amtToUnstake), coin.Denom)
 			}
 
-			if _, err := k.WithdrawRewards(cacheCtx, farmerAcc, coin.Denom); err != nil {
-				return err
+			if found {
+				if _, err := k.WithdrawRewards(cacheCtx, farmerAcc, coin.Denom); err != nil {
+					return err
+				}
 			}
 
 			staking.Amount = staking.Amount.Sub(amtToUnstake)
