@@ -4,13 +4,15 @@
 
 ## LiquidValidators
 
-State transitions in liquid validators are performed on every `BeginBlock` in order to check for changes in the active liquid validator set. A validator can be `Active` or `Inactive`, the following transition occurs when the state changes
+State transitions of liquid validators are performed on every `BeginBlock` to keep in track of any changes in active liquid validator set. The following state transition occurs when a validator is added or removed from an active liquid validator set.
 
-### into Active
-- redelegate certain amount from all the existing Active liquid validator's LiquidTokens to newly elected validator so that every Active liquid validators have the same amount of staked tokens
+### New LiquidValidator
 
-### expelled from Active
-- redelegate all LiquidTokens to the remaining Active liquid validators
+- Redelegation of `LiquidTokens` occurs from the existing active liquid validator set to newly added validators. This process makes every liquid validator to have the exact amount that corresponds to their weight.
+
+### Inactive LiquidValidator
+
+- Redelegation of the inactive liquid validator's `LiquidTokens` occurs to the remaining active liquid validators.
 
 ## Liquid Staking
 

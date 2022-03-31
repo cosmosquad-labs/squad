@@ -2,7 +2,13 @@
 
 # Begin-Block
 
-## Liquid Validator set changes
+At the beginning of every block, the `liquidstaking` module operates the following executions.
+
+## Update Liquid Validator Set Changes
+
+### New Liquid Validator
+
+New liquid validator can be added and updated through governance process. When a new whitelisted validator is added, they become one of the active liquid validators as long as they meet the active conditions. The module redelgates the exiting `LiquidTokens` from an active liquid validator set to newly added liquid validators so that every liquid validator has the exact amount of tokens that correspond to their weight.
 
 ### Whitelisted -> Add Liquid Validator
 
