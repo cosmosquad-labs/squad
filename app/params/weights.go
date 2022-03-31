@@ -5,7 +5,7 @@ const (
 	DefaultWeightMsgCreateFixedAmountPlan int = 10
 	DefaultWeightMsgCreateRatioPlan       int = 10
 	DefaultWeightMsgStake                 int = 85
-	DefaultWeightMsgUnstake               int = 30
+	DefaultWeightMsgUnstake               int = 20
 	DefaultWeightMsgHarvest               int = 30
 	DefaultWeightMsgRemovePlan            int = 10
 
