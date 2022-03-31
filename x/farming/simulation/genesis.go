@@ -33,7 +33,7 @@ func GenNextEpochDays(r *rand.Rand) uint32 {
 
 // GenCurrentEpochDays returns current epoch days.
 func GenCurrentEpochDays(r *rand.Rand) uint32 {
-	return uint32(simulation.RandIntBetween(r, int(types.DefaultCurrentEpochDays), 10))
+	return uint32(simulation.RandIntBetween(r, int(types.DefaultCurrentEpochDays), 3))
 }
 
 // GenFarmingFeeCollector returns default farming fee collector.
