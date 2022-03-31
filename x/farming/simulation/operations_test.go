@@ -208,7 +208,7 @@ func TestSimulateMsgUnstake(t *testing.T) {
 	require.True(t, operationMsg.OK)
 	require.Equal(t, types.TypeMsgUnstake, msg.Type())
 	require.Equal(t, "cosmos1tnh2q55v8wyygtt9srz5safamzdengsnqeycj3", msg.Farmer)
-	require.Equal(t, "1156441stake", msg.UnstakingCoins.String())
+	require.Equal(t, "78973699stake", msg.UnstakingCoins.String())
 	require.Len(t, futureOperations, 0)
 }
 
