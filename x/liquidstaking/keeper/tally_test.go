@@ -193,7 +193,7 @@ func (s *KeeperTestSuite) TestSetLiquidStakingVotingPowers() {
 	setLiquidStakingVotingPowers()
 
 	// Test Farming Staking Position Staking of bToken
-	s.AdvanceEpoch()
+	s.advanceEpochDays()
 	staking, found := s.app.FarmingKeeper.GetStaking(s.ctx, params.LiquidBondDenom, delD)
 	s.True(found)
 	s.Equal(staking.Amount, sdk.NewInt(10000000))
@@ -207,7 +207,7 @@ func (s *KeeperTestSuite) TestSetLiquidStakingVotingPowers() {
 	setLiquidStakingVotingPowers()
 
 	// Test Farming Staking Position of PoolTokens including bToken
-	s.AdvanceEpoch()
+	s.advanceEpochDays()
 	staking, found = s.app.FarmingKeeper.GetStaking(s.ctx, pool2.PoolCoinDenom, delC)
 	s.True(found)
 	s.Equal(staking.Amount, sdk.NewInt(10000000))
