@@ -39,8 +39,8 @@ func (k Keeper) SetLastEpochTime(ctx sdk.Context, t time.Time) {
 	store.Set(types.LastEpochTimeKey, bz)
 }
 
-// AdvanceEpoch allocate rewards and advance epoch by one.
-// AdvanceEpoch also forcefully make queued stakings to be staked.
+// AdvanceEpoch allocates rewards and advances epoch by one.
+// AdvanceEpoch also forcefully makes queued stakings to be staked.
 // Use this only for simulation and testing purpose.
 func (k Keeper) AdvanceEpoch(ctx sdk.Context) error {
 	k.PruneTotalStakings(ctx)
