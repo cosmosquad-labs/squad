@@ -1,7 +1,6 @@
 package simulation
 
 import (
-	"fmt"
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -106,8 +105,6 @@ func SimulateMsgLiquidStake(ak types.AccountKeeper, bk types.BankKeeper, k keepe
 			}
 			spendable = bk.SpendableCoins(ctx, account.GetAddress())
 		}
-		fmt.Println("## ADD liquid NetAmountState", stakingCoin, spendable)
-		utils.PP(k.NetAmountState(ctx))
 
 		msg := types.NewMsgLiquidStake(delegator, stakingCoin)
 		txCtx := simulation.OperationInput{
@@ -151,8 +148,6 @@ func SimulateMsgLiquidUnstake(ak types.AccountKeeper, bk types.BankKeeper, k kee
 
 			// spendable must be greater than unstaking coins
 			if spendable.AmountOf(types.DefaultLiquidBondDenom).GTE(unstakingCoin.Amount) {
-				fmt.Println("## UNBONDING NetAmountState", unstakingCoin)
-				utils.PP(k.NetAmountState(ctx))
 				break
 			}
 		}
