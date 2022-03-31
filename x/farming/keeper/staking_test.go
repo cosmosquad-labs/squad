@@ -60,7 +60,7 @@ func (suite *KeeperTestSuite) TestMultipleStake() {
 		suite.keeper.GetAllQueuedCoinsByFarmer(suite.ctx, suite.addrs[0])))
 	suite.Require().True(coinsEq(sdk.Coins{}, suite.keeper.GetAllStakedCoinsByFarmer(suite.ctx, suite.addrs[0])))
 
-	suite.advanceDay()
+	suite.advanceEpochDays()
 
 	suite.Require().True(coinsEq(
 		sdk.NewCoins(sdk.NewInt64Coin(denom1, 2000000)),
@@ -78,16 +78,16 @@ func (suite *KeeperTestSuite) TestStakeInAdvance() {
 	// Staking in advance must not affect the total rewards.
 
 	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)))
-	suite.advanceDay()
-	suite.advanceDay()
+	suite.advanceEpochDays()
+	suite.advanceEpochDays()
 
 	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)))
-	suite.advanceDay()
-	suite.advanceDay()
+	suite.advanceEpochDays()
+	suite.advanceEpochDays()
 
 	suite.CreateFixedAmountPlan(suite.addrs[4], map[string]string{denom1: "1"}, map[string]int64{denom3: 1000000})
 	suite.Require().True(coinsEq(sdk.NewCoins(), suite.AllRewards(suite.addrs[0])))
-	suite.advanceDay()
+	suite.advanceEpochDays()
 	suite.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(denom3, 1000000)), suite.AllRewards(suite.addrs[0])))
 }
 
@@ -244,7 +244,7 @@ func (suite *KeeperTestSuite) TestUnstake() {
 				sdk.NewInt64Coin(denom2, 1_000_000)))
 
 			// Make queued coins be staked.
-			suite.advanceDay()
+			suite.advanceEpochDays()
 
 			suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 500_000)))
 
@@ -269,7 +269,7 @@ func (suite *KeeperTestSuite) TestUnstakePriority() {
 	// not from already staked coins.
 
 	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)))
-	suite.advanceDay()
+	suite.advanceEpochDays()
 
 	check := func(staked, queued int64) {
 		suite.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(denom1, staked)), suite.keeper.GetAllStakedCoinsByFarmer(suite.ctx, suite.addrs[0])))
@@ -296,8 +296,8 @@ func (suite *KeeperTestSuite) TestUnstakeNotAlwaysWithdraw() {
 	suite.CreateRatioPlan(suite.addrs[4], map[string]string{denom1: "1"}, "0.1")
 
 	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)))
-	suite.advanceDay()
-	suite.advanceDay() // Now, there are rewards to be withdrawn.
+	suite.advanceEpochDays()
+	suite.advanceEpochDays() // Now, there are rewards to be withdrawn.
 
 	rewards := suite.AllRewards(suite.addrs[0])
 
@@ -316,8 +316,8 @@ func (suite *KeeperTestSuite) TestMultipleUnstake() {
 
 	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)))
 
-	suite.advanceDay()
-	suite.advanceDay()
+	suite.advanceEpochDays()
+	suite.advanceEpochDays()
 
 	suite.Unstake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 250000)))
 	balanceBefore := suite.app.BankKeeper.GetBalance(suite.ctx, suite.addrs[0], denom3)
@@ -381,7 +381,7 @@ func (suite *KeeperTestSuite) TestUnstakeInsufficientFunds() {
 	suite.Require().ErrorIs(err, sdkerrors.ErrInsufficientFunds)
 	suite.Require().EqualError(err, "not enough staked coins, 1000000denom1 is less than 1100000denom1: insufficient funds")
 
-	suite.advanceDay()
+	suite.advanceEpochDays()
 	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 500000)))
 
 	err = suite.keeper.Unstake(suite.ctx, suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1600000)))
@@ -394,14 +394,14 @@ func (suite *KeeperTestSuite) TestTotalStakings() {
 	_, found := suite.keeper.GetTotalStakings(suite.ctx, denom1)
 	suite.Require().False(found)
 
-	suite.advanceDay()
+	suite.advanceEpochDays()
 	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 500000)))
 	suite.Unstake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 300000)))
 	totalStakings, found := suite.keeper.GetTotalStakings(suite.ctx, denom1)
 	suite.Require().True(found)
 	suite.Require().True(intEq(sdk.NewInt(1000000), totalStakings.Amount))
 
-	suite.advanceDay()
+	suite.advanceEpochDays()
 	totalStakings, _ = suite.keeper.GetTotalStakings(suite.ctx, denom1)
 	suite.Require().True(found)
 	suite.Require().True(intEq(sdk.NewInt(1200000), totalStakings.Amount))
@@ -445,7 +445,7 @@ func (suite *KeeperTestSuite) TestProcessQueuedCoins() {
 			suite.Require().True(coinsEq(queuedCoins, suite.keeper.GetAllQueuedCoinsByFarmer(suite.ctx, suite.addrs[0])))
 			suite.Require().True(coinsEq(stakedCoins, suite.keeper.GetAllStakedCoinsByFarmer(suite.ctx, suite.addrs[0])))
 
-			suite.advanceDay()
+			suite.advanceEpochDays()
 			stakedCoins = stakedCoins.Add(queuedCoins...)
 			queuedCoins = sdk.NewCoins()
 
@@ -461,7 +461,7 @@ func (suite *KeeperTestSuite) TestDelayedStakingGasFee() {
 	suite.Require().NoError(err)
 	gasConsumedNormal := suite.ctx.GasMeter().GasConsumed()
 
-	suite.advanceDay()
+	suite.advanceEpochDays()
 
 	suite.ctx = suite.ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 	err = suite.keeper.Stake(suite.ctx, suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 10000000)))
@@ -619,9 +619,9 @@ func (suite *KeeperTestSuite) TestPreserveCurrentEpoch() {
 
 	suite.Require().Equal(uint64(0), suite.keeper.GetCurrentEpoch(suite.ctx, denom1))
 	suite.Stake(suite.addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)))
-	suite.advanceDay()
+	suite.advanceEpochDays()
 	suite.Require().Equal(uint64(1), suite.keeper.GetCurrentEpoch(suite.ctx, denom1))
-	suite.advanceDay()
+	suite.advanceEpochDays()
 	suite.Require().Equal(uint64(2), suite.keeper.GetCurrentEpoch(suite.ctx, denom1))
 	suite.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(denom2, 1000000)), suite.AllRewards(suite.addrs[1])))
 
@@ -635,16 +635,16 @@ func (suite *KeeperTestSuite) TestPreserveCurrentEpoch() {
 		balancesAfter.Sub(balancesBefore)))
 
 	// Few days later...
-	suite.advanceDay()
-	suite.advanceDay()
-	suite.advanceDay()
-	suite.advanceDay()
+	suite.advanceEpochDays()
+	suite.advanceEpochDays()
+	suite.advanceEpochDays()
+	suite.advanceEpochDays()
 
 	suite.Stake(suite.addrs[2], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)))
 	suite.Require().Equal(uint64(2), suite.keeper.GetCurrentEpoch(suite.ctx, denom1))
-	suite.advanceDay()
+	suite.advanceEpochDays()
 	suite.Require().Equal(uint64(3), suite.keeper.GetCurrentEpoch(suite.ctx, denom1))
-	suite.advanceDay()
+	suite.advanceEpochDays()
 	suite.Require().Equal(uint64(4), suite.keeper.GetCurrentEpoch(suite.ctx, denom1))
 	suite.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(denom2, 1000000)), suite.AllRewards(suite.addrs[2])))
 
@@ -657,6 +657,6 @@ func (suite *KeeperTestSuite) TestPreserveCurrentEpoch() {
 		sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000), sdk.NewInt64Coin(denom2, 1000000)),
 		balancesAfter.Sub(balancesBefore)))
 
-	suite.advanceDay()
+	suite.advanceEpochDays()
 	suite.Require().Equal(uint64(4), suite.keeper.GetCurrentEpoch(suite.ctx, denom1))
 }

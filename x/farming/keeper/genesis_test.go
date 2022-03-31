@@ -77,13 +77,13 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	suite.Stake(suite.addrs[1], sdk.NewCoins(
 		sdk.NewInt64Coin(denom1, 1_000_000),
 		sdk.NewInt64Coin(denom2, 1_000_000)))
-	suite.advanceDay()
+	suite.advanceEpochDays()
 
 	suite.ctx = suite.ctx.WithBlockTime(types.ParseTime("2021-07-31T00:00:00Z"))
 
 	// Advance 2 epochs
-	suite.advanceDay()
-	suite.advanceDay()
+	suite.advanceEpochDays()
+	suite.advanceEpochDays()
 
 	var genState *types.GenesisState
 	suite.Require().NotPanics(func() {
