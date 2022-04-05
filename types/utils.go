@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/big"
 	"math/rand"
+	"sync"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
@@ -13,6 +14,8 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 )
+
+var State = NewGlobalState()
 
 // GetShareValue multiplies with truncation by receiving int amount and decimal ratio and returns int result.
 func GetShareValue(amount sdk.Int, ratio sdk.Dec) sdk.Int {
@@ -164,4 +167,55 @@ func TestAddress(addrNum int) sdk.AccAddress {
 	addr := make(sdk.AccAddress, 20)
 	binary.PutVarint(addr, int64(addrNum))
 	return addr
+}
+
+type GlobalState struct {
+	data map[string]interface{}
+	mux  sync.Mutex
+}
+
+func NewGlobalState() *GlobalState {
+	return &GlobalState{
+		data: map[string]interface{}{},
+	}
+}
+
+func (gs *GlobalState) Get(key string) (interface{}, bool) {
+	gs.mux.Lock()
+	defer gs.mux.Unlock()
+	val, ok := gs.data[key]
+	return val, ok
+}
+
+func (gs *GlobalState) GetCoins(key string) sdk.Coins {
+	val, ok := gs.Get(key)
+	if !ok {
+		val = sdk.Coins{}
+	}
+	return val.(sdk.Coins)
+}
+
+func (gs *GlobalState) AddCoins(key string, amt sdk.Coins) sdk.Coins {
+	coins := gs.GetCoins(key)
+	coins = coins.Add(amt...)
+	gs.Set(key, coins)
+	return coins
+}
+
+func (gs *GlobalState) Set(key string, val interface{}) {
+	gs.mux.Lock()
+	defer gs.mux.Unlock()
+	gs.data[key] = val
+}
+
+func (gs *GlobalState) Delete(key string) {
+	gs.mux.Lock()
+	defer gs.mux.Unlock()
+	delete(gs.data, key)
+}
+
+func (gs *GlobalState) Clear() {
+	gs.mux.Lock()
+	defer gs.mux.Unlock()
+	gs.data = map[string]interface{}{}
 }

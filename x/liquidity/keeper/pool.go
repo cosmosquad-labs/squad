@@ -294,6 +294,8 @@ func (k Keeper) ExecuteDepositRequest(ctx sdk.Context, req types.DepositRequest)
 		return nil
 	}
 
+	beforeX, beforeY := k.getPoolBalances(ctx, pool, pair)
+
 	mintedPoolCoin := sdk.NewCoin(pool.PoolCoinDenom, pc)
 	mintingCoins := sdk.NewCoins(mintedPoolCoin)
 
@@ -308,6 +310,9 @@ func (k Keeper) ExecuteDepositRequest(ctx sdk.Context, req types.DepositRequest)
 	if err := bulkOp.Run(ctx, k.bankKeeper); err != nil {
 		return err
 	}
+
+	afterX, afterY := k.getPoolBalances(ctx, pool, pair)
+	amm.CheckPoolPriceAfterDeposit(beforeX.Amount, beforeY.Amount, afterX.Amount, afterY.Amount)
 
 	req.AcceptedCoins = acceptedCoins
 	req.MintedPoolCoin = mintedPoolCoin

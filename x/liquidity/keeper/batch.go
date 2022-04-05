@@ -9,6 +9,7 @@ import (
 // ExecuteRequests executes all orders, deposit requests and withdraw requests.
 // ExecuteRequests also handles order expiration.
 func (k Keeper) ExecuteRequests(ctx sdk.Context) {
+	k.BeforeMatching(ctx)
 	if err := k.IterateAllPairs(ctx, func(pair types.Pair) (stop bool, err error) {
 		if err := k.ExecuteMatching(ctx, pair); err != nil {
 			return false, err
@@ -17,6 +18,7 @@ func (k Keeper) ExecuteRequests(ctx sdk.Context) {
 	}); err != nil {
 		panic(err)
 	}
+	k.AfterMatching(ctx)
 	if err := k.IterateAllOrders(ctx, func(order types.Order) (stop bool, err error) {
 		if order.Status.CanBeExpired() && order.ExpiredAt(ctx.BlockTime()) {
 			if err := k.FinishOrder(ctx, order, types.OrderStatusExpired); err != nil {
@@ -52,6 +54,7 @@ func (k Keeper) ExecuteRequests(ctx sdk.Context) {
 	}); err != nil {
 		panic(err)
 	}
+	k.CheckEscrowBalances(ctx)
 }
 
 // DeleteOutdatedRequests deletes outdated(should be deleted) requests.

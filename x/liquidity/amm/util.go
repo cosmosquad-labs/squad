@@ -5,6 +5,8 @@ import (
 	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	utils "github.com/cosmosquad-labs/squad/types"
 )
 
 // OfferCoinAmount returns the minimum offer coin amount for
@@ -25,4 +27,14 @@ func sortTicks(ticks []sdk.Dec) {
 	sort.Slice(ticks, func(i, j int) bool {
 		return ticks[i].GT(ticks[j])
 	})
+}
+
+func CheckPoolPriceAfterDeposit(beforeX, beforeY, afterX, afterY sdk.Int) {
+	beforePrice := beforeX.ToDec().Quo(beforeY.ToDec())
+	afterPrice := afterX.ToDec().Quo(afterY.ToDec())
+	diff := beforePrice.Sub(afterPrice).Abs()
+	if diff.GT(utils.ParseDec("0.0001")) {
+		panic(fmt.Errorf("before=%s/%s(%s), after=%s/%s(%s), diff=%s",
+			beforeX, beforeY, beforePrice, afterX, afterY, afterPrice, diff))
+	}
 }

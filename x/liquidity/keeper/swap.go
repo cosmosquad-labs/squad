@@ -448,6 +448,12 @@ func (k Keeper) FinishOrder(ctx sdk.Context, order types.Order, status types.Ord
 	order.SetStatus(status)
 	k.SetOrder(ctx, order)
 
+	if status == types.OrderStatusExpired {
+		k.AfterOrderExpired(ctx, order)
+	} else if status == types.OrderStatusCanceled {
+		k.AfterOrderCanceled(ctx, order)
+	}
+
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeOrderResult,
