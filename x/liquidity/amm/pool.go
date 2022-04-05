@@ -142,6 +142,9 @@ func (pool *BasicPool) BuyAmountOver(price sdk.Dec) (amt sdk.Int) {
 	}
 	utils.SafeMath(func() {
 		amt = pool.rx.ToDec().QuoTruncate(price).Sub(pool.ry.ToDec()).TruncateInt()
+		if amt.GT(MaxCoinAmount) {
+			amt = MaxCoinAmount
+		}
 	}, func() {
 		amt = MaxCoinAmount
 	})
