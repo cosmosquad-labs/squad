@@ -72,7 +72,7 @@ The weight of a liquid validator is derived depending on their status:
 NetAmount is the sum of the following items that belongs to `LiquidStakingProxyAcc`:
 
 - Native token balance
-- Token amount worth of delegation shares of all liquid validators
+- Token amount worth of delegation shares from all liquid validators
 - Remaining rewards 
 - Unbonding balance
 
