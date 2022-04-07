@@ -6,7 +6,7 @@ Messages (Msg) are objects that trigger state transitions. Msgs are wrapped in t
 
 ## MsgLiquidStake
 
-Liquid stake with an amount. A liquid staker is expected to receive a synthetic version of the native coin `bToken` at the current mint rate.
+Liquid stake with an amount. A liquid staker is expected to receive a synthetic version of the native token `bToken` at the current mint rate.
 
 ```go
 type MsgLiquidStake struct {
@@ -27,7 +27,7 @@ Validity checks are performed for `MsgLiquidStake` message. The transaction that
 
 ## MsgLiquidUnstake
 
-Liquid unstake with an amount. A liquid staker is expected to receive native coin that corresponds to the synthetic version of coin `bToken` value.
+Liquid unstake with an amount. A liquid staker is expected to receive native token that corresponds to the synthetic version of coin `bToken` value.
 
 ```go
 type MsgLiquidUnstake struct {

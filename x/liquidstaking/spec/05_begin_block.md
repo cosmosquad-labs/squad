@@ -23,7 +23,8 @@ When out of the `Active Conditions` When active liquid validator is out of the A
 When meet again the `Active Conditions` before removed, it begins the rebalancing process
 
 ### Inactive -> Remove Liquid Validator
-- no delShares by redelegation, unbonding completed and out of the `Active Conditions`
+
+No delShares by redelegation, unbonding completed and out of the `Active Conditions`
 
 ## Rebalancing (Auto-Redelegation)
 

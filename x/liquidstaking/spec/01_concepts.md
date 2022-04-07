@@ -4,7 +4,7 @@
 
 ## Liquid Staking Module
 
-Liquidstaking module provides a way for delegators to benefit with greater yields at the same time that improves capital efficiency and decentralization. The module allows users to delegate their native coin that stakes for them without losing access to their funds. Users can liquid stake any amount of native coin and receive a synthetic version of the original token called “bToken” as a staking representation. When delegators want to liquid unstake, the module burns the bToken and give them back the native coin. Delegators must wait for the unbonding period. Technically, it is worth noting that the module unbonds the amount of bToken that values the native coin at the mint rate that considers both accumulated rewards and slashing existence.
+Liquidstaking module provides a way for delegators to benefit with greater yields at the same time that improves capital efficiency and decentralization. The module allows users to delegate their native token(BondDenom) that stakes for them without losing access to their funds. Users can liquid stake any amount of native token and receive a synthetic version of the original token called “bToken” as a staking representation. When delegators want to liquid unstake, the module burns the bToken and give them back the native token. Delegators must wait for the unbonding period. Technically, it is worth noting that the module unbonds the amount of bToken that values the native token at the mint rate that considers both accumulated rewards and slashing existence.
 
 ## Liquid Validators
 

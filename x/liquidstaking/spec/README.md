@@ -4,7 +4,7 @@
 
 ## Abstract
 
-This document specifies the `liquidstaking` module. Proof of Stake consensus mechanism requires validators to lock their coins in blockchain network to have a change of validating next blocks and delegators delegate their tokens to their choice of a validator to receive rewards. If they want to unbond their delegations, then they generally have to wait for the unbonding period, which is usually 21 days in cosmos ecosystem. The `liquidstaking` module solves that problem by providing a synthetic version of the native coin when they liquid stake their coins. This benefits stakers with greater yields and improve capital efficieny.
+This document specifies the `liquidstaking` module. Proof of Stake consensus mechanism requires validators to lock their coins in blockchain network to have a change of validating next blocks and delegators delegate their tokens to their choice of a validator to receive rewards. If they want to unbond their delegations, then they generally have to wait for the unbonding period, which is usually 21 days in cosmos ecosystem. The `liquidstaking` module solves that problem by providing a synthetic version of the native token when they liquid stake their coins. This benefits stakers with greater yields and improve capital efficieny.
 
 ## Contents
 

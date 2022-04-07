@@ -2,7 +2,7 @@
 
 # Hooks
 
-## SetAdditionalVotingPowers
+## SetAdditionalVotingPowers (Liquid Governance)
 
 SetAdditionalVotingPowers calculates the voter's voting power who owns `bToken` that considers the following factors:
 
