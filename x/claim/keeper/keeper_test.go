@@ -28,6 +28,7 @@ type KeeperTestSuite struct {
 	keeper    keeper.Keeper
 	querier   keeper.Querier
 	msgServer types.MsgServer
+	genStates *chain.GenesisStates
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -40,6 +41,9 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.keeper = s.app.ClaimKeeper
 	s.querier = keeper.Querier{Keeper: s.keeper}
 	s.msgServer = keeper.NewMsgServerImpl(s.keeper)
+
+	// Example
+	s.genStates = chain.NewGenesisState()
 }
 
 //

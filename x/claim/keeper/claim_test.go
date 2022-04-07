@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
@@ -493,4 +495,13 @@ func (s *KeeperTestSuite) TestClaim_Partial_TerminatAirdrop() {
 	// Community pool must have the remaining coins
 	feePool := s.app.DistrKeeper.GetFeePool(s.ctx)
 	s.Require().False(feePool.CommunityPool.IsZero())
+}
+
+func (s *KeeperTestSuite) TestClaim() {
+	for _, airdrop := range s.genStates.ClaimGenesisState.Airdrops {
+		s.keeper.SetAirdrop(s.ctx, airdrop)
+	}
+
+	airdrops := s.keeper.GetAllAirdrops(s.ctx)
+	fmt.Println("airdrops: ", airdrops)
 }
