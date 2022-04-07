@@ -23,6 +23,11 @@ The module acknowledges voting power of all voters by aggregating the core activ
 
 The module rebalances liquid tokens of active liquid validators by redelegating from one liquid validator to another. Some cases include when there is a change in whitelisted validators and a liquid validator gets slashed. Technically, it is worth noting that some redelegation may fail due to redelegation hopping restriction in the staking module of Cosmos SDK. In that case, the module retries at the beginning of next block until it gets resolved.
 
+A redelegation object is created every time a redelegation occurs. To prevent "redelegation hopping" redelegations may not occur under the situation that:
+
+- the (re)delegator already has another immature redelegation in progress with a destination to a validator (let's call it Validator X)
+- and, the (re)delegator is attempting to create a new redelegation where the source validator for this new redelegation is Validator X.
+
 ## Restake
 
 The module restakes amount to all active liquid validators that corresponds to their weight when an accumulated reward is over `RewardTrigger` value. 
