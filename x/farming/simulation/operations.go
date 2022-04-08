@@ -324,7 +324,7 @@ func SimulateMsgUnstake(ak farmingtypes.AccountKeeper, bk farmingtypes.BankKeepe
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-		accs = shuffleSimAccounts(r, accs)
+		accs = utils.ShuffleSimAccounts(r, accs)
 
 		var simAccount simtypes.Account
 		var totalCoins sdk.Coins
@@ -426,7 +426,7 @@ func SimulateMsgRemovePlan(ak farmingtypes.AccountKeeper, bk farmingtypes.BankKe
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-		accs = shuffleSimAccounts(r, accs)
+		accs = utils.ShuffleSimAccounts(r, accs)
 
 		plans := k.GetPlans(ctx)
 		r.Shuffle(len(plans), func(i, j int) {
@@ -490,16 +490,6 @@ func fundBalances(ctx sdk.Context, r *rand.Rand, bk farmingtypes.BankKeeper, acc
 		return nil, err
 	}
 	return mintCoins, nil
-}
-
-// shuffleSimAccounts returns randomly shuffled simulation accounts.
-func shuffleSimAccounts(r *rand.Rand, accs []simtypes.Account) []simtypes.Account {
-	accs2 := make([]simtypes.Account, len(accs))
-	copy(accs2, accs)
-	r.Shuffle(len(accs2), func(i, j int) {
-		accs2[i], accs2[j] = accs2[j], accs2[i]
-	})
-	return accs2
 }
 
 // ensurePositiveSupply mints coins for each denom, with amount of 1 to ensure
