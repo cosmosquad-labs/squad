@@ -28,7 +28,7 @@ No delShares by redelegation, unbonding completed and out of the `Active Conditi
 
 ## Rebalancing (Auto-Redelegation)
 
-Due to the events like slashing, tombstoning, become Inactive and policy related to serial redelegation, the actual current weights of the delegated amount(LiquidTokens) of the active liquid validators can be slightly different from what was target weight intended. Therefore, rebalancing of delegated assets is needed, and it is triggered by difference of power from the intended
+Due to the events like slashing, tombstoning, becoming inactive and policy related to serial redelegation, the actual current weights of the delegated amount(LiquidTokens) of the active liquid validators can be slightly different from what was target weight intended. Therefore, rebalancing of delegated assets is needed, and it is triggered by difference of power from the intended
 
 - calculate the current weight of each active liquid validator's LiquidTokens and the difference between it and derived weight by status of each liquid validator
 - if the maximum difference exceeds `params.RebalancingTrigger` ratio of total LiquidTokens, asset rebalacing will be executed by calling `BeginRedelegation` function of `cosmos-sdk/x/staking` module

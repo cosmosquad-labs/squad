@@ -34,7 +34,7 @@ The module restakes amount to all active liquid validators that corresponds to t
 
 ## Unbonding Period
 
-Liquid stakers who unbond their delegation must wait for the duration of the `UnStakingTime`. It is a chain-specific parameter. During the unbonding period, they are still exposed to being slashed for any liquid validator’s misbehavior.
+Liquid stakers who unbond their delegation must wait for the duration of the `UnbondingTime`. It is a chain-specific parameter. During the unbonding period, they are still exposed to being slashed for any liquid validator’s misbehavior.
 
 ## Slashing
 

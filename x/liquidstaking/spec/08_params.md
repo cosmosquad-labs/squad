@@ -49,7 +49,7 @@ It is the maximum difference and required rate that triggers asset rebalancing (
 
 ## RewardTrigger
 
-It is the rate that triggers to withdraw rewards and re-stake amounts to active validators. Specifically, if the sum of balances including the withdrawn rewards, crumb, and the upcoming rewards of `LiquidStakingProxyAcc` exceeds the rate of `RewardsTrigger` of the total `DelShares`, the rewards are automatically withdrawn and re-stake according to each validator's weight.
+It is the rate that triggers to withdraw rewards and re-stake amounts to active validators. Specifically, if the sum of balances including the withdrawn rewards, crumb, and the upcoming rewards of `LiquidStakingProxyAcc` exceeds the rate of `RewardTrigger` of the total `DelShares`, the rewards are automatically withdrawn and re-stake according to each validator's weight.
 
 ### LiquidStakingProxyAcc
 
