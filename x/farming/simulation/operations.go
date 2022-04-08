@@ -145,7 +145,7 @@ func SimulateMsgCreateFixedAmountPlan(ak farmingtypes.AccountKeeper, bk farmingt
 		spendable := bk.SpendableCoins(ctx, account.GetAddress())
 
 		params := k.GetParams(ctx)
-		if uint32(k.GetNumActivePrivatePlans(ctx)) > params.MaxNumPrivatePlans {
+		if uint32(k.GetNumActivePrivatePlans(ctx)) >= params.MaxNumPrivatePlans {
 			return simtypes.NoOpMsg(farmingtypes.ModuleName, farmingtypes.TypeMsgCreateFixedAmountPlan, "maximum number of private plans reached"), nil, nil
 		}
 
@@ -221,7 +221,7 @@ func SimulateMsgCreateRatioPlan(ak farmingtypes.AccountKeeper, bk farmingtypes.B
 		spendable := bk.SpendableCoins(ctx, account.GetAddress())
 
 		params := k.GetParams(ctx)
-		if uint32(k.GetNumActivePrivatePlans(ctx)) > params.MaxNumPrivatePlans {
+		if uint32(k.GetNumActivePrivatePlans(ctx)) >= params.MaxNumPrivatePlans {
 			return simtypes.NoOpMsg(farmingtypes.ModuleName, farmingtypes.TypeMsgCreateRatioPlan, "maximum number of private plans reached"), nil, nil
 		}
 
