@@ -64,6 +64,38 @@ func TestClaimableCoinsForCondition(t *testing.T) {
 				ClaimedConditions:     []types.ConditionType{},
 			},
 		},
+		{
+			"case #4",
+			[]types.ConditionType{
+				types.ConditionTypeDeposit,
+				types.ConditionTypeSwap,
+				types.ConditionTypeLiquidStake,
+				types.ConditionTypeVote,
+			},
+			types.ClaimRecord{
+				AirdropId:             1,
+				Recipient:             sdk.AccAddress(crypto.AddressHash([]byte("recipient"))).String(),
+				InitialClaimableCoins: sdk.NewCoins(sdk.NewCoin("denom1", sdk.NewInt(404_783_390))),
+				ClaimableCoins:        sdk.NewCoins(sdk.NewCoin("denom1", sdk.NewInt(404_783_390))),
+				ClaimedConditions:     []types.ConditionType{},
+			},
+		},
+		{
+			"case #5",
+			[]types.ConditionType{
+				types.ConditionTypeDeposit,
+				types.ConditionTypeSwap,
+				types.ConditionTypeLiquidStake,
+				types.ConditionTypeVote,
+			},
+			types.ClaimRecord{
+				AirdropId:             1,
+				Recipient:             sdk.AccAddress(crypto.AddressHash([]byte("recipient"))).String(),
+				InitialClaimableCoins: sdk.NewCoins(sdk.NewCoin("denom1", sdk.NewInt(230_378_299))),
+				ClaimableCoins:        sdk.NewCoins(sdk.NewCoin("denom1", sdk.NewInt(230_378_299))),
+				ClaimedConditions:     []types.ConditionType{},
+			},
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			for i := 0; i < len(tc.airdropConditions); i++ {
