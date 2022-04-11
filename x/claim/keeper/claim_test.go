@@ -689,3 +689,174 @@ func (s *KeeperTestSuite) TestClaim_Simulation() {
 	fmt.Println("feePoolAmt: ", feePoolAmt)
 	fmt.Println("remainingAmt: ", remainingAmt)
 }
+
+func (s *KeeperTestSuite) TestClaim_Simulation2() {
+	airdropSourceAddress := s.addr(0)
+	airdropTotalSupply := utils.ParseCoins("40000000000000stake")
+
+	// Create an airdrop
+	airdrop := s.createAirdrop(
+		1,
+		airdropSourceAddress,
+		airdropTotalSupply, // 50 mil - 20% initial allocation
+		[]types.ConditionType{
+			types.ConditionTypeDeposit,
+			types.ConditionTypeSwap,
+			types.ConditionTypeLiquidStake,
+			types.ConditionTypeVote,
+		},
+		s.ctx.BlockTime(),
+		s.ctx.BlockTime().AddDate(0, 6, 0),
+		true,
+	)
+
+	records := []types.ClaimRecord{
+		{
+			AirdropId:             airdrop.Id,
+			Recipient:             s.addr(1).String(),
+			InitialClaimableCoins: sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 100000000)),
+			ClaimableCoins:        sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 100000000)),
+			ClaimedConditions:     []types.ConditionType{},
+		},
+		{
+			AirdropId:             airdrop.Id,
+			Recipient:             s.addr(2).String(),
+			InitialClaimableCoins: sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 3333333)),
+			ClaimableCoins:        sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 3333333)),
+			ClaimedConditions:     []types.ConditionType{},
+		},
+	}
+
+	// Set all claim records
+	var totalInitialClaimableCoins sdk.Coins
+	for _, r := range records {
+		s.createClaimRecord(r.AirdropId, r.GetRecipient(), r.InitialClaimableCoins, r.ClaimableCoins, r.ClaimedConditions)
+
+		totalInitialClaimableCoins = totalInitialClaimableCoins.Add(r.InitialClaimableCoins...)
+	}
+
+	// Create a normal pool
+	masterAddr := s.addr(20)
+	params := s.app.LiquidityKeeper.GetParams(s.ctx)
+	s.createPair(masterAddr, "denom3", "denom4", true)
+	s.createPool(masterAddr, 1, utils.ParseCoins("1000000denom3,1000000denom4"), true)
+
+	pool, found := s.app.LiquidityKeeper.GetPool(s.ctx, 1)
+	s.Require().True(found)
+	s.Require().Equal(params.MinInitialPoolCoinSupply, s.getBalance(masterAddr, pool.PoolCoinDenom).Amount)
+
+	// Create whitelisted validators
+	s.createWhitelistedValidators([]int64{1000000, 1000000, 1000000})
+
+	// Submit a governance proposal
+	s.createTextProposal(masterAddr, "Text", "Description")
+
+	// All recipients execute their conditions
+	for i := 1; i <= len(records); i++ {
+		recipient := s.addr(i)
+
+		// The recipient makes a deposit
+		s.deposit(recipient, pool.Id, utils.ParseCoins("500000denom3,500000denom4"), true)
+		liquidity.EndBlocker(s.ctx, s.app.LiquidityKeeper)
+
+		// The recipient makes a limit order
+		s.sellLimitOrder(recipient, 1, utils.ParseDec("1.0"), sdk.NewInt(1000), 10, true)
+		liquidity.EndBlocker(s.ctx, s.app.LiquidityKeeper)
+
+		// Make a liquid staking
+		s.liquidStaking(recipient, sdk.NewInt(100_000_000), true)
+
+		// Vote
+		s.vote(recipient, 1, govtypes.OptionYes)
+	}
+
+	fmt.Println("+--------All recipients haven't claimed any conditions--------+")
+	for i, r := range s.keeper.GetAllClaimRecordsByAirdropId(s.ctx, airdrop.Id) {
+		fmt.Printf("Recipient Balance #%d: %s\n", i+1, s.getBalance(r.GetRecipient(), sdk.DefaultBondDenom).String())
+		fmt.Printf("ClaimableCoins      : %s\n", r.ClaimableCoins)
+	}
+	fmt.Println("")
+
+	// Claim deposit condition
+	for i := 1; i <= len(records); i++ {
+		recipient := s.addr(i)
+
+		// Claim deposit condition
+		_, err := s.keeper.Claim(s.ctx, types.NewMsgClaim(airdrop.Id, recipient, types.ConditionTypeDeposit))
+		s.Require().NoError(err)
+	}
+
+	fmt.Println("+--------All recipients claimed DEPOSIT condition--------+")
+	for i, r := range s.keeper.GetAllClaimRecordsByAirdropId(s.ctx, airdrop.Id) {
+		fmt.Printf("Recipient Balance #%d: %s\n", i+1, s.getBalance(r.GetRecipient(), sdk.DefaultBondDenom).String())
+		fmt.Printf("ClaimableCoins      : %s\n", r.ClaimableCoins)
+	}
+	fmt.Println("")
+
+	// Claim swap condition
+	for i := 1; i <= len(records); i++ {
+		recipient := s.addr(i)
+
+		// Claim swap condition
+		_, err := s.keeper.Claim(s.ctx, types.NewMsgClaim(airdrop.Id, recipient, types.ConditionTypeSwap))
+		s.Require().NoError(err)
+	}
+
+	fmt.Println("+--------All recipients claimed SWAP condition--------+")
+	for i, r := range s.keeper.GetAllClaimRecordsByAirdropId(s.ctx, airdrop.Id) {
+		fmt.Printf("Recipient Balance #%d: %s\n", i+1, s.getBalance(r.GetRecipient(), sdk.DefaultBondDenom).String())
+		fmt.Printf("ClaimableCoins      : %s\n", r.ClaimableCoins)
+	}
+	fmt.Println("")
+
+	// Claim liquidstake condition
+	for i := 1; i <= len(records); i++ {
+		recipient := s.addr(i)
+
+		// Claim liquid stake condition
+		_, err := s.keeper.Claim(s.ctx, types.NewMsgClaim(airdrop.Id, recipient, types.ConditionTypeLiquidStake))
+		s.Require().NoError(err)
+	}
+
+	fmt.Println("+--------All recipients claimed LIQUIDSTAKE condition--------+")
+	for i, r := range s.keeper.GetAllClaimRecordsByAirdropId(s.ctx, airdrop.Id) {
+		fmt.Printf("Recipient Balance #%d: %s\n", i+1, s.getBalance(r.GetRecipient(), sdk.DefaultBondDenom).String())
+		fmt.Printf("ClaimableCoins      : %s\n", r.ClaimableCoins)
+	}
+	fmt.Println("")
+
+	// Claim liquidstake condition
+	for i := 1; i <= len(records); i++ {
+		recipient := s.addr(i)
+
+		// Claim vote condition
+		_, err := s.keeper.Claim(s.ctx, types.NewMsgClaim(airdrop.Id, recipient, types.ConditionTypeVote))
+		s.Require().NoError(err)
+	}
+
+	fmt.Println("+--------All recipients claimed VOTE condition--------+")
+	for i, r := range s.keeper.GetAllClaimRecordsByAirdropId(s.ctx, airdrop.Id) {
+		fmt.Printf("Recipient Balance #%d: %s\n", i+1, s.getBalance(r.GetRecipient(), sdk.DefaultBondDenom).String())
+		fmt.Printf("ClaimableCoins      : %s\n", r.ClaimableCoins)
+	}
+	fmt.Println("")
+
+	// Forcefully end the airdrop event
+	s.ctx = s.ctx.WithBlockTime(airdrop.EndTime)
+	claim.EndBlocker(s.ctx, s.app.ClaimKeeper)
+
+	// Source account balances must be zero
+	s.Require().True(s.getAllBalances(airdrop.GetSourceAddress()).IsZero())
+
+	// Community pool must have received the remaining coins
+	feePool := s.app.DistrKeeper.GetFeePool(s.ctx)
+	feePoolAmt := feePool.CommunityPool.AmountOf(sdk.DefaultBondDenom)
+	s.Require().False(feePool.CommunityPool.IsZero())
+
+	// The amount must be the same
+	remainingCoins := airdropTotalSupply.Sub(totalInitialClaimableCoins)
+	remainingAmt := remainingCoins.AmountOf(sdk.DefaultBondDenom)
+	s.Require().True(remainingAmt.ToDec().Equal(feePoolAmt))
+	fmt.Println("feePoolAmt: ", feePoolAmt)
+	fmt.Println("remainingAmt: ", remainingAmt)
+}
