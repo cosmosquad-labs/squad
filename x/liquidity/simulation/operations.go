@@ -136,7 +136,7 @@ func SimulateMsgCreatePair(ak types.AccountKeeper, bk types.BankKeeper, k keeper
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePair, "all pairs have already been created"), nil, nil
 		}
 
-		accs = utils.ShuffleSimAccounts(accs)
+		accs = utils.ShuffleSimAccounts(r, accs)
 
 		var simAccount simtypes.Account
 		var spendable sdk.Coins
@@ -182,7 +182,7 @@ func SimulateMsgCreatePool(ak types.AccountKeeper, bk types.BankKeeper, k keeper
 		params := k.GetParams(ctx)
 		minDepositAmt := params.MinInitialDepositAmount
 
-		accs = utils.ShuffleSimAccounts(accs)
+		accs = utils.ShuffleSimAccounts(r, accs)
 
 		var simAccount simtypes.Account
 		var spendable sdk.Coins
@@ -240,7 +240,7 @@ func SimulateMsgDeposit(ak types.AccountKeeper, bk types.BankKeeper, k keeper.Ke
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		fundAccountsOnce(r, ctx, bk, accs)
 
-		accs = utils.ShuffleSimAccounts(accs)
+		accs = utils.ShuffleSimAccounts(r, accs)
 
 		var simAccount simtypes.Account
 		var spendable sdk.Coins
@@ -306,7 +306,7 @@ func SimulateMsgWithdraw(ak types.AccountKeeper, bk types.BankKeeper, k keeper.K
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		fundAccountsOnce(r, ctx, bk, accs)
 
-		accs = utils.ShuffleSimAccounts(accs)
+		accs = utils.ShuffleSimAccounts(r, accs)
 
 		var simAccount simtypes.Account
 		var spendable sdk.Coins
@@ -362,7 +362,7 @@ func SimulateMsgLimitOrder(ak types.AccountKeeper, bk types.BankKeeper, k keeper
 
 		params := k.GetParams(ctx)
 
-		accs = utils.ShuffleSimAccounts(accs)
+		accs = utils.ShuffleSimAccounts(r, accs)
 
 		var simAccount simtypes.Account
 		var spendable sdk.Coins
@@ -399,8 +399,8 @@ func SimulateMsgLimitOrder(ak types.AccountKeeper, bk types.BankKeeper, k keeper
 		price := amm.PriceToDownTick(utils.RandomDec(r, minPrice, maxPrice), int(params.TickPrecision))
 
 		minAmt := sdk.MaxInt(
-			types.MinCoinAmount,
-			types.MinCoinAmount.ToDec().QuoRoundUp(price).Ceil().TruncateInt(),
+			amm.MinCoinAmount,
+			amm.MinCoinAmount.ToDec().QuoRoundUp(price).Ceil().TruncateInt(),
 		)
 		amt := utils.RandomInt(r, minAmt, minAmt.MulRaw(100))
 
@@ -414,7 +414,7 @@ func SimulateMsgLimitOrder(ak types.AccountKeeper, bk types.BankKeeper, k keeper
 			offerCoin = sdk.NewCoin(pair.BaseCoinDenom, amt)
 			demandCoinDenom = pair.QuoteCoinDenom
 		}
-		if offerCoin.Amount.LT(types.MinCoinAmount) {
+		if offerCoin.Amount.LT(amm.MinCoinAmount) {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgLimitOrder, "too small offer coin amount"), nil, nil
 		}
 		if !sdk.NewCoins(offerCoin).IsAllLTE(spendable) {
@@ -453,7 +453,7 @@ func SimulateMsgMarketOrder(ak types.AccountKeeper, bk types.BankKeeper, k keepe
 
 		params := k.GetParams(ctx)
 
-		accs = utils.ShuffleSimAccounts(accs)
+		accs = utils.ShuffleSimAccounts(r, accs)
 
 		var simAccount simtypes.Account
 		var spendable sdk.Coins
@@ -477,8 +477,8 @@ func SimulateMsgMarketOrder(ak types.AccountKeeper, bk types.BankKeeper, k keepe
 		minPrice, maxPrice := minMaxPrice(k, ctx, *pair.LastPrice)
 
 		minAmt := sdk.MaxInt(
-			types.MinCoinAmount,
-			types.MinCoinAmount.ToDec().QuoRoundUp(minPrice).Ceil().TruncateInt(),
+			amm.MinCoinAmount,
+			amm.MinCoinAmount.ToDec().QuoRoundUp(minPrice).Ceil().TruncateInt(),
 		)
 		amt := utils.RandomInt(r, minAmt, minAmt.MulRaw(100))
 
@@ -492,7 +492,7 @@ func SimulateMsgMarketOrder(ak types.AccountKeeper, bk types.BankKeeper, k keepe
 			offerCoin = sdk.NewCoin(pair.BaseCoinDenom, amt)
 			demandCoinDenom = pair.QuoteCoinDenom
 		}
-		if offerCoin.Amount.LT(types.MinCoinAmount) {
+		if offerCoin.Amount.LT(amm.MinCoinAmount) {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgMarketOrder, "too small offer coin amount"), nil, nil
 		}
 		if !sdk.NewCoins(offerCoin).IsAllLTE(spendable) {
@@ -752,9 +752,9 @@ func findPairToMakeLimitOrder(r *rand.Rand, k keeper.Keeper, ctx sdk.Context, sp
 			var minOfferCoinAmt sdk.Coin
 			switch dir {
 			case types.OrderDirectionBuy:
-				minOfferCoinAmt = sdk.NewCoin(pair.QuoteCoinDenom, types.MinCoinAmount)
+				minOfferCoinAmt = sdk.NewCoin(pair.QuoteCoinDenom, amm.MinCoinAmount)
 			case types.OrderDirectionSell:
-				minOfferCoinAmt = sdk.NewCoin(pair.BaseCoinDenom, types.MinCoinAmount)
+				minOfferCoinAmt = sdk.NewCoin(pair.BaseCoinDenom, amm.MinCoinAmount)
 			}
 
 			if sdk.NewCoins(minOfferCoinAmt).IsAllLTE(spendable) {
@@ -790,9 +790,9 @@ func findPairToMakeMarketOrder(r *rand.Rand, k keeper.Keeper, ctx sdk.Context, s
 			var minOfferCoinAmt sdk.Coin
 			switch dir {
 			case types.OrderDirectionBuy:
-				minOfferCoinAmt = sdk.NewCoin(pair.QuoteCoinDenom, types.MinCoinAmount)
+				minOfferCoinAmt = sdk.NewCoin(pair.QuoteCoinDenom, amm.MinCoinAmount)
 			case types.OrderDirectionSell:
-				minOfferCoinAmt = sdk.NewCoin(pair.BaseCoinDenom, types.MinCoinAmount)
+				minOfferCoinAmt = sdk.NewCoin(pair.BaseCoinDenom, amm.MinCoinAmount)
 			}
 
 			if sdk.NewCoins(minOfferCoinAmt).IsAllLTE(spendable) {
