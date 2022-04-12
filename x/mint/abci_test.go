@@ -11,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	abcitypes "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/math"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	chain "github.com/cosmosquad-labs/squad/app"
@@ -195,6 +196,38 @@ func (s *ModuleTestSuite) TestImportExportGenesisEmpty() {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+func (s *ModuleTestSuite) TestCalculation() {
+	schedule := types.InflationSchedule{
+		StartTime: s.ctx.BlockTime(),
+		EndTime:   s.ctx.BlockTime().AddDate(1, 0, 0),
+		Amount:    sdk.NewInt(108_700000_000000),
+	}
+
+	blockDurationForInflation := 5 * time.Second
+	blockInflation := schedule.Amount.MulRaw(blockDurationForInflation.Nanoseconds())
+	fmt.Println("blockInflation: ", blockInflation) // 543500000000000000000000
+	blockInflation = blockInflation.QuoRaw(schedule.EndTime.Sub(schedule.StartTime).Nanoseconds())
+	fmt.Println("blockInflation: ", blockInflation) // 17234271
+
+	// blockDurationForInflation := 5 * time.Second
+	// blockInflation := schedule.Amount.MulRaw(int64(blockDurationForInflation.Seconds()))
+	// fmt.Println("blockInflation: ", blockInflation) // 543500000000000
+	// blockInflation = blockInflation.QuoRaw(int64(schedule.EndTime.Sub(schedule.StartTime).Seconds()))
+	// fmt.Println("blockInflation: ", blockInflation) // 17234271
+
+	lastBlockTime := s.ctx.BlockTime().Add(-5 * time.Second)
+	blockTimeThreshold := 10 * time.Second
+
+	x := s.ctx.BlockTime().Sub(lastBlockTime).Nanoseconds()
+	y := blockTimeThreshold.Nanoseconds()
+
+	fmt.Println("x: ", x)
+	fmt.Println("y: ", y)
+
+	z := math.MinInt64(x, y)
+	fmt.Println("z: ", z)
+
+}
 
 func (s *ModuleTestSuite) TestSimualte_ConstantInflation() {
 	blockTime := 5 * time.Second
@@ -281,7 +314,6 @@ func (s *ModuleTestSuite) TestSimualte_ConstantInflation() {
 	// Skip first block inflation since LastBlockTime is not set
 	s.Require().EqualValues(advanceHeight(), sdk.NewInt(0))
 
-	// after 2022-01-01 00:00:00
 	// 47564687 / 5 * (365 * 24 * 60 * 60) / 300000000000000 ~= 1
 	// 47564687 ~= 300000000000000 / (365 * 24 * 60 * 60) * 5
 	fmt.Println("advanceHeight(): ", advanceHeight())
