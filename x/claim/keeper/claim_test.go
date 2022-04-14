@@ -541,8 +541,11 @@ func (s *KeeperTestSuite) TestSimulateGasUsage_VoteCondition() {
 		s.vote(recipient, 1, govtypes.OptionYes)
 	}
 
+	// Expected gas threshold
+	expConsumedGasLimit := sdk.Gas(100_000)
+
 	// Vote proposal and claim condition
-	for i, recipient := range recipients[5000:] {
+	for _, recipient := range recipients[5000:] {
 		gasConsumedBefore := s.ctx.GasMeter().GasConsumed()
 
 		s.vote(recipient, 2, govtypes.OptionYes)
@@ -552,6 +555,6 @@ func (s *KeeperTestSuite) TestSimulateGasUsage_VoteCondition() {
 
 		gasConsumed := s.ctx.GasMeter().GasConsumed()
 		gasConsumed = gasConsumed - gasConsumedBefore
-		s.T().Logf("[%d] GasConsumed: %d\n", i+1, gasConsumed)
+		s.Require().LessOrEqual(gasConsumed, expConsumedGasLimit)
 	}
 }
