@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	"fmt"
 	"math/big"
 	"testing"
 	"time"
@@ -231,25 +230,4 @@ func TestSafeMath(t *testing.T) {
 			require.Equal(t, tc.overflow, overflow)
 		})
 	}
-}
-
-func TestCodeQLAnalysis(t *testing.T) {
-	// Directly using the bech32 constants
-	fmt.Println(sdk.Bech32MainPrefix)
-	fmt.Println(sdk.Bech32PrefixValAddr)
-	fmt.Println(sdk.Bech32PrefixConsAddr)
-
-	// Iteration over map
-	delegatorByAmount := map[string]sdk.Int{}
-	delegatorByAmount["cosmos1"] = sdk.NewInt(100000)
-	delegatorByAmount["cosmos2"] = sdk.NewInt(200000)
-	delegatorByAmount["cosmos3"] = sdk.NewInt(300000)
-
-	for _, amount := range delegatorByAmount {
-		fmt.Println(amount)
-	}
-
-	// Floating point arithmetic
-	result := float64(1) - float64(0.05)
-	fmt.Println(result)
 }
