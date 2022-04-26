@@ -190,11 +190,7 @@ message OutstandingRewards {
 message UnharvestedRewards {
   option (gogoproto.goproto_getters) = false;
 
-  string farmer = 1;
-
-  string staking_coin_denom = 2;
-
-  repeated cosmos.base.v1beta1.Coin rewards = 3
+  repeated cosmos.base.v1beta1.Coin rewards = 1
       [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
 }
 

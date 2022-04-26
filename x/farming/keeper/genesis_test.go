@@ -364,6 +364,7 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 				}
 			},
 		},
+		// TODO: write tests for UnharvestedRewards
 		{
 			"CurrentEpochRecords",
 			func() {

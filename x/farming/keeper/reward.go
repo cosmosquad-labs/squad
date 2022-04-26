@@ -198,6 +198,22 @@ func (k Keeper) DeleteUnharvestedRewards(ctx sdk.Context, farmerAcc sdk.AccAddre
 	ctx.KVStore(k.storeKey).Delete(types.GetUnharvestedRewardsKey(farmerAcc, stakingCoinDenom))
 }
 
+// IterateAllUnharvestedRewards iterates through all unharvested rewards
+// stored in the store and invokes callback function for each item.
+// Stops the iteration when the callback function returns true.
+func (k Keeper) IterateAllUnharvestedRewards(ctx sdk.Context, cb func(farmerAcc sdk.AccAddress, stakingCoinDenom string, rewards types.UnharvestedRewards) (stop bool)) {
+	iter := sdk.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.UnharvestedRewardsKeyPrefix)
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		var rewards types.UnharvestedRewards
+		k.cdc.MustUnmarshal(iter.Value(), &rewards)
+		farmerAcc, stakingCoinDenom := types.ParseUnharvestedRewardsKey(iter.Key())
+		if cb(farmerAcc, stakingCoinDenom, rewards) {
+			break
+		}
+	}
+}
+
 // IterateUnharvestedRewardsByFarmer iterates through all the unharvested rewards
 // by a farmer and invokes callback function for each item.
 // Stops the iteration when the callback function returns true.

@@ -84,6 +84,14 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {
 		k.SetOutstandingRewards(ctx, record.StakingCoinDenom, record.OutstandingRewards)
 	}
 
+	for _, record := range genState.UnharvestedRewardsRecords {
+		farmerAcc, err := sdk.AccAddressFromBech32(record.Farmer)
+		if err != nil {
+			panic(err)
+		}
+		k.SetUnharvestedRewards(ctx, farmerAcc, record.StakingCoinDenom, record.UnharvestedRewards)
+	}
+
 	for _, record := range genState.CurrentEpochRecords {
 		k.SetCurrentEpoch(ctx, record.StakingCoinDenom, record.CurrentEpoch)
 	}
@@ -180,6 +188,16 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 		return false
 	})
 
+	unharvestedRewards := []types.UnharvestedRewardsRecord{}
+	k.IterateAllUnharvestedRewards(ctx, func(farmerAcc sdk.AccAddress, stakingCoinDenom string, rewards types.UnharvestedRewards) (stop bool) {
+		unharvestedRewards = append(unharvestedRewards, types.UnharvestedRewardsRecord{
+			Farmer:             farmerAcc.String(),
+			StakingCoinDenom:   stakingCoinDenom,
+			UnharvestedRewards: rewards,
+		})
+		return false
+	})
+
 	currentEpochs := []types.CurrentEpochRecord{}
 	k.IterateCurrentEpochs(ctx, func(stakingCoinDenom string, currentEpoch uint64) (stop bool) {
 		currentEpochs = append(currentEpochs, types.CurrentEpochRecord{
@@ -204,6 +222,7 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 		totalStakings,
 		historicalRewards,
 		outstandingRewards,
+		unharvestedRewards,
 		currentEpochs,
 		k.bankKeeper.GetAllBalances(ctx, types.RewardsReserveAcc),
 		epochTime,

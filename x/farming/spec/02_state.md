@@ -191,11 +191,11 @@ the withdrawal of previous rewards.
 
 ```go
 type UnharvestedRewards struct {
-    Farmer           string
-    StakingCoinDenom string
     Rewards          sdk.Coins
 }
 ```
+
+- UnharvestedRewards: `0x34 | FarmerAddrLen (1 byte) | FarmerAddr | StakingCoinDenom -> ProtocolBuffer(UnharvestedRewards)`
 
 ## Examples
 
