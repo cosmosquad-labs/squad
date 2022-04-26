@@ -183,6 +183,20 @@ type OutstandingRewards struct {
 
 - OutstandingRewards: `0x33 | StakingCoinDenom -> ProtocolBuffer(OutstandingRewards)`
 
+## Unharvested Rewards
+
+The `UnharvestedRewards` struct holds unharvested rewards of a farmer for a staking coin denom.
+Unharvested rewards are accumulated when there was a change in staked coin amount, as a result of
+the withdrawal of previous rewards.
+
+```go
+type UnharvestedRewards struct {
+    Farmer           string
+    StakingCoinDenom string
+    Rewards          sdk.Coins
+}
+```
+
 ## Examples
 
 An example of `FixedAmountPlan`:

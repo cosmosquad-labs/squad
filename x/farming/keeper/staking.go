@@ -451,6 +451,9 @@ func (k Keeper) Unstake(ctx sdk.Context, farmerAcc sdk.AccAddress, amount sdk.Co
 			}
 
 			if found {
+				// TODO: check if the unstaking amount is equal to whole staked amount,
+				//  and either send rewards to the farmer directly or increase
+				//  unharvested rewards.
 				if _, err := k.WithdrawRewards(cacheCtx, farmerAcc, coin.Denom); err != nil {
 					return err
 				}
@@ -548,6 +551,7 @@ func (k Keeper) ProcessQueuedCoins(ctx sdk.Context, currTime time.Time) {
 
 		staking, found := k.GetStaking(ctx, stakingCoinDenom, farmerAcc)
 		if found {
+			// TODO: increase unharvested rewards
 			if _, err := k.WithdrawRewards(ctx, farmerAcc, stakingCoinDenom); err != nil {
 				panic(err)
 			}

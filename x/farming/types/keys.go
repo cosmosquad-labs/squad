@@ -40,6 +40,7 @@ var (
 	HistoricalRewardsKeyPrefix  = []byte{0x31}
 	CurrentEpochKeyPrefix       = []byte{0x32}
 	OutstandingRewardsKeyPrefix = []byte{0x33}
+	UnharvestedRewardsKeyPrefix = []byte{0x34}
 )
 
 // GetPlanKey returns kv indexing key of the plan
@@ -128,6 +129,11 @@ func GetCurrentEpochKey(stakingCoinDenom string) []byte {
 // GetOutstandingRewardsKey returns a key for an outstanding rewards record.
 func GetOutstandingRewardsKey(stakingCoinDenom string) []byte {
 	return append(OutstandingRewardsKeyPrefix, []byte(stakingCoinDenom)...)
+}
+
+// GetUnharvestedRewardsKey returns a key for unharvested rewards.
+func GetUnharvestedRewardsKey(farmerAcc sdk.AccAddress, stakingCoinDenom string) []byte {
+	return append(append(UnharvestedRewardsKeyPrefix, address.MustLengthPrefix(farmerAcc)...), stakingCoinDenom...)
 }
 
 // ParseStakingKey parses a staking key.
