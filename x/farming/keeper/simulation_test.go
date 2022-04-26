@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	chain "github.com/cosmosquad-labs/squad/app"
+	utils "github.com/cosmosquad-labs/squad/types"
 	"github.com/cosmosquad-labs/squad/x/farming"
 	"github.com/cosmosquad-labs/squad/x/farming/types"
 )
@@ -67,16 +68,26 @@ func (ba BalanceAssertion) Do(suite *KeeperTestSuite) {
 	suite.Require().True(intEq(ba.amount, balance.Amount))
 }
 
-type TotalRewardsAssertion struct {
+type AllUnharvestedRewardsAssertion struct {
 	acc     sdk.AccAddress
 	rewards sdk.Coins
 }
 
-func (tra TotalRewardsAssertion) Do(suite *KeeperTestSuite) {
-	fmt.Printf("TotalRewardsAssertion(%s, %s)\n", tra.acc, tra.rewards)
-	cacheCtx, _ := suite.ctx.CacheContext()
-	rewards := suite.keeper.AllRewards(cacheCtx, tra.acc)
-	suite.Require().True(coinsEq(tra.rewards, rewards))
+func (assertion AllUnharvestedRewardsAssertion) Do(suite *KeeperTestSuite) {
+	fmt.Printf("AllUnharvestedRewardsAssertion(%s, %s)\n", assertion.acc, assertion.rewards)
+	rewards := suite.keeper.AllUnharvestedRewards(suite.ctx, assertion.acc)
+	suite.Require().True(coinsEq(assertion.rewards, rewards))
+}
+
+type AllRewardsAssertion struct {
+	acc     sdk.AccAddress
+	rewards sdk.Coins
+}
+
+func (ara AllRewardsAssertion) Do(suite *KeeperTestSuite) {
+	fmt.Printf("AllRewardsAssertion(%s, %s)\n", ara.acc, ara.rewards)
+	rewards := suite.keeper.AllRewards(suite.ctx, ara.acc)
+	suite.Require().True(coinsEq(ara.rewards, rewards))
 }
 
 func (suite *KeeperTestSuite) TestSimulation() {
@@ -113,42 +124,44 @@ func (suite *KeeperTestSuite) TestSimulation() {
 
 	for i, action := range []Action{
 		BalanceAssertion{addrs[0], denom3, sdk.ZeroInt()},
-		TotalRewardsAssertion{addrs[0], sdk.NewCoins()},
+		AllRewardsAssertion{addrs[0], sdk.NewCoins()},
 		BalanceAssertion{addrs[1], denom3, sdk.ZeroInt()},
-		TotalRewardsAssertion{addrs[1], sdk.NewCoins()},
+		AllRewardsAssertion{addrs[1], sdk.NewCoins()},
 
 		StakeAction{addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000))},
 		StakeAction{addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom1, 500000), sdk.NewInt64Coin(denom2, 500000))},
 		AdvanceDayAction{},
 		BalanceAssertion{addrs[0], denom3, sdk.ZeroInt()},
-		TotalRewardsAssertion{addrs[0], sdk.NewCoins()},
+		AllRewardsAssertion{addrs[0], sdk.NewCoins()},
 		BalanceAssertion{addrs[1], denom3, sdk.ZeroInt()},
-		TotalRewardsAssertion{addrs[1], sdk.NewCoins()},
+		AllRewardsAssertion{addrs[1], sdk.NewCoins()},
 
 		AdvanceDayAction{},
 		BalanceAssertion{addrs[0], denom3, sdk.ZeroInt()},
-		TotalRewardsAssertion{addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom3, 200000))}, // 300000 * 2/3
+		AllRewardsAssertion{addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom3, 200000))}, // 300000 * 2/3
 		BalanceAssertion{addrs[1], denom3, sdk.ZeroInt()},
-		TotalRewardsAssertion{addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom3, 800000))}, // 300000 * 1/3 + 700000
+		AllRewardsAssertion{addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom3, 800000))}, // 300000 * 1/3 + 700000
 
 		StakeAction{addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 500000))},
 		AdvanceDayAction{},
-		BalanceAssertion{addrs[0], denom3, sdk.NewInt(400000)},
-		TotalRewardsAssertion{addrs[0], sdk.NewCoins()},
+		BalanceAssertion{addrs[0], denom3, sdk.NewInt(0)},
+		AllUnharvestedRewardsAssertion{addrs[0], utils.ParseCoins("400000denom3")},
+		AllRewardsAssertion{addrs[0], sdk.NewCoins()},
 		BalanceAssertion{addrs[1], denom3, sdk.ZeroInt()},
-		TotalRewardsAssertion{addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom3, 1600000))},
+		AllRewardsAssertion{addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom3, 1600000))},
 
 		// User can unstake multiple times before the end of the epoch
 		UnstakeAction{addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom1, 200000), sdk.NewInt64Coin(denom2, 200000))},
 		UnstakeAction{addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom1, 50000), sdk.NewInt64Coin(denom2, 50000))},
 		// 250000denom1, 250000denom2
-		BalanceAssertion{addrs[1], denom3, sdk.NewInt(1600000)},
-		TotalRewardsAssertion{addrs[1], sdk.NewCoins()},
+		BalanceAssertion{addrs[1], denom3, sdk.NewInt(0)},
+		AllUnharvestedRewardsAssertion{addrs[1], utils.ParseCoins("1600000denom3")},
+		AllRewardsAssertion{addrs[1], sdk.NewCoins()},
 		AdvanceDayAction{},
-		BalanceAssertion{addrs[0], denom3, sdk.NewInt(400000)},
-		TotalRewardsAssertion{addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom3, 257142))}, // 300000 * (6/7)
-		BalanceAssertion{addrs[1], denom3, sdk.NewInt(1600000)},
-		TotalRewardsAssertion{addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom3, 742857))}, // 300000 * (1/7) + 700000
+		AllUnharvestedRewardsAssertion{addrs[0], utils.ParseCoins("400000denom3")},
+		AllRewardsAssertion{addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom3, 257142))}, // 300000 * (6/7)
+		AllUnharvestedRewardsAssertion{addrs[1], utils.ParseCoins("1600000denom3")},
+		AllRewardsAssertion{addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom3, 742857))}, // 300000 * (1/7) + 700000
 		// 1000000 => 999999
 
 		// User can harvest multiple times, and it does not affect the rewards
@@ -158,10 +171,10 @@ func (suite *KeeperTestSuite) TestSimulation() {
 		HarvestAction{addrs[1], []string{denom1, denom2}},
 		BalanceAssertion{addrs[0], denom3, sdk.NewInt(657142)},
 		BalanceAssertion{addrs[1], denom3, sdk.NewInt(2342857)},
-		TotalRewardsAssertion{addrs[0], sdk.NewCoins()},
+		AllRewardsAssertion{addrs[0], sdk.NewCoins()},
 		AdvanceDayAction{},
-		TotalRewardsAssertion{addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom3, 257142))},
-		TotalRewardsAssertion{addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom3, 742857))},
+		AllRewardsAssertion{addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom3, 257142))},
+		AllRewardsAssertion{addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom3, 742857))},
 	} {
 		suite.Run(fmt.Sprintf("%d", i), func() {
 			action.Do(suite)

@@ -288,6 +288,36 @@ func (s *keysTestSuite) TestGetHistoricalRewardsKey() {
 	}
 }
 
+func (s *keysTestSuite) TestUnharvestedRewardsKey() {
+	for i, tc := range []struct {
+		farmerAcc        sdk.AccAddress
+		stakingCoinDenom string
+		expected         []byte
+	}{
+		{
+			sdk.AccAddress(crypto.AddressHash([]byte("farmer1"))),
+			sdk.DefaultBondDenom,
+			[]byte{0x34, 0x14, 0xd3, 0x7a, 0x85, 0xec, 0x75, 0xf, 0x3, 0xaa, 0xe5, 0x36, 0xcf, 0x1b,
+				0xb7, 0x59, 0xb7, 0xbc, 0xbd, 0x5c, 0xfe, 0x3d, 0x73, 0x74, 0x61, 0x6b, 0x65},
+		},
+		{
+			sdk.AccAddress(crypto.AddressHash([]byte("farmer2"))),
+			"denom1",
+			[]byte{0x34, 0x14, 0x15, 0x1, 0x20, 0x25, 0x5a, 0x5d, 0xe8, 0x6b, 0xa1, 0xed, 0xfb, 0x6f,
+				0x45, 0x48, 0xcb, 0xfb, 0x6f, 0x28, 0x66, 0xf3, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x31},
+		},
+	} {
+		s.Run(fmt.Sprint(i), func() {
+			key := types.GetUnharvestedRewardsKey(tc.farmerAcc, tc.stakingCoinDenom)
+			s.Require().Equal(tc.expected, key)
+
+			farmerAcc, stakingCoinDenom := types.ParseUnharvestedRewardsKey(key)
+			s.Require().True(tc.farmerAcc.Equals(farmerAcc))
+			s.Require().Equal(tc.stakingCoinDenom, stakingCoinDenom)
+		})
+	}
+}
+
 func (s *keysTestSuite) TestGetCurrentEpochKey() {
 	// key0
 	stakingCoinDenom0 := ""

@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	chain "github.com/cosmosquad-labs/squad/app"
+	utils "github.com/cosmosquad-labs/squad/types"
 	"github.com/cosmosquad-labs/squad/x/farming"
 	"github.com/cosmosquad-labs/squad/x/farming/types"
 
@@ -515,5 +516,60 @@ func (suite *KeeperTestSuite) TestAllocateRewardsZeroTotalStakings() {
 	suite.advanceEpochDays()
 
 	_, found := suite.keeper.GetTotalStakings(suite.ctx, denom1)
+	suite.Require().False(found)
+}
+
+func (suite *KeeperTestSuite) TestManualHarvestForWithdrawnRewards() {
+	_, err := suite.createPublicFixedAmountPlan(
+		suite.addrs[4], suite.addrs[4], parseDecCoins("1denom1"),
+		sampleStartTime, sampleEndTime, utils.ParseCoins("1000000denom3"))
+	suite.Require().NoError(err)
+
+	suite.ctx = suite.ctx.WithBlockTime(utils.ParseTime("2022-04-01T13:00:00Z"))
+	suite.Stake(suite.addrs[0], utils.ParseCoins("1000000denom1"))
+	suite.Stake(suite.addrs[1], utils.ParseCoins("1000000denom1"))
+
+	// Queued coins -> staked
+	suite.ctx = suite.ctx.WithBlockTime(utils.ParseTime("2022-04-02T13:00:00Z"))
+	farming.EndBlocker(suite.ctx, suite.keeper)
+
+	// Rewards distribution
+	suite.ctx = suite.ctx.WithBlockTime(utils.ParseTime("2022-04-03T00:00:00Z"))
+	farming.EndBlocker(suite.ctx, suite.keeper)
+
+	// More queued coins
+	suite.ctx = suite.ctx.WithBlockTime(utils.ParseTime("2022-04-03T21:00:00Z"))
+	suite.Stake(suite.addrs[0], utils.ParseCoins("2000000denom1"))
+
+	// Rewards distribution for original staked coins(1000000denom1)
+	suite.ctx = suite.ctx.WithBlockTime(utils.ParseTime("2022-04-04T00:00:00Z"))
+	farming.EndBlocker(suite.ctx, suite.keeper)
+
+	// Queued coins -> staked
+	suite.ctx = suite.ctx.WithBlockTime(utils.ParseTime("2022-04-04T21:00:00Z"))
+	farming.EndBlocker(suite.ctx, suite.keeper)
+
+	unharvested, found := suite.keeper.GetUnharvestedRewards(suite.ctx, suite.addrs[0], "denom1")
+	suite.Require().True(found)
+	suite.Require().True(coinsEq(utils.ParseCoins("1000000denom3"), unharvested.Rewards))
+
+	// Rewards distribution
+	suite.ctx = suite.ctx.WithBlockTime(utils.ParseTime("2022-04-05T00:00:00Z"))
+	farming.EndBlocker(suite.ctx, suite.keeper)
+
+	unharvested, found = suite.keeper.GetUnharvestedRewards(suite.ctx, suite.addrs[0], "denom1")
+	suite.Require().True(found)
+	suite.Require().True(coinsEq(utils.ParseCoins("1000000denom3"), unharvested.Rewards))
+
+	rewards := suite.AllRewards(suite.addrs[0])
+	suite.Require().True(coinsEq(utils.ParseCoins("750000denom3"), rewards))
+
+	suite.ctx = suite.ctx.WithBlockTime(utils.ParseTime("2022-04-05T09:00:00Z"))
+	balancesBefore := suite.app.BankKeeper.GetAllBalances(suite.ctx, suite.addrs[0])
+	suite.Harvest(suite.addrs[0], []string{"denom1"})
+	balancesAfter := suite.app.BankKeeper.GetAllBalances(suite.ctx, suite.addrs[0])
+	suite.Require().True(coinsEq(utils.ParseCoins("1750000denom3"), balancesAfter.Sub(balancesBefore)))
+
+	_, found = suite.keeper.GetUnharvestedRewards(suite.ctx, suite.addrs[0], "denom1")
 	suite.Require().False(found)
 }

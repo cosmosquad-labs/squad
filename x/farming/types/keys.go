@@ -136,6 +136,12 @@ func GetUnharvestedRewardsKey(farmerAcc sdk.AccAddress, stakingCoinDenom string)
 	return append(append(UnharvestedRewardsKeyPrefix, address.MustLengthPrefix(farmerAcc)...), stakingCoinDenom...)
 }
 
+// GetUnharvestedRewardsPrefix returns a key to iterate unharvested rewards
+// by a farmer.
+func GetUnharvestedRewardsPrefix(farmerAcc sdk.AccAddress) []byte {
+	return append(UnharvestedRewardsKeyPrefix, address.MustLengthPrefix(farmerAcc)...)
+}
+
 // ParseStakingKey parses a staking key.
 func ParseStakingKey(key []byte) (stakingCoinDenom string, farmerAcc sdk.AccAddress) {
 	if !bytes.HasPrefix(key, StakingKeyPrefix) {
@@ -227,6 +233,16 @@ func ParseOutstandingRewardsKey(key []byte) (stakingCoinDenom string) {
 		panic("key does not have proper prefix")
 	}
 	stakingCoinDenom = string(key[1:])
+	return
+}
+
+func ParseUnharvestedRewardsKey(key []byte) (farmerAcc sdk.AccAddress, stakingCoinDenom string) {
+	if !bytes.HasPrefix(key, UnharvestedRewardsKeyPrefix) {
+		panic("key does not have proper prefix")
+	}
+	addrLen := key[1]
+	farmerAcc = key[2 : 2+addrLen]
+	stakingCoinDenom = string(key[2+addrLen:])
 	return
 }
 

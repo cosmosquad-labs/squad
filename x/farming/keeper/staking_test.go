@@ -377,7 +377,8 @@ func (suite *KeeperTestSuite) TestUnstakeInsufficientFunds() {
 	suite.ctx = suite.ctx.WithBlockTime(types.ParseTime("2022-01-01T00:00:00Z"))
 
 	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)))
-	err := suite.keeper.Unstake(suite.ctx, suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1100000)))
+	cacheCtx, _ := suite.ctx.CacheContext()
+	err := suite.keeper.Unstake(cacheCtx, suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1100000)))
 	suite.Require().ErrorIs(err, sdkerrors.ErrInsufficientFunds)
 	suite.Require().EqualError(err, "not enough staked coins, 1000000denom1 is less than 1100000denom1: insufficient funds")
 

@@ -46,5 +46,5 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 		}
 	}
 
-	k.ProcessQueuedCoins(ctx, ctx.BlockTime())
+	k.ProcessQueuedCoins(ctx, ctx.BlockTime()) // TODO: should this happen in begin-block?
 }
