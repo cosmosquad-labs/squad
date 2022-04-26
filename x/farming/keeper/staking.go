@@ -417,17 +417,15 @@ func (k Keeper) Stake(ctx sdk.Context, farmerAcc sdk.AccAddress, amount sdk.Coin
 // It causes accumulated rewards to be withdrawn to the farmer.
 func (k Keeper) Unstake(ctx sdk.Context, farmerAcc sdk.AccAddress, amount sdk.Coins) error {
 	for _, coin := range amount {
-		cacheCtx, writeCache := ctx.CacheContext()
-
 		unstaked := sdk.ZeroInt()
-		k.IterateQueuedStakingsByFarmerAndDenomReverse(cacheCtx, farmerAcc, coin.Denom, func(endTime time.Time, queuedStaking types.QueuedStaking) (stop bool) {
-			if endTime.After(cacheCtx.BlockTime()) { // sanity check
+		k.IterateQueuedStakingsByFarmerAndDenomReverse(ctx, farmerAcc, coin.Denom, func(endTime time.Time, queuedStaking types.QueuedStaking) (stop bool) {
+			if endTime.After(ctx.BlockTime()) { // sanity check
 				amtToUnstake := sdk.MinInt(coin.Amount.Sub(unstaked), queuedStaking.Amount)
 				queuedStaking.Amount = queuedStaking.Amount.Sub(amtToUnstake)
 				if queuedStaking.Amount.IsZero() {
-					k.DeleteQueuedStaking(cacheCtx, endTime, coin.Denom, farmerAcc)
+					k.DeleteQueuedStaking(ctx, endTime, coin.Denom, farmerAcc)
 				} else {
-					k.SetQueuedStaking(cacheCtx, endTime, coin.Denom, farmerAcc, queuedStaking)
+					k.SetQueuedStaking(ctx, endTime, coin.Denom, farmerAcc, queuedStaking)
 				}
 				unstaked = unstaked.Add(amtToUnstake)
 				if unstaked.Equal(coin.Amount) { // Fully unstaked from queued stakings, so stop.
@@ -440,7 +438,7 @@ func (k Keeper) Unstake(ctx sdk.Context, farmerAcc sdk.AccAddress, amount sdk.Co
 		amtToUnstake := coin.Amount.Sub(unstaked)
 		if amtToUnstake.IsPositive() {
 			// If there is more to unstake, then unstake from staked coins.
-			staking, found := k.GetStaking(cacheCtx, coin.Denom, farmerAcc)
+			staking, found := k.GetStaking(ctx, coin.Denom, farmerAcc)
 			if !found {
 				staking.Amount = sdk.ZeroInt()
 			}
@@ -454,24 +452,22 @@ func (k Keeper) Unstake(ctx sdk.Context, farmerAcc sdk.AccAddress, amount sdk.Co
 				// TODO: check if the unstaking amount is equal to whole staked amount,
 				//  and either send rewards to the farmer directly or increase
 				//  unharvested rewards.
-				if _, err := k.WithdrawRewards(cacheCtx, farmerAcc, coin.Denom); err != nil {
+				if _, err := k.WithdrawRewards(ctx, farmerAcc, coin.Denom); err != nil {
 					return err
 				}
 			}
 
 			staking.Amount = staking.Amount.Sub(amtToUnstake)
 			if staking.Amount.IsPositive() {
-				currentEpoch := k.GetCurrentEpoch(cacheCtx, coin.Denom)
+				currentEpoch := k.GetCurrentEpoch(ctx, coin.Denom)
 				staking.StartingEpoch = currentEpoch
-				k.SetStaking(cacheCtx, coin.Denom, farmerAcc, staking)
+				k.SetStaking(ctx, coin.Denom, farmerAcc, staking)
 			} else {
-				k.DeleteStaking(cacheCtx, coin.Denom, farmerAcc)
+				k.DeleteStaking(ctx, coin.Denom, farmerAcc)
 			}
 
-			k.DecreaseTotalStakings(cacheCtx, coin.Denom, amtToUnstake)
+			k.DecreaseTotalStakings(ctx, coin.Denom, amtToUnstake)
 		}
-
-		writeCache()
 	}
 
 	if err := k.ReleaseStakingCoins(ctx, farmerAcc, amount); err != nil {
