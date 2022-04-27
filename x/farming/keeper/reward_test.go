@@ -573,3 +573,44 @@ func (suite *KeeperTestSuite) TestManualHarvestForWithdrawnRewards() {
 	_, found = suite.keeper.GetUnharvestedRewards(suite.ctx, suite.addrs[0], "denom1")
 	suite.Require().False(found)
 }
+
+func (suite *KeeperTestSuite) TestWholeUnstakeHarvest() {
+	_, err := suite.createPublicFixedAmountPlan(
+		suite.addrs[4], suite.addrs[4], parseDecCoins("0.5denom1,0.5denom2"),
+		sampleStartTime, sampleEndTime, utils.ParseCoins("1000000denom3"))
+	suite.Require().NoError(err)
+
+	suite.Stake(suite.addrs[0], utils.ParseCoins("1000000denom1,1000000denom2"))
+	suite.advanceEpochDays() // Queued -> staked
+	suite.advanceEpochDays() // Rewards distribution
+
+	suite.Stake(suite.addrs[0], utils.ParseCoins("1000000denom1,1000000denom2"))
+	suite.advanceEpochDays() // Rewards distribution, queued -> staked, new UnharvestedRewards
+	suite.advanceEpochDays() // Rewards distribution
+
+	rewards := suite.keeper.AllRewards(suite.ctx, suite.addrs[0])
+	suite.Require().True(coinsEq(utils.ParseCoins("1000000denom3"), rewards))
+	unharvested := suite.keeper.AllUnharvestedRewards(suite.ctx, suite.addrs[0])
+	suite.Require().True(coinsEq(utils.ParseCoins("2000000denom3"), unharvested))
+
+	// Not unstaking whole staked amount.
+	suite.Unstake(suite.addrs[0], utils.ParseCoins("1500000denom1"))
+
+	u, found := suite.keeper.GetUnharvestedRewards(suite.ctx, suite.addrs[0], "denom1")
+	suite.Require().True(found)
+	suite.Require().True(coinsEq(utils.ParseCoins("1500000denom3"), u.Rewards))
+	unharvested = suite.keeper.AllUnharvestedRewards(suite.ctx, suite.addrs[0])
+	suite.Require().True(coinsEq(utils.ParseCoins("2500000denom3"), unharvested))
+
+	suite.advanceEpochDays() // Rewards distribution
+	// Unstaking whole remaining staked amount.
+	balancesBefore := suite.app.BankKeeper.GetAllBalances(suite.ctx, suite.addrs[0])
+	suite.Unstake(suite.addrs[0], utils.ParseCoins("500000denom1"))
+	balancesAfter := suite.app.BankKeeper.GetAllBalances(suite.ctx, suite.addrs[0])
+	suite.Require().True(coinsEq(utils.ParseCoins("500000denom1,2000000denom3"), balancesAfter.Sub(balancesBefore)))
+
+	balancesBefore = suite.app.BankKeeper.GetAllBalances(suite.ctx, suite.addrs[0])
+	suite.Unstake(suite.addrs[0], utils.ParseCoins("2000000denom2"))
+	balancesAfter = suite.app.BankKeeper.GetAllBalances(suite.ctx, suite.addrs[0])
+	suite.Require().True(coinsEq(utils.ParseCoins("2000000denom2,2000000denom3"), balancesAfter.Sub(balancesBefore)))
+}

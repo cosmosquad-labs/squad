@@ -416,6 +416,7 @@ func (k Keeper) Stake(ctx sdk.Context, farmerAcc sdk.AccAddress, amount sdk.Coin
 // Unstake unstakes an amount of staking coins from the staking reserve account.
 // It causes accumulated rewards to be withdrawn to the farmer.
 func (k Keeper) Unstake(ctx sdk.Context, farmerAcc sdk.AccAddress, amount sdk.Coins) error {
+	totalUnharvestedRewards := sdk.Coins{}
 	for _, coin := range amount {
 		unstaked := sdk.ZeroInt()
 		k.IterateQueuedStakingsByFarmerAndDenomReverse(ctx, farmerAcc, coin.Denom, func(endTime time.Time, queuedStaking types.QueuedStaking) (stop bool) {
@@ -456,6 +457,14 @@ func (k Keeper) Unstake(ctx sdk.Context, farmerAcc sdk.AccAddress, amount sdk.Co
 				if _, err := k.WithdrawRewards(ctx, farmerAcc, coin.Denom, harvest); err != nil {
 					return err
 				}
+
+				if harvest {
+					unharvested, found := k.GetUnharvestedRewards(ctx, farmerAcc, coin.Denom)
+					if found {
+						totalUnharvestedRewards = totalUnharvestedRewards.Add(unharvested.Rewards...)
+						k.DeleteUnharvestedRewards(ctx, farmerAcc, coin.Denom)
+					}
+				}
 			}
 
 			staking.Amount = staking.Amount.Sub(amtToUnstake)
@@ -469,6 +478,10 @@ func (k Keeper) Unstake(ctx sdk.Context, farmerAcc sdk.AccAddress, amount sdk.Co
 
 			k.DecreaseTotalStakings(ctx, coin.Denom, amtToUnstake)
 		}
+	}
+
+	if err := k.bankKeeper.SendCoins(ctx, types.UnharvestedRewardsReserveAcc, farmerAcc, totalUnharvestedRewards); err != nil {
+		return err
 	}
 
 	if err := k.ReleaseStakingCoins(ctx, farmerAcc, amount); err != nil {
