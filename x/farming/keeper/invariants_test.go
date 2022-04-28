@@ -3,6 +3,7 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	utils "github.com/cosmosquad-labs/squad/types"
 	farmingkeeper "github.com/cosmosquad-labs/squad/x/farming/keeper"
 	"github.com/cosmosquad-labs/squad/x/farming/types"
 )
@@ -249,6 +250,62 @@ func (suite *KeeperTestSuite) TestOutstandingRewardsAmountInvariant() {
 		ctx, types.RewardsReserveAcc, suite.addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom3, 2)))
 	suite.Require().NoError(err)
 	_, broken = farmingkeeper.OutstandingRewardsAmountInvariant(k)(ctx)
+	suite.Require().True(broken)
+}
+
+func (suite *KeeperTestSuite) TestUnharvestedRewardsAmountInvariant() {
+	k, ctx := suite.keeper, suite.ctx
+
+	_, err := suite.createPublicFixedAmountPlan(
+		suite.addrs[4], suite.addrs[4], parseDecCoins("1denom1"),
+		sampleStartTime, sampleEndTime, utils.ParseCoins("1000000denom3"))
+	suite.Require().NoError(err)
+
+	suite.Stake(suite.addrs[0], utils.ParseCoins("1000000denom1"))
+	suite.advanceEpochDays()
+	suite.advanceEpochDays()
+
+	suite.Stake(suite.addrs[0], utils.ParseCoins("1000000denom1"))
+	suite.advanceEpochDays()
+
+	_, broken := farmingkeeper.UnharvestedRewardsAmountInvariant(k)(ctx)
+	suite.Require().False(broken)
+
+	// Unharvested rewards amount > balances of unharvested rewards reserve account.
+	// Should not be OK.
+	k.SetUnharvestedRewards(ctx, suite.addrs[0], denom1, types.UnharvestedRewards{
+		Rewards: utils.ParseCoins("2000001denom3"),
+	})
+	_, broken = farmingkeeper.UnharvestedRewardsAmountInvariant(k)(ctx)
+	suite.Require().True(broken)
+
+	// Unharvested rewards amount <= balances of unharvested rewards reserve account.
+	// Should be OK.
+	k.SetUnharvestedRewards(ctx, suite.addrs[0], denom1, types.UnharvestedRewards{
+		Rewards: utils.ParseCoins("1999999denom3"),
+	})
+	_, broken = farmingkeeper.UnharvestedRewardsAmountInvariant(k)(ctx)
+	suite.Require().False(broken)
+
+	// Reset.
+	k.SetUnharvestedRewards(ctx, suite.addrs[0], denom1, types.UnharvestedRewards{
+		Rewards: utils.ParseCoins("2000000denom3"),
+	})
+	_, broken = farmingkeeper.UnharvestedRewardsAmountInvariant(k)(ctx)
+	suite.Require().False(broken)
+
+	// Send coins into the unharvested rewards reserve account. Should be OK.
+	err = suite.app.BankKeeper.SendCoins(
+		ctx, suite.addrs[1], types.UnharvestedRewardsReserveAcc, utils.ParseCoins("1denom3"))
+	suite.Require().NoError(err)
+	_, broken = farmingkeeper.UnharvestedRewardsAmountInvariant(k)(ctx)
+	suite.Require().False(broken)
+
+	// Send coins from the unharvested rewards reserve account to another acc. Should not be OK.
+	err = suite.app.BankKeeper.SendCoins(
+		ctx, types.UnharvestedRewardsReserveAcc, suite.addrs[1], utils.ParseCoins("2denom3"))
+	suite.Require().NoError(err)
+	_, broken = farmingkeeper.UnharvestedRewardsAmountInvariant(k)(ctx)
 	suite.Require().True(broken)
 }
 

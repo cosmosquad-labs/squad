@@ -119,6 +119,10 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {
 		panic(err)
 	}
 
+	if err := k.ValidateUnharvestedRewardsAmount(ctx); err != nil {
+		panic(err)
+	}
+
 	writeCache()
 }
 

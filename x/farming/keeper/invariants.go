@@ -23,6 +23,8 @@ func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 		NonNegativeOutstandingRewardsInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "outstanding-rewards-amount",
 		OutstandingRewardsAmountInvariant(k))
+	ir.RegisterRoute(types.ModuleName, "unharvested-rewards-amount",
+		UnharvestedRewardsAmountInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "non-negative-historical-rewards",
 		NonNegativeHistoricalRewardsInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "positive-total-stakings-amount",
@@ -38,6 +40,7 @@ func AllInvariants(k Keeper) sdk.Invariant {
 			RemainingRewardsAmountInvariant,
 			NonNegativeOutstandingRewardsInvariant,
 			OutstandingRewardsAmountInvariant,
+			UnharvestedRewardsAmountInvariant,
 			NonNegativeHistoricalRewardsInvariant,
 			PositiveTotalStakingsAmountInvariant,
 		} {
@@ -152,6 +155,28 @@ func OutstandingRewardsAmountInvariant(k Keeper) sdk.Invariant {
 			fmt.Sprintf("balance of rewards reserve pool is less than outstanding rewards\n"+
 				"\texpected minimum amount of balance: %s\n"+
 				"\tbalance: %s", totalRewards, balances,
+			),
+		), broken
+	}
+}
+
+// UnharvestedRewardsAmountInvariant checks that UnharvestedRewards are
+// consistent with rewards that can be withdrawn.
+func UnharvestedRewardsAmountInvariant(k Keeper) sdk.Invariant {
+	return func(ctx sdk.Context) (string, bool) {
+		totalRewards := sdk.Coins{}
+		k.IterateAllUnharvestedRewards(ctx, func(_ sdk.AccAddress, _ string, rewards types.UnharvestedRewards) (stop bool) {
+			totalRewards = totalRewards.Add(rewards.Rewards...)
+			return false
+		})
+		balances := k.bankKeeper.SpendableCoins(ctx, types.UnharvestedRewardsReserveAcc)
+		_, hasNeg := balances.SafeSub(totalRewards)
+		broken := hasNeg
+		return sdk.FormatInvariant(
+			types.ModuleName, "wrong unharvested rewards amount",
+			fmt.Sprintf("balances of unharvested rewards reserve account is less than total unharvested rewards\n"+
+				"\texpected minimum balances: %s\n"+
+				"\tactual balances: %s", totalRewards, balances,
 			),
 		), broken
 	}

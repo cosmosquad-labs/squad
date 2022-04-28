@@ -641,3 +641,22 @@ func (k Keeper) ValidateOutstandingRewardsAmount(ctx sdk.Context) error {
 
 	return nil
 }
+
+// ValidateUnharvestedRewardsAmount checks that the balance of the
+// unharvested rewards reserve pool is greater than(or equal to) the total
+// amount of unharvested rewards.
+func (k Keeper) ValidateUnharvestedRewardsAmount(ctx sdk.Context) error {
+	totalUnharvestedRewards := sdk.Coins{}
+	k.IterateAllUnharvestedRewards(ctx, func(farmerAcc sdk.AccAddress, stakingCoinDenom string, rewards types.UnharvestedRewards) (stop bool) {
+		totalUnharvestedRewards = totalUnharvestedRewards.Add(rewards.Rewards...)
+		return false
+	})
+
+	reserveBalances := k.bankKeeper.SpendableCoins(ctx, types.UnharvestedRewardsReserveAcc)
+	_, hasNeg := reserveBalances.SafeSub(totalUnharvestedRewards)
+	if hasNeg {
+		return types.ErrInvalidUnharvestedRewardsAmount
+	}
+
+	return nil
+}
