@@ -268,8 +268,15 @@ func (k Keeper) DecreaseTotalStakings(ctx sdk.Context, stakingCoinDenom string, 
 	if totalStakings.Amount.LT(amount) {
 		panic("cannot set negative total stakings")
 	}
-	totalStakings.Amount = totalStakings.Amount.Sub(amount)
-	k.SetTotalStakings(ctx, stakingCoinDenom, totalStakings)
+	if amount.Equal(totalStakings.Amount) {
+		k.DeleteTotalStakings(ctx, stakingCoinDenom)
+		if err := k.afterStakingCoinRemoved(ctx, stakingCoinDenom); err != nil {
+			panic(err)
+		}
+	} else {
+		totalStakings.Amount = totalStakings.Amount.Sub(amount)
+		k.SetTotalStakings(ctx, stakingCoinDenom, totalStakings)
+	}
 }
 
 // IterateTotalStakings iterates through all total stakings
@@ -573,20 +580,6 @@ func (k Keeper) ProcessQueuedCoins(ctx sdk.Context, currTime time.Time) {
 			StartingEpoch: k.GetCurrentEpoch(ctx, stakingCoinDenom),
 		})
 	}
-}
-
-// PruneTotalStakings deletes total stakings with amount of zero and calls
-// cleanup logic for each staking coin denom.
-func (k Keeper) PruneTotalStakings(ctx sdk.Context) {
-	k.IterateTotalStakings(ctx, func(stakingCoinDenom string, totalStakings types.TotalStakings) (stop bool) {
-		if totalStakings.Amount.IsZero() {
-			k.DeleteTotalStakings(ctx, stakingCoinDenom)
-			if err := k.afterStakingCoinRemoved(ctx, stakingCoinDenom); err != nil {
-				panic(err)
-			}
-		}
-		return false
-	})
 }
 
 // ValidateStakingReservedAmount checks that the balance of

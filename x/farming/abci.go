@@ -15,7 +15,7 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 
 	logger := k.Logger(ctx)
 
-	k.PruneTotalStakings(ctx)
+	k.ProcessQueuedCoins(ctx, ctx.BlockTime())
 
 	if err := k.TerminateEndedPlans(ctx); err != nil {
 		logger.Error("failed to terminate plan", "err", err.Error())
@@ -46,5 +46,4 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 		}
 	}
 
-	k.ProcessQueuedCoins(ctx, ctx.BlockTime()) // TODO: should this happen in begin-block?
 }
