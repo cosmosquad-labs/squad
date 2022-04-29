@@ -718,9 +718,6 @@ func (s *QueryCmdTestSuite) SetupSuite() {
 
 	_, err = MsgAdvanceEpochExec(val.ClientCtx, val.Address.String())
 	s.Require().NoError(err)
-
-	_, err = MsgAdvanceEpochExec(val.ClientCtx, val.Address.String())
-	s.Require().NoError(err)
 }
 
 func (s *QueryCmdTestSuite) TearDownSuite() {
