@@ -266,7 +266,7 @@ func (suite *KeeperTestSuite) TestAllocateRewards_FixedAmountPlanAllBalances() {
 	suite.advanceEpochDays()
 	suite.advanceEpochDays()
 
-	rewards := suite.keeper.AllRewards(suite.ctx, suite.addrs[0])
+	rewards := suite.AllRewards(suite.addrs[0])
 	suite.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(denom3, 1000000)), rewards))
 }
 
@@ -284,7 +284,7 @@ func (suite *KeeperTestSuite) TestAllocateRewards_RatioPlanAllBalances() {
 	suite.advanceEpochDays()
 	suite.advanceEpochDays()
 
-	rewards := suite.keeper.AllRewards(suite.ctx, suite.addrs[0])
+	rewards := suite.AllRewards(suite.addrs[0])
 	suite.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(denom3, 1000000)), rewards))
 }
 
@@ -303,7 +303,7 @@ func (suite *KeeperTestSuite) TestAllocateRewards_FixedAmountPlanOverBalances() 
 	suite.advanceEpochDays()
 	suite.advanceEpochDays()
 
-	rewards := suite.keeper.AllRewards(suite.ctx, suite.addrs[0])
+	rewards := suite.AllRewards(suite.addrs[0])
 	suite.Require().True(rewards.IsZero())
 }
 
@@ -321,7 +321,7 @@ func (suite *KeeperTestSuite) TestAllocateRewards_RatioPlanOverBalances() {
 	suite.advanceEpochDays()
 	suite.advanceEpochDays()
 
-	rewards := suite.keeper.AllRewards(suite.ctx, suite.addrs[0])
+	rewards := suite.AllRewards(suite.addrs[0])
 	suite.Require().True(rewards.IsZero())
 }
 
@@ -374,7 +374,7 @@ func (suite *KeeperTestSuite) TestHarvest() {
 	err = suite.keeper.AllocateRewards(suite.ctx)
 	suite.Require().NoError(err)
 
-	rewards := suite.keeper.AllRewards(suite.ctx, suite.addrs[0])
+	rewards := suite.AllRewards(suite.addrs[0])
 
 	err = suite.keeper.Harvest(suite.ctx, suite.addrs[0], []string{denom1})
 	suite.Require().NoError(err)
@@ -382,7 +382,7 @@ func (suite *KeeperTestSuite) TestHarvest() {
 	balancesAfter := suite.app.BankKeeper.GetAllBalances(suite.ctx, suite.addrs[0])
 	suite.Require().True(coinsEq(balancesBefore.Add(rewards...), balancesAfter))
 	suite.Require().True(suite.app.BankKeeper.GetAllBalances(suite.ctx, types.RewardsReserveAcc).IsZero())
-	suite.Require().True(suite.keeper.AllRewards(suite.ctx, suite.addrs[0]).IsZero())
+	suite.Require().True(suite.AllRewards(suite.addrs[0]).IsZero())
 }
 
 func (suite *KeeperTestSuite) TestMultipleHarvest() {
@@ -423,12 +423,14 @@ func (suite *KeeperTestSuite) TestHistoricalRewards() {
 	suite.Equal(count, 0)
 
 	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)))
-	// Advancing epoch here marks queued staking coins as staked.
+	// Advancing epoch here marks queued staking coins as staked,
+	// and the farmer is eligible to get rewards.
+	// This will create 1 historical rewards records.
 	suite.advanceEpochDays()
 
-	// After a farmer has staked(not queued) coins, historical rewards records will be created for each epoch.
-	// Here we advance epoch three times, and this will create 3 historical rewards records.
-	suite.advanceEpochDays()
+	// After the farmer has staked(not queued) coins, historical rewards records
+	// will be created for each epoch.
+	// Here we advance epoch two times, and this will create 2 historical rewards records.
 	suite.advanceEpochDays()
 	suite.advanceEpochDays()
 
@@ -588,9 +590,9 @@ func (suite *KeeperTestSuite) TestWholeUnstakeHarvest() {
 	suite.advanceEpochDays() // queued -> staked(new UnharvestedRewards), rewards distribution
 	suite.advanceEpochDays() // Rewards distribution
 
-	rewards := suite.keeper.AllRewards(suite.ctx, suite.addrs[0])
+	rewards := suite.AllRewards(suite.addrs[0])
 	suite.Require().True(coinsEq(utils.ParseCoins("2000000denom3"), rewards))
-	unharvested := suite.keeper.AllUnharvestedRewards(suite.ctx, suite.addrs[0])
+	unharvested := suite.allUnharvestedRewards(suite.addrs[0])
 	suite.Require().True(coinsEq(utils.ParseCoins("1000000denom3"), unharvested))
 
 	// Not unstaking whole staked amount.
@@ -599,7 +601,7 @@ func (suite *KeeperTestSuite) TestWholeUnstakeHarvest() {
 	u, found := suite.keeper.GetUnharvestedRewards(suite.ctx, suite.addrs[0], "denom1")
 	suite.Require().True(found)
 	suite.Require().True(coinsEq(utils.ParseCoins("1500000denom3"), u.Rewards))
-	unharvested = suite.keeper.AllUnharvestedRewards(suite.ctx, suite.addrs[0])
+	unharvested = suite.allUnharvestedRewards(suite.addrs[0])
 	suite.Require().True(coinsEq(utils.ParseCoins("2000000denom3"), unharvested))
 
 	suite.advanceEpochDays() // Rewards distribution

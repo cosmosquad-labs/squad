@@ -235,22 +235,33 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	}
 
 	suite.ctx = suite.ctx.WithBlockTime(types.ParseTime("2021-08-04T23:00:00Z"))
-	farming.EndBlocker(suite.ctx, suite.keeper)
 	suite.Stake(suite.addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000), sdk.NewInt64Coin(denom2, 500000)))
 	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000), sdk.NewInt64Coin(denom2, 1500000)))
+	farming.EndBlocker(suite.ctx, suite.keeper)
+
+	suite.ctx = suite.ctx.WithBlockTime(types.ParseTime("2021-08-05T00:00:00Z"))
+	farming.EndBlocker(suite.ctx, suite.keeper) // next epoch
+
 	suite.ctx = suite.ctx.WithBlockTime(types.ParseTime("2021-08-05T23:00:00Z"))
 	farming.EndBlocker(suite.ctx, suite.keeper) // queued coins => staked coins
+
 	suite.ctx = suite.ctx.WithBlockTime(types.ParseTime("2021-08-06T00:00:00Z"))
 	farming.EndBlocker(suite.ctx, suite.keeper) // allocate rewards
+
 	suite.ctx = suite.ctx.WithBlockTime(utils.ParseTime("2021-08-06T03:00:00Z"))
 	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 2000000), sdk.NewInt64Coin(denom2, 1500000)))
 	suite.Stake(suite.addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000), sdk.NewInt64Coin(denom2, 500000)))
+	farming.EndBlocker(suite.ctx, suite.keeper)
+
 	suite.ctx = suite.ctx.WithBlockTime(types.ParseTime("2021-08-07T00:00:00Z"))
 	farming.EndBlocker(suite.ctx, suite.keeper) // allocated rewards
+
 	suite.ctx = suite.ctx.WithBlockTime(types.ParseTime("2021-08-07T03:00:00Z"))
 	farming.EndBlocker(suite.ctx, suite.keeper) // queued coins => staked coins
+
 	suite.ctx = suite.ctx.WithBlockTime(types.ParseTime("2021-08-08T00:00:00Z"))
 	farming.EndBlocker(suite.ctx, suite.keeper) // allocate rewards
+
 	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000), sdk.NewInt64Coin(denom2, 1000000)))
 	suite.Stake(suite.addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom1, 2000000), sdk.NewInt64Coin(denom2, 1000000)))
 

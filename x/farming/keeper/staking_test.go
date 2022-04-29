@@ -8,6 +8,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	chain "github.com/cosmosquad-labs/squad/app"
+	utils "github.com/cosmosquad-labs/squad/types"
 	"github.com/cosmosquad-labs/squad/x/farming"
 	"github.com/cosmosquad-labs/squad/x/farming/types"
 
@@ -616,16 +617,29 @@ func (suite *KeeperTestSuite) TestReserveAndReleaseStakingCoins() {
 }
 
 func (suite *KeeperTestSuite) TestPreserveCurrentEpoch() {
-	suite.CreateFixedAmountPlan(suite.addrs[0], map[string]string{denom1: "1"}, map[string]int64{denom2: 1000000})
+	_, err := suite.createPublicFixedAmountPlan(
+		suite.addrs[0], suite.addrs[0], parseDecCoins("1denom1"),
+		sampleStartTime, sampleEndTime, utils.ParseCoins("1000000denom2"))
+	suite.Require().NoError(err)
 
-	suite.Require().Equal(uint64(0), suite.keeper.GetCurrentEpoch(suite.ctx, denom1))
+	suite.ctx = suite.ctx.WithBlockTime(utils.ParseTime("2022-04-01T23:00:00Z"))
 	suite.Stake(suite.addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)))
-	suite.advanceEpochDays()
-	suite.Require().Equal(uint64(1), suite.keeper.GetCurrentEpoch(suite.ctx, denom1))
-	suite.advanceEpochDays()
-	suite.Require().Equal(uint64(2), suite.keeper.GetCurrentEpoch(suite.ctx, denom1))
-	suite.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(denom2, 1000000)), suite.AllRewards(suite.addrs[1])))
+	farming.EndBlocker(suite.ctx, suite.keeper)
 
+	suite.ctx = suite.ctx.WithBlockTime(utils.ParseTime("2022-04-02T00:00:00Z"))
+	farming.EndBlocker(suite.ctx, suite.keeper) // next epoch
+	suite.Require().Equal(uint64(0), suite.keeper.GetCurrentEpoch(suite.ctx, denom1))
+
+	suite.ctx = suite.ctx.WithBlockTime(utils.ParseTime("2022-04-02T23:00:00Z"))
+	farming.EndBlocker(suite.ctx, suite.keeper) // queued -> staked
+	suite.Require().Equal(uint64(1), suite.keeper.GetCurrentEpoch(suite.ctx, denom1))
+
+	suite.ctx = suite.ctx.WithBlockTime(utils.ParseTime("2022-04-03T00:00:00Z"))
+	farming.EndBlocker(suite.ctx, suite.keeper) // rewards distribution
+	suite.Require().Equal(uint64(2), suite.keeper.GetCurrentEpoch(suite.ctx, denom1))
+	suite.Require().True(coinsEq(utils.ParseCoins("1000000denom2"), suite.AllRewards(suite.addrs[1])))
+
+	suite.ctx = suite.ctx.WithBlockTime(utils.ParseTime("2022-04-03T01:00:00Z"))
 	balancesBefore := suite.app.BankKeeper.GetAllBalances(suite.ctx, suite.addrs[1])
 	suite.Unstake(suite.addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)))
 	farming.EndBlocker(suite.ctx, suite.keeper)
@@ -636,28 +650,108 @@ func (suite *KeeperTestSuite) TestPreserveCurrentEpoch() {
 		balancesAfter.Sub(balancesBefore)))
 
 	// Few days later...
-	suite.advanceEpochDays()
-	suite.advanceEpochDays()
-	suite.advanceEpochDays()
-	suite.advanceEpochDays()
+	suite.ctx = suite.ctx.WithBlockTime(utils.ParseTime("2022-04-04T00:00:00Z"))
+	farming.EndBlocker(suite.ctx, suite.keeper)
+	suite.ctx = suite.ctx.WithBlockTime(utils.ParseTime("2022-04-05T00:00:00Z"))
+	farming.EndBlocker(suite.ctx, suite.keeper)
+	suite.ctx = suite.ctx.WithBlockTime(utils.ParseTime("2022-04-06T00:00:00Z"))
+	farming.EndBlocker(suite.ctx, suite.keeper)
+	suite.ctx = suite.ctx.WithBlockTime(utils.ParseTime("2022-04-07T00:00:00Z"))
+	farming.EndBlocker(suite.ctx, suite.keeper)
 
+	suite.ctx = suite.ctx.WithBlockTime(utils.ParseTime("2022-04-07T23:00:00Z"))
 	suite.Stake(suite.addrs[2], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)))
+	farming.EndBlocker(suite.ctx, suite.keeper)
 	suite.Require().Equal(uint64(2), suite.keeper.GetCurrentEpoch(suite.ctx, denom1))
-	suite.advanceEpochDays()
+
+	suite.ctx = suite.ctx.WithBlockTime(utils.ParseTime("2022-04-08T00:00:00Z"))
+	farming.EndBlocker(suite.ctx, suite.keeper)
+	suite.Require().Equal(uint64(2), suite.keeper.GetCurrentEpoch(suite.ctx, denom1))
+
+	suite.ctx = suite.ctx.WithBlockTime(utils.ParseTime("2022-04-08T23:00:00Z"))
+	farming.EndBlocker(suite.ctx, suite.keeper)
+	suite.Require().Equal(uint64(2), suite.keeper.GetCurrentEpoch(suite.ctx, denom1))
+
+	suite.ctx = suite.ctx.WithBlockTime(utils.ParseTime("2022-04-09T00:00:00Z"))
+	farming.EndBlocker(suite.ctx, suite.keeper)
 	suite.Require().Equal(uint64(3), suite.keeper.GetCurrentEpoch(suite.ctx, denom1))
-	suite.advanceEpochDays()
-	suite.Require().Equal(uint64(4), suite.keeper.GetCurrentEpoch(suite.ctx, denom1))
-	suite.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(denom2, 1000000)), suite.AllRewards(suite.addrs[2])))
+	suite.Require().True(coinsEq(utils.ParseCoins("1000000denom2"), suite.AllRewards(suite.addrs[2])))
 
 	balancesBefore = suite.app.BankKeeper.GetAllBalances(suite.ctx, suite.addrs[2])
-	suite.Unstake(suite.addrs[2], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)))
+	suite.Unstake(suite.addrs[2], utils.ParseCoins("1000000denom1"))
 	farming.EndBlocker(suite.ctx, suite.keeper)
 	balancesAfter = suite.app.BankKeeper.GetAllBalances(suite.ctx, suite.addrs[2])
-	suite.Require().Equal(uint64(4), suite.keeper.GetCurrentEpoch(suite.ctx, denom1))
-	suite.Require().True(coinsEq(
-		sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000), sdk.NewInt64Coin(denom2, 1000000)),
-		balancesAfter.Sub(balancesBefore)))
+	suite.Require().Equal(uint64(3), suite.keeper.GetCurrentEpoch(suite.ctx, denom1))
+	suite.Require().True(coinsEq(utils.ParseCoins("1000000denom1,1000000denom2"), balancesAfter.Sub(balancesBefore)))
 
-	suite.advanceEpochDays()
-	suite.Require().Equal(uint64(4), suite.keeper.GetCurrentEpoch(suite.ctx, denom1))
+	suite.ctx = suite.ctx.WithBlockTime(utils.ParseTime("2022-04-10T00:00:00Z"))
+	suite.Require().Equal(uint64(3), suite.keeper.GetCurrentEpoch(suite.ctx, denom1))
+}
+
+func (suite *KeeperTestSuite) TestCurrentEpoch() {
+	_, err := suite.createPublicFixedAmountPlan(
+		suite.addrs[4], suite.addrs[4], parseDecCoins("1denom1"),
+		sampleStartTime, sampleEndTime, utils.ParseCoins("1000000denom3"))
+	suite.Require().NoError(err)
+
+	suite.executeBlock(utils.ParseTime("2022-04-01T12:00:00Z"), func() {
+		suite.Stake(suite.addrs[0], utils.ParseCoins("1000000denom1"))
+	})
+
+	suite.executeBlock(utils.ParseTime("2022-04-01T14:00:00Z"), func() {
+		suite.Stake(suite.addrs[1], utils.ParseCoins("1000000denom1"))
+	})
+
+	suite.executeBlock(utils.ParseTime("2022-04-01T16:00:00Z"), func() {
+		suite.Stake(suite.addrs[2], utils.ParseCoins("1000000denom1"))
+	})
+
+	suite.executeBlock(utils.ParseTime("2022-04-02T00:00:00Z"), nil)
+
+	suite.Require().Equal(uint64(0), suite.keeper.GetCurrentEpoch(suite.ctx, "denom1"))
+	suite.executeBlock(utils.ParseTime("2022-04-02T12:00:00Z"), nil)
+	suite.Require().Equal(uint64(1), suite.keeper.GetCurrentEpoch(suite.ctx, "denom1"))
+
+	suite.executeBlock(utils.ParseTime("2022-04-02T12:30:00Z"), func() {
+		suite.Unstake(suite.addrs[0], utils.ParseCoins("1000000denom1"))
+	})
+	suite.Require().Equal(uint64(1), suite.keeper.GetCurrentEpoch(suite.ctx, "denom1"))
+
+	suite.executeBlock(utils.ParseTime("2022-04-02T14:00:00Z"), nil)
+	suite.Require().Equal(uint64(1), suite.keeper.GetCurrentEpoch(suite.ctx, "denom1"))
+	suite.executeBlock(utils.ParseTime("2022-04-02T16:00:00Z"), nil)
+	suite.Require().Equal(uint64(1), suite.keeper.GetCurrentEpoch(suite.ctx, "denom1"))
+
+	suite.executeBlock(utils.ParseTime("2022-04-03T00:00:00Z"), nil)
+	suite.Require().True(coinsEq(utils.ParseCoins("500000denom3"), suite.AllRewards(suite.addrs[1])))
+	suite.Require().True(coinsEq(utils.ParseCoins("500000denom3"), suite.AllRewards(suite.addrs[2])))
+
+	suite.executeBlock(utils.ParseTime("2022-04-04T00:00:00Z"), nil)
+	suite.executeBlock(utils.ParseTime("2022-04-05T00:00:00Z"), nil)
+	suite.executeBlock(utils.ParseTime("2022-04-06T00:00:00Z"), nil)
+	suite.Require().Equal(uint64(5), suite.keeper.GetCurrentEpoch(suite.ctx, "denom1"))
+
+	suite.executeBlock(utils.ParseTime("2022-04-06T23:00:00Z"), func() {
+		suite.Stake(suite.addrs[0], utils.ParseCoins("1000000denom1"))
+	})
+	suite.executeBlock(utils.ParseTime("2022-04-07T00:00:00Z"), nil)
+	suite.Require().True(coinsEq(utils.ParseCoins("2500000denom3"), suite.AllRewards(suite.addrs[1])))
+	suite.Require().True(coinsEq(utils.ParseCoins("2500000denom3"), suite.AllRewards(suite.addrs[2])))
+
+	balancesBefore := suite.app.BankKeeper.GetAllBalances(suite.ctx, suite.addrs[1])
+	suite.executeBlock(utils.ParseTime("2022-04-07T01:00:00Z"), func() {
+		suite.Unstake(suite.addrs[1], utils.ParseCoins("1000000denom1"))
+		suite.Unstake(suite.addrs[2], utils.ParseCoins("1000000denom1"))
+	})
+	balancesAfter := suite.app.BankKeeper.GetAllBalances(suite.ctx, suite.addrs[1])
+	suite.Require().True(coinsEq(utils.ParseCoins("1000000denom1,2500000denom3"), balancesAfter.Sub(balancesBefore)))
+	suite.Require().Equal(uint64(6), suite.keeper.GetCurrentEpoch(suite.ctx, "denom1"))
+
+	suite.executeBlock(utils.ParseTime("2022-04-07T23:00:00Z"), nil)
+	suite.Require().Equal(uint64(6), suite.keeper.GetCurrentEpoch(suite.ctx, "denom1"))
+
+	suite.executeBlock(utils.ParseTime("2022-04-08T00:00:00Z"), nil)
+	suite.Require().Equal(uint64(7), suite.keeper.GetCurrentEpoch(suite.ctx, "denom1"))
+
+	suite.Require().True(coinsEq(utils.ParseCoins("1000000denom3"), suite.AllRewards(suite.addrs[0])))
 }

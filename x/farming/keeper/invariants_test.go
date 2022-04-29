@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	utils "github.com/cosmosquad-labs/squad/types"
+	"github.com/cosmosquad-labs/squad/x/farming"
 	farmingkeeper "github.com/cosmosquad-labs/squad/x/farming/keeper"
 	"github.com/cosmosquad-labs/squad/x/farming/types"
 )
@@ -262,11 +263,14 @@ func (suite *KeeperTestSuite) TestUnharvestedRewardsAmountInvariant() {
 	suite.Require().NoError(err)
 
 	suite.Stake(suite.addrs[0], utils.ParseCoins("1000000denom1"))
-	suite.advanceEpochDays()
-	suite.advanceEpochDays()
+	farming.EndBlocker(suite.ctx, suite.keeper)
+	suite.advanceEpochDays() // rewards distribution
 
 	suite.Stake(suite.addrs[0], utils.ParseCoins("1000000denom1"))
-	suite.advanceEpochDays()
+	suite.advanceEpochDays() // rewards distribution
+
+	suite.Require().True(coinsEq(utils.ParseCoins("1000000denom3"), suite.AllRewards(suite.addrs[0])))
+	suite.Require().True(coinsEq(utils.ParseCoins("1000000denom3"), suite.allUnharvestedRewards(suite.addrs[0])))
 
 	_, broken := farmingkeeper.UnharvestedRewardsAmountInvariant(k)(ctx)
 	suite.Require().False(broken)
@@ -274,7 +278,7 @@ func (suite *KeeperTestSuite) TestUnharvestedRewardsAmountInvariant() {
 	// Unharvested rewards amount > balances of unharvested rewards reserve account.
 	// Should not be OK.
 	k.SetUnharvestedRewards(ctx, suite.addrs[0], denom1, types.UnharvestedRewards{
-		Rewards: utils.ParseCoins("2000001denom3"),
+		Rewards: utils.ParseCoins("1000001denom3"),
 	})
 	_, broken = farmingkeeper.UnharvestedRewardsAmountInvariant(k)(ctx)
 	suite.Require().True(broken)
@@ -282,14 +286,14 @@ func (suite *KeeperTestSuite) TestUnharvestedRewardsAmountInvariant() {
 	// Unharvested rewards amount <= balances of unharvested rewards reserve account.
 	// Should be OK.
 	k.SetUnharvestedRewards(ctx, suite.addrs[0], denom1, types.UnharvestedRewards{
-		Rewards: utils.ParseCoins("1999999denom3"),
+		Rewards: utils.ParseCoins("999999denom3"),
 	})
 	_, broken = farmingkeeper.UnharvestedRewardsAmountInvariant(k)(ctx)
 	suite.Require().False(broken)
 
 	// Reset.
 	k.SetUnharvestedRewards(ctx, suite.addrs[0], denom1, types.UnharvestedRewards{
-		Rewards: utils.ParseCoins("2000000denom3"),
+		Rewards: utils.ParseCoins("1000000denom3"),
 	})
 	_, broken = farmingkeeper.UnharvestedRewardsAmountInvariant(k)(ctx)
 	suite.Require().False(broken)
