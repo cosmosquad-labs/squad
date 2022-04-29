@@ -246,8 +246,14 @@ func (k Keeper) CalculateRewards(ctx sdk.Context, farmerAcc sdk.AccAddress, stak
 		return sdk.NewDecCoins()
 	}
 
-	starting, _ := k.GetHistoricalRewards(ctx, stakingCoinDenom, staking.StartingEpoch-1)
-	ending, _ := k.GetHistoricalRewards(ctx, stakingCoinDenom, endingEpoch)
+	starting, found := k.GetHistoricalRewards(ctx, stakingCoinDenom, staking.StartingEpoch-1)
+	if !found {
+		panic("historical rewards for starting epoch not found")
+	}
+	ending, found := k.GetHistoricalRewards(ctx, stakingCoinDenom, endingEpoch)
+	if !found {
+		panic("historical rewards for ending epoch not found")
+	}
 	diff := ending.CumulativeUnitRewards.Sub(starting.CumulativeUnitRewards)
 	rewards = diff.MulDecTruncate(staking.Amount.ToDec())
 	return
