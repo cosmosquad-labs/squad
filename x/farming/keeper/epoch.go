@@ -52,6 +52,9 @@ func (k Keeper) AdvanceEpoch(ctx sdk.Context) error {
 		return err
 	}
 	k.SetLastEpochTime(ctx, ctx.BlockTime())
+	if params := k.GetParams(ctx); params.NextEpochDays != currentEpochDays {
+		k.SetCurrentEpochDays(ctx, params.NextEpochDays)
+	}
 
 	return nil
 }
