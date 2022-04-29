@@ -17,7 +17,7 @@ require (
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.1
-	github.com/tendermint/budget v1.1.2-0.20220426073554-c77598890501
+	github.com/tendermint/budget v1.2.0
 	github.com/tendermint/tendermint v0.34.19
 	github.com/tendermint/tm-db v0.6.6
 	google.golang.org/genproto v0.0.0-20220302033224-9aa15565e42a
@@ -123,7 +123,7 @@ require (
 
 replace (
 	github.com/cosmos/cosmos-sdk => github.com/cosmosquad-labs/cosmos-sdk v1.1.0-sdk-0.45.3
-	github.com/cosmos/ibc-go/v2 => github.com/cosmosquad-labs/ibc-go/v2 v2.2.1-0.20220428035431-52c7b5dc82b9
+	github.com/cosmos/ibc-go/v2 => github.com/cosmosquad-labs/ibc-go/v2 v2.2.0-squad
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/keybase/go-keychain => github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4
 	google.golang.org/grpc => google.golang.org/grpc v1.33.2

@@ -228,8 +228,8 @@ github.com/cosmos/ledger-go v0.9.2 h1:Nnao/dLwaVTk1Q5U9THldpUMMXU94BOTWPddSmVB6p
 github.com/cosmos/ledger-go v0.9.2/go.mod h1:oZJ2hHAZROdlHiwTg4t7kP+GKIIkBT+o6c9QWFanOyI=
 github.com/cosmosquad-labs/cosmos-sdk v1.1.0-sdk-0.45.3 h1:+wAdYShB0IisOTxMEUGwag1l63akKB9uzM5GvfyTCz4=
 github.com/cosmosquad-labs/cosmos-sdk v1.1.0-sdk-0.45.3/go.mod h1:qYm5JEr0ZlbnmoP/Q3b+dYMOliHf4ddHirpILiwZzqg=
-github.com/cosmosquad-labs/ibc-go/v2 v2.2.1-0.20220428035431-52c7b5dc82b9 h1:gpTaQKB0552PWQqNsYb9Gui66d2gUiMGNaeopeheRRU=
-github.com/cosmosquad-labs/ibc-go/v2 v2.2.1-0.20220428035431-52c7b5dc82b9/go.mod h1:2YA39euUBukbxmLCVe0qQycvgRs7v7oPcCJKuF1kmig=
+github.com/cosmosquad-labs/ibc-go/v2 v2.2.0-squad h1:5hdWTEUNzxO2/dswuLEWCKP0w8rYP/fctFa4lAAZPeI=
+github.com/cosmosquad-labs/ibc-go/v2 v2.2.0-squad/go.mod h1:2YA39euUBukbxmLCVe0qQycvgRs7v7oPcCJKuF1kmig=
 github.com/cpuguy83/go-md2man v1.0.10/go.mod h1:SmD6nW6nTyfqj6ABTjUi3V3JVMnlJmwcJI5acqYI6dE=
 github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d/go.mod h1:maD7wRr/U5Z6m/iR4s+kqSMx2CaBsrgA7czyZG/E6dU=
 github.com/cpuguy83/go-md2man/v2 v2.0.0/go.mod h1:maD7wRr/U5Z6m/iR4s+kqSMx2CaBsrgA7czyZG/E6dU=
@@ -928,8 +928,8 @@ github.com/tecbot/gorocksdb v0.0.0-20191217155057-f0fad39f321c h1:g+WoO5jjkqGAzH
 github.com/tecbot/gorocksdb v0.0.0-20191217155057-f0fad39f321c/go.mod h1:ahpPrc7HpcfEWDQRZEmnXMzHY03mLDYMCxeDzy46i+8=
 github.com/tendermint/btcd v0.1.1 h1:0VcxPfflS2zZ3RiOAHkBiFUcPvbtRj5O7zHmcJWHV7s=
 github.com/tendermint/btcd v0.1.1/go.mod h1:DC6/m53jtQzr/NFmMNEu0rxf18/ktVoVtMrnDD5pN+U=
-github.com/tendermint/budget v1.1.2-0.20220426073554-c77598890501 h1:pljtHNVtB/MZqwQ/Ex8ZQ/TjiCoAwNsm7Y5p9YWP35U=
-github.com/tendermint/budget v1.1.2-0.20220426073554-c77598890501/go.mod h1:2Kdb8ziFJLsViXXV7qXbWXTRK6MDK4KYRoMBcT0shM8=
+github.com/tendermint/budget v1.2.0 h1:oXduhIcTZwah9GT+Kp6StsN8/J26vSR+Y9SEUl5GDB8=
+github.com/tendermint/budget v1.2.0/go.mod h1:2Kdb8ziFJLsViXXV7qXbWXTRK6MDK4KYRoMBcT0shM8=
 github.com/tendermint/crypto v0.0.0-20191022145703-50d29ede1e15 h1:hqAk8riJvK4RMWx1aInLzndwxKalgi5rTqgfXxOxbEI=
 github.com/tendermint/crypto v0.0.0-20191022145703-50d29ede1e15/go.mod h1:z4YtwM70uOnk8h0pjJYlj3zdYwi9l03By6iAIF5j/Pk=
 github.com/tendermint/go-amino v0.16.0 h1:GyhmgQKvqF82e2oZeuMSp9JTN0N09emoSZlb2lyGa2E=
