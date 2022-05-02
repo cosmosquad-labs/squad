@@ -146,8 +146,8 @@ func (k Querier) Plan(c context.Context, req *types.QueryPlanRequest) (*types.Qu
 	return &types.QueryPlanResponse{Plan: planAny}, nil
 }
 
-// Stakings queries stakings for a farmer.
-func (k Querier) Stakings(c context.Context, req *types.QueryStakingsRequest) (*types.QueryStakingsResponse, error) {
+// Position queries farming position for a farmer.
+func (k Querier) Position(c context.Context, req *types.QueryPositionRequest) (*types.QueryPositionResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -165,7 +165,7 @@ func (k Querier) Stakings(c context.Context, req *types.QueryStakingsRequest) (*
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	resp := &types.QueryStakingsResponse{
+	resp := &types.QueryPositionResponse{
 		StakedCoins: sdk.NewCoins(),
 		QueuedCoins: sdk.NewCoins(),
 	}
@@ -184,6 +184,18 @@ func (k Querier) Stakings(c context.Context, req *types.QueryStakingsRequest) (*
 	}
 
 	return resp, nil
+}
+
+// Stakings queries all stakings of the farmer.
+func (k Querier) Stakings(c context.Context, req *types.QueryStakingsRequest) (*types.QueryStakingsResponse, error) {
+	// TODO: not implemented
+	return nil, nil
+}
+
+// QueuedStakings queries all queued stakings of the farmer.
+func (k Querier) QueuedStakings(c context.Context, req *types.QueryQueuedStakingsRequest) (*types.QueryQueuedStakingsResponse, error) {
+	// TODO: not implemented
+	return nil, nil
 }
 
 // TotalStakings queries total staking coin amount for a specific staking coin denom.
