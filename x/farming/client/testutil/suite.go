@@ -16,6 +16,7 @@ import (
 	tmdb "github.com/tendermint/tm-db"
 
 	chain "github.com/cosmosquad-labs/squad/app"
+	utils "github.com/cosmosquad-labs/squad/types"
 	"github.com/cosmosquad-labs/squad/x/farming/client/cli"
 	"github.com/cosmosquad-labs/squad/x/farming/keeper"
 	"github.com/cosmosquad-labs/squad/x/farming/types"
@@ -725,6 +726,16 @@ func (s *QueryCmdTestSuite) SetupSuite() {
 		sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 500000)).String(),
 	)
 	s.Require().NoError(err)
+
+	_, err = MsgAdvanceEpochExec(val.ClientCtx, val.Address.String())
+	s.Require().NoError(err)
+
+	_, err = MsgStakeExec(
+		val.ClientCtx,
+		val.Address.String(),
+		sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 500000)).String(),
+	)
+	s.Require().NoError(err)
 }
 
 func (s *QueryCmdTestSuite) TearDownSuite() {
@@ -921,7 +932,7 @@ func (s *QueryCmdTestSuite) TestCmdQueryPosition() {
 			},
 			false,
 			func(resp *types.QueryPositionResponse) {
-				s.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 1000000)), resp.StakedCoins))
+				s.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 1500000)), resp.StakedCoins))
 			},
 		},
 		{
@@ -972,8 +983,8 @@ func (s *QueryCmdTestSuite) TestCmdQueryStakings() {
 			func(resp *types.QueryStakingsResponse) {
 				s.Require().Len(resp.Stakings, 1)
 				s.Require().Equal(sdk.DefaultBondDenom, resp.Stakings[0].StakingCoinDenom)
-				s.Require().True(intEq(sdk.NewInt(1000000), resp.Stakings[0].Amount))
-				s.Require().EqualValues(1, resp.Stakings[0].StartingEpoch)
+				s.Require().True(intEq(sdk.NewInt(1500000), resp.Stakings[0].Amount))
+				s.Require().EqualValues(2, resp.Stakings[0].StartingEpoch)
 			},
 		},
 		{
@@ -1074,7 +1085,7 @@ func (s *QueryCmdTestSuite) TestCmdQueryTotalStakings() {
 			},
 			false,
 			func(resp *types.QueryTotalStakingsResponse) {
-				s.Require().True(intEq(sdk.NewInt(1000000), resp.Amount))
+				s.Require().True(intEq(sdk.NewInt(1500000), resp.Amount))
 			},
 		},
 		{
@@ -1123,7 +1134,7 @@ func (s *QueryCmdTestSuite) TestCmdQueryRewards() {
 			},
 			false,
 			func(resp *types.QueryRewardsResponse) {
-				s.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin("node0token", 100_000_000)), resp.Rewards))
+				s.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin("node0token", 99_999_999)), resp.Rewards))
 			},
 		},
 		{
@@ -1147,6 +1158,57 @@ func (s *QueryCmdTestSuite) TestCmdQueryRewards() {
 			} else {
 				s.Require().NoError(err)
 				var resp types.QueryRewardsResponse
+				s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), &resp), out.String())
+				tc.postRun(&resp)
+			}
+		})
+	}
+}
+
+func (s *QueryCmdTestSuite) TestCmdQueryUnharvestedRewards() {
+	val := s.network.Validators[0]
+	clientCtx := val.ClientCtx
+
+	testCases := []struct {
+		name      string
+		args      []string
+		expectErr bool
+		postRun   func(*types.QueryUnharvestedRewardsResponse)
+	}{
+		{
+			"happy case",
+			[]string{
+				val.Address.String(),
+				fmt.Sprintf("--%s=json", tmcli.OutputFlag),
+			},
+			false,
+			func(resp *types.QueryUnharvestedRewardsResponse) {
+				s.Require().Len(resp.UnharvestedRewards, 1)
+				s.Require().Equal(sdk.DefaultBondDenom, resp.UnharvestedRewards[0].StakingCoinDenom)
+				s.Require().True(coinsEq(utils.ParseCoins("100000000node0token"), resp.UnharvestedRewards[0].Rewards))
+			},
+		},
+		{
+			"invalid farmer addr",
+			[]string{
+				"invalid",
+				fmt.Sprintf("--%s=json", tmcli.OutputFlag),
+			},
+			true,
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			cmd := cli.GetCmdQueryUnharvestedRewards()
+
+			out, err := utilcli.ExecTestCLICmd(clientCtx, cmd, tc.args)
+			if tc.expectErr {
+				s.Require().Error(err)
+			} else {
+				s.Require().NoError(err)
+				var resp types.QueryUnharvestedRewardsResponse
 				s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), &resp), out.String())
 				tc.postRun(&resp)
 			}
