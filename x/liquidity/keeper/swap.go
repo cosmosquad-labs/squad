@@ -16,6 +16,13 @@ import (
 // ValidateMsgLimitOrder validates types.MsgLimitOrder with state and returns
 // calculated offer coin and price that is fit into ticks.
 func (k Keeper) ValidateMsgLimitOrder(ctx sdk.Context, msg *types.MsgLimitOrder) (offerCoin sdk.Coin, price sdk.Dec, err error) {
+	spendable := k.bankKeeper.SpendableCoins(ctx, msg.GetOrderer())
+	if spendableAmt := spendable.AmountOf(msg.OfferCoin.Denom); spendableAmt.LT(msg.OfferCoin.Amount) {
+		return sdk.Coin{}, sdk.Dec{}, sdkerrors.Wrapf(
+			sdkerrors.ErrInsufficientFunds, "%s is smaller than %s",
+			sdk.NewCoin(msg.OfferCoin.Denom, spendableAmt), msg.OfferCoin)
+	}
+
 	params := k.GetParams(ctx)
 
 	if msg.OrderLifespan > params.MaxOrderLifespan {
@@ -122,6 +129,13 @@ func (k Keeper) LimitOrder(ctx sdk.Context, msg *types.MsgLimitOrder) (types.Ord
 // ValidateMsgMarketOrder validates types.MsgMarketOrder with state and returns
 // calculated offer coin and price.
 func (k Keeper) ValidateMsgMarketOrder(ctx sdk.Context, msg *types.MsgMarketOrder) (offerCoin sdk.Coin, price sdk.Dec, err error) {
+	spendable := k.bankKeeper.SpendableCoins(ctx, msg.GetOrderer())
+	if spendableAmt := spendable.AmountOf(msg.OfferCoin.Denom); spendableAmt.LT(msg.OfferCoin.Amount) {
+		return sdk.Coin{}, sdk.Dec{}, sdkerrors.Wrapf(
+			sdkerrors.ErrInsufficientFunds, "%s is smaller than %s",
+			sdk.NewCoin(msg.OfferCoin.Denom, spendableAmt), msg.OfferCoin)
+	}
+
 	params := k.GetParams(ctx)
 
 	if msg.OrderLifespan > params.MaxOrderLifespan {
@@ -200,7 +214,7 @@ func (k Keeper) MarketOrder(ctx sdk.Context, msg *types.MsgMarketOrder) (types.O
 			sdk.NewAttribute(types.AttributeKeyOrderer, msg.Orderer),
 			sdk.NewAttribute(types.AttributeKeyPairId, strconv.FormatUint(msg.PairId, 10)),
 			sdk.NewAttribute(types.AttributeKeyOrderDirection, msg.Direction.String()),
-			sdk.NewAttribute(types.AttributeKeyOfferCoin, msg.OfferCoin.String()),
+			sdk.NewAttribute(types.AttributeKeyOfferCoin, offerCoin.String()),
 			sdk.NewAttribute(types.AttributeKeyDemandCoinDenom, msg.DemandCoinDenom),
 			sdk.NewAttribute(types.AttributeKeyPrice, price.String()),
 			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
