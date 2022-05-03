@@ -718,6 +718,13 @@ func (s *QueryCmdTestSuite) SetupSuite() {
 
 	_, err = MsgAdvanceEpochExec(val.ClientCtx, val.Address.String())
 	s.Require().NoError(err)
+
+	_, err = MsgStakeExec(
+		val.ClientCtx,
+		val.Address.String(),
+		sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 500000)).String(),
+	)
+	s.Require().NoError(err)
 }
 
 func (s *QueryCmdTestSuite) TearDownSuite() {
@@ -896,6 +903,55 @@ func (s *QueryCmdTestSuite) TestCmdQueryPlan() {
 	}
 }
 
+func (s *QueryCmdTestSuite) TestCmdQueryPosition() {
+	val := s.network.Validators[0]
+	clientCtx := val.ClientCtx
+
+	testCases := []struct {
+		name      string
+		args      []string
+		expectErr bool
+		postRun   func(*types.QueryPositionResponse)
+	}{
+		{
+			"happy case",
+			[]string{
+				val.Address.String(),
+				fmt.Sprintf("--%s=json", tmcli.OutputFlag),
+			},
+			false,
+			func(resp *types.QueryPositionResponse) {
+				s.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 1000000)), resp.StakedCoins))
+			},
+		},
+		{
+			"invalid farmer addr",
+			[]string{
+				"invalid",
+				fmt.Sprintf("--%s=json", tmcli.OutputFlag),
+			},
+			true,
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			cmd := cli.GetCmdQueryPosition()
+
+			out, err := utilcli.ExecTestCLICmd(clientCtx, cmd, tc.args)
+			if tc.expectErr {
+				s.Require().Error(err)
+			} else {
+				s.Require().NoError(err)
+				var resp types.QueryPositionResponse
+				s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), &resp), out.String())
+				tc.postRun(&resp)
+			}
+		})
+	}
+}
+
 func (s *QueryCmdTestSuite) TestCmdQueryStakings() {
 	val := s.network.Validators[0]
 	clientCtx := val.ClientCtx
@@ -914,7 +970,10 @@ func (s *QueryCmdTestSuite) TestCmdQueryStakings() {
 			},
 			false,
 			func(resp *types.QueryStakingsResponse) {
-				s.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 1000000)), resp.StakedCoins))
+				s.Require().Len(resp.Stakings, 1)
+				s.Require().Equal(sdk.DefaultBondDenom, resp.Stakings[0].StakingCoinDenom)
+				s.Require().True(intEq(sdk.NewInt(1000000), resp.Stakings[0].Amount))
+				s.Require().EqualValues(1, resp.Stakings[0].StartingEpoch)
 			},
 		},
 		{
@@ -938,6 +997,58 @@ func (s *QueryCmdTestSuite) TestCmdQueryStakings() {
 			} else {
 				s.Require().NoError(err)
 				var resp types.QueryStakingsResponse
+				s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), &resp), out.String())
+				tc.postRun(&resp)
+			}
+		})
+	}
+}
+
+func (s *QueryCmdTestSuite) TestCmdQueryQueuedStakings() {
+	val := s.network.Validators[0]
+	clientCtx := val.ClientCtx
+
+	testCases := []struct {
+		name      string
+		args      []string
+		expectErr bool
+		postRun   func(*types.QueryQueuedStakingsResponse)
+	}{
+		{
+			"happy case",
+			[]string{
+				val.Address.String(),
+				fmt.Sprintf("--%s=json", tmcli.OutputFlag),
+			},
+			false,
+			func(resp *types.QueryQueuedStakingsResponse) {
+				s.Require().Len(resp.QueuedStakings, 1)
+				s.Require().Equal(sdk.DefaultBondDenom, resp.QueuedStakings[0].StakingCoinDenom)
+				s.Require().True(intEq(sdk.NewInt(500000), resp.QueuedStakings[0].Amount))
+				// Omitted EndTime check.
+			},
+		},
+		{
+			"invalid farmer addr",
+			[]string{
+				"invalid",
+				fmt.Sprintf("--%s=json", tmcli.OutputFlag),
+			},
+			true,
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			cmd := cli.GetCmdQueryQueuedStakings()
+
+			out, err := utilcli.ExecTestCLICmd(clientCtx, cmd, tc.args)
+			if tc.expectErr {
+				s.Require().Error(err)
+			} else {
+				s.Require().NoError(err)
+				var resp types.QueryQueuedStakingsResponse
 				s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), &resp), out.String())
 				tc.postRun(&resp)
 			}
@@ -1082,14 +1193,14 @@ func (s *QueryCmdTestSuite) TestCmdQueryCurrentEpochDays() {
 	}
 }
 
-func (s *QueryCmdTestSuite) fundFarmingPool(poolId uint64, amount sdk.Coins) {
+func (s *QueryCmdTestSuite) fundFarmingPool(planId uint64, amount sdk.Coins) {
 	val := s.network.Validators[0]
 	clientCtx := val.ClientCtx
 	types.RegisterInterfaces(clientCtx.InterfaceRegistry)
 
 	cmd := cli.GetCmdQueryPlan()
 	args := []string{
-		strconv.FormatUint(poolId, 10),
+		strconv.FormatUint(planId, 10),
 		fmt.Sprintf("--%s=json", tmcli.OutputFlag),
 	}
 

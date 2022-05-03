@@ -28,8 +28,26 @@ func flagSetPlans() *flag.FlagSet {
 	return fs
 }
 
+// flagSetPosition returns the FlagSet used for farmer's staking coin denom.
+func flagSetPosition() *flag.FlagSet {
+	fs := flag.NewFlagSet("", flag.ContinueOnError)
+
+	fs.String(FlagStakingCoinDenom, "", "The staking coin denom")
+
+	return fs
+}
+
 // flagSetStakings returns the FlagSet used for farmer's staking coin denom.
 func flagSetStakings() *flag.FlagSet {
+	fs := flag.NewFlagSet("", flag.ContinueOnError)
+
+	fs.String(FlagStakingCoinDenom, "", "The staking coin denom")
+
+	return fs
+}
+
+// flagSetQueuedStakings returns the FlagSet used for farmer's staking coin denom.
+func flagSetQueuedStakings() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
 	fs.String(FlagStakingCoinDenom, "", "The staking coin denom")

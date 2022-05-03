@@ -150,7 +150,7 @@ func (k Keeper) IterateMatureQueuedStakings(ctx sdk.Context, currTime time.Time,
 // Stops the iteration when the callback function returns true.
 func (k Keeper) IterateQueuedStakingsByFarmer(ctx sdk.Context, farmerAcc sdk.AccAddress, cb func(stakingCoinDenom string, endTime time.Time, queuedStaking types.QueuedStaking) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.GetQueuedStakingByFarmerPrefix(farmerAcc))
+	iter := sdk.KVStorePrefixIterator(store, types.GetQueuedStakingsByFarmerPrefix(farmerAcc))
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		_, stakingCoinDenom, endTime := types.ParseQueuedStakingIndexKey(iter.Key())

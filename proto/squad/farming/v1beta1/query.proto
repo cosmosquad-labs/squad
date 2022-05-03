@@ -325,24 +325,28 @@ message QueryPositionResponse {
 
 // QueryStakingsRequest is the request type for the Query/Stakings RPC method.
 message QueryStakingsRequest {
-  string farmer             = 1;
-  string staking_coin_denom = 2;
+  string                                farmer             = 1;
+  string                                staking_coin_denom = 2;
+  cosmos.base.query.v1beta1.PageRequest pagination         = 3;
 }
 
 // QueryStakingsResponse is the response type for the Query/Stakings RPC method.
 message QueryStakingsResponse {
-  repeated StakingResponse stakings = 1 [(gogoproto.nullable) = false];
+  repeated StakingResponse               stakings   = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // QueryQueuedStakingsRequest is the request type for the Query/QueuedStakings RPC method.
 message QueryQueuedStakingsRequest {
-  string farmer             = 1;
-  string staking_coin_denom = 2;
+  string                                farmer             = 1;
+  string                                staking_coin_denom = 2;
+  cosmos.base.query.v1beta1.PageRequest pagination         = 3;
 }
 
 // QueryQueuedStakingsResponse is the response type for the Query/QueuedStakings RPC method.
 message QueryQueuedStakingsResponse {
-  repeated QueuedStakingResponse queued_stakings = 1 [(gogoproto.nullable) = false];
+  repeated QueuedStakingResponse         queued_stakings = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination      = 2;
 }
 
 // QueryTotalStakingsRequest is the request type for the Query/TotalStakings RPC method.

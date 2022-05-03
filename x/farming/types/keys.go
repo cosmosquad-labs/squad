@@ -82,9 +82,9 @@ func GetQueuedStakingIndexKey(farmerAcc sdk.AccAddress, stakingCoinDenom string,
 		sdk.FormatTimeBytes(endTime)...)
 }
 
-// GetQueuedStakingByFarmerPrefix returns a key prefix used to iterate
+// GetQueuedStakingsByFarmerPrefix returns a key prefix used to iterate
 // queued stakings by a farmer.
-func GetQueuedStakingByFarmerPrefix(farmerAcc sdk.AccAddress) []byte {
+func GetQueuedStakingsByFarmerPrefix(farmerAcc sdk.AccAddress) []byte {
 	return append(QueuedStakingIndexKeyPrefix, address.MustLengthPrefix(farmerAcc)...)
 }
 

@@ -188,14 +188,83 @@ func (k Querier) Position(c context.Context, req *types.QueryPositionRequest) (*
 
 // Stakings queries all stakings of the farmer.
 func (k Querier) Stakings(c context.Context, req *types.QueryStakingsRequest) (*types.QueryStakingsResponse, error) {
-	// TODO: not implemented
-	return nil, nil
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	farmerAcc, err := sdk.AccAddressFromBech32(req.Farmer)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	store := ctx.KVStore(k.storeKey)
+	keyPrefix := types.GetStakingsByFarmerPrefix(farmerAcc)
+	stakingStore := prefix.NewStore(store, keyPrefix)
+	var stakings []types.StakingResponse
+
+	pageRes, err := query.FilteredPaginate(stakingStore, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
+		_, stakingCoinDenom := types.ParseStakingIndexKey(append(keyPrefix, key...))
+
+		if req.StakingCoinDenom != "" && stakingCoinDenom != req.StakingCoinDenom {
+			return false, nil
+		}
+
+		staking, _ := k.GetStaking(ctx, stakingCoinDenom, farmerAcc)
+
+		if accumulate {
+			stakings = append(stakings, types.StakingResponse{
+				StakingCoinDenom: stakingCoinDenom,
+				Amount:           staking.Amount,
+				StartingEpoch:    staking.StartingEpoch,
+			})
+		}
+
+		return true, nil
+	})
+
+	return &types.QueryStakingsResponse{Stakings: stakings, Pagination: pageRes}, nil
 }
 
 // QueuedStakings queries all queued stakings of the farmer.
 func (k Querier) QueuedStakings(c context.Context, req *types.QueryQueuedStakingsRequest) (*types.QueryQueuedStakingsResponse, error) {
-	// TODO: not implemented
-	return nil, nil
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	farmerAcc, err := sdk.AccAddressFromBech32(req.Farmer)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	store := ctx.KVStore(k.storeKey)
+	var keyPrefix []byte
+	if req.StakingCoinDenom != "" {
+		keyPrefix = types.GetQueuedStakingsByFarmerAndDenomPrefix(farmerAcc, req.StakingCoinDenom)
+	} else {
+		keyPrefix = types.GetQueuedStakingsByFarmerPrefix(farmerAcc)
+	}
+	queuedStakingStore := prefix.NewStore(store, keyPrefix)
+	var queuedStakings []types.QueuedStakingResponse
+
+	pageRes, err := query.FilteredPaginate(queuedStakingStore, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
+		_, stakingCoinDenom, endTime := types.ParseQueuedStakingIndexKey(append(keyPrefix, key...))
+
+		queuedStaking, _ := k.GetQueuedStaking(ctx, endTime, stakingCoinDenom, farmerAcc)
+
+		if accumulate {
+			queuedStakings = append(queuedStakings, types.QueuedStakingResponse{
+				StakingCoinDenom: stakingCoinDenom,
+				Amount:           queuedStaking.Amount,
+				EndTime:          endTime,
+			})
+		}
+
+		return true, nil
+	})
+
+	return &types.QueryQueuedStakingsResponse{QueuedStakings: queuedStakings, Pagination: pageRes}, nil
 }
 
 // TotalStakings queries total staking coin amount for a specific staking coin denom.
