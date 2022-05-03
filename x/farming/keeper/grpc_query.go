@@ -203,7 +203,7 @@ func (k Querier) Stakings(c context.Context, req *types.QueryStakingsRequest) (*
 	stakingStore := prefix.NewStore(store, keyPrefix)
 	var stakings []types.StakingResponse
 
-	pageRes, err := query.FilteredPaginate(stakingStore, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
+	pageRes, _ := query.FilteredPaginate(stakingStore, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
 		_, stakingCoinDenom := types.ParseStakingIndexKey(append(keyPrefix, key...))
 
 		if req.StakingCoinDenom != "" && stakingCoinDenom != req.StakingCoinDenom {
@@ -248,7 +248,7 @@ func (k Querier) QueuedStakings(c context.Context, req *types.QueryQueuedStaking
 	queuedStakingStore := prefix.NewStore(store, keyPrefix)
 	var queuedStakings []types.QueuedStakingResponse
 
-	pageRes, err := query.FilteredPaginate(queuedStakingStore, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
+	pageRes, _ := query.FilteredPaginate(queuedStakingStore, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
 		_, stakingCoinDenom, endTime := types.ParseQueuedStakingIndexKey(append(keyPrefix, key...))
 
 		queuedStaking, _ := k.GetQueuedStaking(ctx, endTime, stakingCoinDenom, farmerAcc)
@@ -321,6 +321,46 @@ func (k Querier) Rewards(c context.Context, req *types.QueryRewardsRequest) (*ty
 	resp.Rewards = rewards
 
 	return resp, nil
+}
+
+// UnharvestedRewards queries all unharvested rewards for the farmer.
+func (k Querier) UnharvestedRewards(c context.Context, req *types.QueryUnharvestedRewardsRequest) (*types.QueryUnharvestedRewardsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	farmerAcc, err := sdk.AccAddressFromBech32(req.Farmer)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	store := ctx.KVStore(k.storeKey)
+	var keyPrefix []byte
+	if req.StakingCoinDenom != "" {
+		keyPrefix = types.GetUnharvestedRewardsKey(farmerAcc, req.StakingCoinDenom)
+	} else {
+		keyPrefix = types.GetUnharvestedRewardsPrefix(farmerAcc)
+	}
+	unharvestedRewardsStore := prefix.NewStore(store, keyPrefix)
+	var unharvestedRewards []types.UnharvestedRewardsResponse
+
+	pageRes, _ := query.FilteredPaginate(unharvestedRewardsStore, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
+		_, stakingCoinDenom := types.ParseUnharvestedRewardsKey(append(keyPrefix, key...))
+
+		unharvested, _ := k.GetUnharvestedRewards(ctx, farmerAcc, stakingCoinDenom)
+
+		if accumulate {
+			unharvestedRewards = append(unharvestedRewards, types.UnharvestedRewardsResponse{
+				StakingCoinDenom: stakingCoinDenom,
+				Rewards:          unharvested.Rewards,
+			})
+		}
+
+		return true, nil
+	})
+
+	return &types.QueryUnharvestedRewardsResponse{UnharvestedRewards: unharvestedRewards, Pagination: pageRes}, nil
 }
 
 // CurrentEpochDays queries current epoch days.

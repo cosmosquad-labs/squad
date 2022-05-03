@@ -246,6 +246,31 @@ key:
 };
 }
 
+// UnharvestedRewards returns unharvested rewards for a farmer
+rpc UnharvestedRewards(QueryUnharvestedRewardsRequest) returns (QueryUnharvestedRewardsResponse) {
+  option (google.api.http).get = "/squad/farming/v1beta1/unharvested_rewards/{farmer}";
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+    description: "Returns all unharvested rewards that corresponds to the farmer";
+external_docs: {
+url:
+  "https://github.com/cosmosquad-labs/squad/tree/main/docs";
+description:
+  "Find out more about the query and error codes";
+}
+responses: {
+key:
+  "400" value: {
+  description:
+    "Bad Request" examples: {
+    key:
+      "application/json"
+      value: '{"code":3,"message":"rpc error: code = InvalidArgument desc = empty request","details":[]}'
+    }
+  }
+}
+};
+}
+
 // CurrentEpochDays returns current epoch days.
 rpc CurrentEpochDays(QueryCurrentEpochDaysRequest) returns (QueryCurrentEpochDaysResponse) {
   option (google.api.http).get                                           = "/squad/farming/v1beta1/current_epoch_days";
@@ -371,6 +396,19 @@ message QueryRewardsResponse {
       [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
 }
 
+// QueryUnharvestedRewardsRequest is the request type for the Query/UnharvestedRewards RPC method.
+message QueryUnharvestedRewardsRequest {
+  string                                farmer             = 1;
+  string                                staking_coin_denom = 2;
+  cosmos.base.query.v1beta1.PageRequest pagination         = 3;
+}
+
+// QueryUnharvestedRewardsResponse is the response type for the Query/UnharvestedRewards RPC method.
+message QueryUnharvestedRewardsResponse {
+  repeated UnharvestedRewardsResponse    unharvested_rewards = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination          = 2;
+}
+
 // QueryCurrentEpochDaysRequest is the request type for the Query/CurrentEpochDays RPC method.
 message QueryCurrentEpochDaysRequest {}
 
@@ -393,4 +431,11 @@ message QueuedStakingResponse {
   string amount = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
 
   google.protobuf.Timestamp end_time = 3 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+}
+
+message UnharvestedRewardsResponse {
+  string staking_coin_denom = 1;
+
+  repeated cosmos.base.v1beta1.Coin rewards = 2
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
 }

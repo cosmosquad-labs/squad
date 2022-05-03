@@ -607,3 +607,103 @@ func (suite *KeeperTestSuite) TestGRPCRewards() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestGRPCUnharvestedRewards() {
+	for _, plan := range suite.sampleFixedAmtPlans {
+		suite.keeper.SetPlan(suite.ctx, plan)
+	}
+
+	suite.executeBlock(utils.ParseTime("2021-08-04T23:00:00Z"), func() {
+		suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000), sdk.NewInt64Coin(denom2, 1500)))
+		suite.Stake(suite.addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000)))
+	})
+
+	suite.executeBlock(utils.ParseTime("2021-08-05T00:00:00Z"), nil) // next epoch
+	suite.executeBlock(utils.ParseTime("2021-08-05T23:00:00Z"), nil) // queued -> staked
+
+	// Stake more.
+	suite.executeBlock(utils.ParseTime("2021-08-05T23:30:00Z"), func() {
+		suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000), sdk.NewInt64Coin(denom2, 1500)))
+		suite.Stake(suite.addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000)))
+	})
+
+	suite.executeBlock(utils.ParseTime("2021-08-06T00:00:00Z"), nil) // rewards distribution
+	suite.executeBlock(utils.ParseTime("2021-08-06T23:30:00Z"), nil) // queued -> staked
+
+	for _, tc := range []struct {
+		name      string
+		req       *types.QueryUnharvestedRewardsRequest
+		expectErr bool
+		postRun   func(*types.QueryUnharvestedRewardsResponse)
+	}{
+		{
+			"nil request",
+			nil,
+			true,
+			nil,
+		},
+		{
+			"empty request",
+			&types.QueryUnharvestedRewardsRequest{},
+			true,
+			nil,
+		},
+		{
+			"query by farmer addr",
+			&types.QueryUnharvestedRewardsRequest{Farmer: suite.addrs[0].String()},
+			false,
+			func(resp *types.QueryUnharvestedRewardsResponse) {
+				suite.Require().Len(resp.UnharvestedRewards, 2)
+				for _, unharvestedRewards := range resp.UnharvestedRewards {
+					switch unharvestedRewards.StakingCoinDenom {
+					case denom1:
+						// 0.3 * 1000000 * 1/2
+						// + 1.0 * 2000000 * 1/2
+						// ~= 1150000
+						suite.Require().True(coinsEq(utils.ParseCoins("1150000denom3"), unharvestedRewards.Rewards))
+					case denom2:
+						// 0.7 * 1000000 * 1/1
+						// ~= 700000
+						suite.Require().True(coinsEq(utils.ParseCoins("699999denom3"), unharvestedRewards.Rewards))
+					default:
+						suite.FailNowf("invalid staking coin denom: %s", unharvestedRewards.StakingCoinDenom)
+					}
+				}
+			},
+		},
+		{
+			"invalid farmer addr",
+			&types.QueryUnharvestedRewardsRequest{Farmer: "invalid"},
+			true,
+			nil,
+		},
+		{
+			"query with staking coin denom",
+			&types.QueryUnharvestedRewardsRequest{Farmer: suite.addrs[1].String(), StakingCoinDenom: denom1},
+			false,
+			func(resp *types.QueryUnharvestedRewardsResponse) {
+				// 0.3 * 1000000 * 1/2
+				// + 1.0 * 2000000 * 1/2
+				// ~= 1150000
+				suite.Require().Len(resp.UnharvestedRewards, 1)
+				suite.Require().True(coinsEq(utils.ParseCoins("1150000denom3"), resp.UnharvestedRewards[0].Rewards))
+			},
+		},
+		{
+			"query with staking coin denom, without farmer addr",
+			&types.QueryUnharvestedRewardsRequest{StakingCoinDenom: denom2},
+			true,
+			nil,
+		},
+	} {
+		suite.Run(tc.name, func() {
+			resp, err := suite.querier.UnharvestedRewards(sdk.WrapSDKContext(suite.ctx), tc.req)
+			if tc.expectErr {
+				suite.Require().Error(err)
+			} else {
+				suite.Require().NoError(err)
+				tc.postRun(resp)
+			}
+		})
+	}
+}
