@@ -506,7 +506,8 @@ func (k Keeper) Unstake(ctx sdk.Context, farmerAcc sdk.AccAddress, amount sdk.Co
 }
 
 // ProcessQueuedCoins moves queued coins into staked coins.
-// It causes accumulated rewards to be withdrawn to the farmer.
+// It causes accumulated rewards to be withdrawn as UnharvestedRewards,
+// which can be claimed later by the farmer.
 func (k Keeper) ProcessQueuedCoins(ctx sdk.Context, currTime time.Time) {
 	type farmerDenomPair struct {
 		farmerAcc        string
