@@ -35,3 +35,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 <!-- markdown-link-check-disable -->
 
 # Changelog
+
+## [Unreleased]
+
+### State Machine Breaking
+
+* (x/farming) [\#305](https://github.com/cosmosquad-labs/squad/pull/305) Time-based queued staking and new UnharvestedRewards struct
