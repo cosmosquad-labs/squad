@@ -97,6 +97,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	farmingparams "github.com/cosmosquad-labs/squad/app/params"
+	"github.com/cosmosquad-labs/squad/app/upgrades/mainnet/v2.0.0"
 	"github.com/cosmosquad-labs/squad/x/claim"
 	claimkeeper "github.com/cosmosquad-labs/squad/x/claim/keeper"
 	claimtypes "github.com/cosmosquad-labs/squad/x/claim/types"
@@ -695,6 +696,9 @@ func NewApp(
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 
+	app.SetUpgradeStoreLoaders()
+	app.SetUpgradeHandlers(app.mm, app.configurator)
+
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
 			tmos.Exit(fmt.Sprintf("failed to load latest version: %s", err))
@@ -866,4 +870,24 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(liquidstakingtypes.ModuleName)
 
 	return paramsKeeper
+}
+
+func (app *App) SetUpgradeStoreLoaders() {
+	// common logics for set upgrades
+	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
+	if err != nil {
+		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
+	}
+
+	// mainnet upgrade state loaders
+	if upgradeInfo.Name == v2_0_0.UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &v2_0_0.StoreUpgrades))
+	}
+}
+
+func (app *App) SetUpgradeHandlers(mm *module.Manager, configurator module.Configurator) {
+	// mainnet upgrade handlers
+	app.UpgradeKeeper.SetUpgradeHandler(
+		v2_0_0.UpgradeName, v2_0_0.UpgradeHandler(mm, configurator, app.BudgetKeeper))
 }
