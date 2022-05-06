@@ -303,6 +303,9 @@ To simulate reward distribution for this demo, enable a custom transaction messa
 
 When you send the `AdvanceEpoch` message to the network, it increases epoch by day 1.
 
+> `AdvanceEpoch` immediately makes queued coins to be staked, and runs rewards allocation logic.
+> It is similar to fast-forwarding the chain by one day(depending on `CurrentEpochDays` parameter).
+
 ```bash
 # Increase epoch by 1 
 # This will make queued coins to be staked, and distribute rewards for those coins
@@ -324,7 +327,42 @@ $BINARY q farming rewards cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny \
 --output json | jq
 ```
 
-### Step 8. Harvest farming rewards
+### Step 8. Stake more coins
+
+When staking more coins, the accumulated rewards are automatically sent(withdrawn) to a
+separate module account `UnharvestedRewardsReserveAcc` and a new `UnharvestedRewards` object
+is created which holds the amount of unharvested rewards.
+These unharvested rewards can be claimed later with `Harvest` command.
+
+```bash
+# Stake more pool coin
+$BINARY tx farming stake 5000000pool1 \
+--chain-id localnet \
+--from user2 \
+--keyring-backend test \
+--broadcast-mode block \
+--yes \
+--output json | jq
+
+# Increase epoch by 1
+# This will make queued coins to be staked, and distribute rewards for those coins
+$BINARY tx farming advance-epoch \
+--chain-id localnet \
+--from user2 \
+--keyring-backend test \
+--broadcast-mode block \
+--yes \
+--output json | jq
+
+# Query for unharvested rewards for a staker address
+$BINARY q farming unharvested-rewards cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny \
+--output json | jq
+```
+
+### Step 9. Harvest farming rewards
+
+When harvesting rewards using `Harvest` command, all rewards accumulated until the last epoch
+and all existing unharvested rewards are claimed and sent to the farmer.
 
 ```bash
 # Query balance of user2 account 
@@ -357,7 +395,7 @@ $BINARY tx farming harvest pool1 \
 --output json | jq
 ```
 
-### Step 9. Modify the public farming ratio plan
+### Step 10. Modify the public farming ratio plan
 
 Now create the `multiple-public-ratio-plan-proposals.json` file and copy the JSON contents into the file. 
 
