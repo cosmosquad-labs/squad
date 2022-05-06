@@ -38,6 +38,24 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+### Client Breaking Changes
+
+* (x/farming) [\#305](https://github.com/cosmosquad-labs/squad/pull/305) Rename existing `Stakings` endpoint to `Position` and add three new endpoints:
+  * `Stakings`: `/squad/farming/v1beta1/stakings/{farmer}`
+  * `QueuedStakings`: `/squad/farming/v1beta1/queued_stakings/{farmer}`
+  * `UnharvestedRewards`: `/squad/farming/v1beta1/unharvested_reward/{farmer}`
+
+### CLI Breaking Changes
+
+* (x/farming) [\#305](https://github.com/cosmosquad-labs/squad/pull/305) Rename existing `stakings` query to `position` and add three new queries:
+  * `stakings [farmer]`
+  * `queued-stakings [farmer]`
+  * `unharvested-rewards [farmer]`
+
 ### State Machine Breaking
 
 * (x/farming) [\#305](https://github.com/cosmosquad-labs/squad/pull/305) Time-based queued staking and new UnharvestedRewards struct
+  * Changed/added kv-store keys:
+    * QueuedStaking: `0x23 | EndTimeLen (1 byte) | sdk.FormatTimeBytes(EndTime) | StakingCoinDenomLen (1 byte) | StakingCoinDenom | FarmerAddr -> ProtocolBuffer(QueuedStaking)`
+    * QueuedStakingIndex: `0x24 | FarmerAddrLen (1 byte) | FarmerAddr | StakingCoinDenomLen (1 byte) | StakingCoinDenom | sdk.FormatTimeBytes(EndTime) -> nil`
+    * UnharvestedRewards: `0x34 | FarmerAddrLen (1 byte) | FarmerAddr | StakingCoinDenom -> ProtocolBuffer(UnharvestedRewards)`
