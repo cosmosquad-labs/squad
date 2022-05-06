@@ -136,8 +136,8 @@ Use the following values for the fields:
           "rate": "0.500000000000000000",
           "source_address": "cosmos17xpfvakm2amg962yls6f84z3kell8c5lserqta",
           "destination_address": "cosmos1228ryjucdpdv3t87rxle0ew76a56ulvnfst0hq0sscd3nafgjpqqkcxcky",
-          "start_time": "2021-09-01T00:00:00Z",
-          "end_time": "2031-09-30T00:00:00Z"
+          "start_time": "0001-01-01T00:00:00Z",
+          "end_time": "9999-12-31T00:00:00Z"
         }
       ]
     }
@@ -226,8 +226,8 @@ where the fields in the JSON file are:
           "amount": "0.500000000000000000"
         }
       ],
-      "start_time": "2021-09-01T00:00:00Z",
-      "end_time": "2031-09-30T00:00:00Z",
+      "start_time": "0001-01-01T00:00:00Z",
+      "end_time": "9999-12-31T00:00:00Z",
       "epoch_ratio": "0.900000000000000000"
     }
   ]
@@ -286,13 +286,13 @@ $BINARY tx farming stake 5000000pool1 \
 --yes \
 --output json | jq
 
-# Query for all stakings by a staker address
-$BINARY q farming stakings cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny \
+# Query for farming position by a staker address
+$BINARY q farming position cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny \
 --output json | jq
 
 # You can also query using the following command
-# Query for all stakings by a staker address with the given staking coin denom
-$BINARY q farming stakings cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny \
+# Query for farming position by a staker address with the given staking coin denom
+$BINARY q farming position cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny \
 --staking-coin-denom pool1 \
 --output json | jq
 ```
@@ -303,10 +303,9 @@ To simulate reward distribution for this demo, enable a custom transaction messa
 
 When you send the `AdvanceEpoch` message to the network, it increases epoch by day 1.
 
-In this step, you might wonder why you need to increase 2 epochs by sending two transactions to the network. The reason is to ensure fairness of distribution. The global parameter called `next_epoch_days` can be updated through a param change governance proposal. If the value of `next_epoch_days` is changed, it can lead to an edge case. Let's say `next_epoch_days` is 7 and it is changed to 1 although it hasn't proceeded up to 7 days before it is changed. Therefore, the internal state `current_epoch_days` is used to process staking and reward distribution in an end blocker. This technical decision has been made by the Gravity DEX team. To understand more about this decision, feel free to jump right into `x/farming/abci.go`.
-
 ```bash
 # Increase epoch by 1 
+# This will make queued coins to be staked, and distribute rewards for those coins
 $BINARY tx farming advance-epoch \
 --chain-id localnet \
 --from user2 \
@@ -315,18 +314,9 @@ $BINARY tx farming advance-epoch \
 --yes \
 --output json | jq
 
-# Query for all stakings by a staker address
+# Query for farming position by a staker address
 # Queued coins should have been moved to staked coins 
-$BINARY q farming stakings cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny \
---output json | jq
-
-# Increase epoch by 1 again to distribute rewards
-$BINARY tx farming advance-epoch \
---chain-id localnet \
---from user2 \
---keyring-backend test \
---broadcast-mode block \
---yes \
+$BINARY q farming position cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny \
 --output json | jq
 
 # Query rewards
@@ -409,8 +399,8 @@ Add a second public ratio plan proposal:
           "amount": "1.000000000000000000"
         }
       ],
-      "start_time": "2021-09-01T00:00:00Z",
-      "end_time": "2031-09-30T00:00:00Z",
+      "start_time": "0001-01-01T00:00:00Z",
+      "end_time": "9999-12-31T00:00:00Z",
       "epoch_ratio": "0.500000000000000000"
     }
   ],
@@ -429,8 +419,8 @@ Add a second public ratio plan proposal:
           "amount": "0.500000000000000000"
         }
       ],
-      "start_time": "2021-09-11T00:00:00Z",
-      "end_time": "2031-09-30T00:00:00Z",
+      "start_time": "0001-01-01T00:00:00Z",
+      "end_time": "9999-12-31T00:00:00Z",
       "epoch_ratio": "0.500000000000000000"
     }
   ]
@@ -500,19 +490,11 @@ $BINARY tx farming stake 5000000pool3 \
 --output json | jq
 
 # Query what user2 is staking
-$BINARY q farming stakings cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny \
+$BINARY q farming position cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny \
 --output json | jq
 
-# Increase epoch by 2 again to distribute rewards
+# Increase epoch by 1 again to distribute rewards
 $BINARY tx farming advance-epoch \
---chain-id localnet \
---from user2 \
---keyring-backend test \
---broadcast-mode block \
---yes \
---output json | jq
-
-farmingd tx farming advance-epoch \
 --chain-id localnet \
 --from user2 \
 --keyring-backend test \
