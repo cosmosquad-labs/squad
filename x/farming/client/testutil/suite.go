@@ -934,7 +934,7 @@ func (s *QueryCmdTestSuite) TestCmdQueryPosition() {
 			func(resp *types.QueryPositionResponse) {
 				s.Require().True(coinsEq(utils.ParseCoins("1500000stake"), resp.StakedCoins))
 				s.Require().True(coinsEq(utils.ParseCoins("500000stake"), resp.QueuedCoins))
-				s.Require().True(coinsEq(utils.ParseCoins("99999999node0token"), resp.Rewards))
+				s.Require().True(coinsEq(utils.ParseCoins("199999999node0token"), resp.Rewards))
 			},
 		},
 		{
