@@ -346,6 +346,8 @@ message QueryPositionResponse {
       [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
   repeated cosmos.base.v1beta1.Coin queued_coins = 2
       [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  repeated cosmos.base.v1beta1.Coin rewards = 3
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
 }
 
 // QueryStakingsRequest is the request type for the Query/Stakings RPC method.
@@ -386,14 +388,15 @@ message QueryTotalStakingsResponse {
 
 // QueryRewardsRequest is the request type for the Query/Rewards RPC method.
 message QueryRewardsRequest {
-  string farmer             = 1;
-  string staking_coin_denom = 2;
+  string                                farmer             = 1;
+  string                                staking_coin_denom = 2;
+  cosmos.base.query.v1beta1.PageRequest pagination         = 3;
 }
 
 // QueryRewardsResponse is the response type for the Query/Rewards RPC method.
 message QueryRewardsResponse {
-  repeated cosmos.base.v1beta1.Coin rewards = 1
-      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  repeated RewardsResponse               rewards    = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // QueryUnharvestedRewardsRequest is the request type for the Query/UnharvestedRewards RPC method.
@@ -431,6 +434,13 @@ message QueuedStakingResponse {
   string amount = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
 
   google.protobuf.Timestamp end_time = 3 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+}
+
+message RewardsResponse {
+  string staking_coin_denom = 1;
+
+  repeated cosmos.base.v1beta1.Coin rewards = 2
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
 }
 
 message UnharvestedRewardsResponse {

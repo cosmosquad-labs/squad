@@ -70,20 +70,20 @@ fi
 # Enable API and swagger docs and modify parameters for the governance proposal and
 # inflation rate from 13% to 33%
 if [ $platform = 'linux' ]; then
-	sed -i 's/enable = false/enable = true/g' $HOME_APP/config/app.toml
-	sed -i 's/swagger = false/swagger = true/g' $HOME_APP/config/app.toml
-	sed -i 's%"amount": "10000000"%"amount": "1"%g' $HOME_APP/config/genesis.json
-	sed -i 's%"quorum": "0.334000000000000000",%"quorum": "0.000000000000000001",%g' $HOME_APP/config/genesis.json
-	sed -i 's%"threshold": "0.500000000000000000",%"threshold": "0.000000000000000001",%g' $HOME_APP/config/genesis.json
-	sed -i 's%"voting_period": "172800s"%"voting_period": "30s"%g' $HOME_APP/config/genesis.json
+  sed -i 's/enable = false/enable = true/g' $HOME_APP/config/app.toml
+  sed -i 's/swagger = false/swagger = true/g' $HOME_APP/config/app.toml
+  sed -i 's%"amount": "10000000"%"amount": "1"%g' $HOME_APP/config/genesis.json
+  sed -i 's%"quorum": "0.334000000000000000",%"quorum": "0.000000000000000001",%g' $HOME_APP/config/genesis.json
+  sed -i 's%"threshold": "0.500000000000000000",%"threshold": "0.000000000000000001",%g' $HOME_APP/config/genesis.json
+  sed -i 's%"voting_period": "172800s"%"voting_period": "30s"%g' $HOME_APP/config/genesis.json
   sed -i 's%"inflation": "0.130000000000000000",%"inflation": "0.330000000000000000",%g' $HOME_APP/config/genesis.json
 else
-	sed -i '' 's/enable = false/enable = true/g' $HOME_APP/config/app.toml
-	sed -i '' 's/swagger = false/swagger = true/g' $HOME_APP/config/app.toml
-	sed -i '' 's%"amount": "10000000"%"amount": "1"%g' $HOME_APP/config/genesis.json
-	sed -i '' 's%"quorum": "0.334000000000000000",%"quorum": "0.000000000000000001",%g' $HOME_APP/config/genesis.json
-	sed -i '' 's%"threshold": "0.500000000000000000",%"threshold": "0.000000000000000001",%g' $HOME_APP/config/genesis.json
-	sed -i '' 's%"voting_period": "172800s"%"voting_period": "30s"%g' $HOME_APP/config/genesis.json
+  sed -i '' 's/enable = false/enable = true/g' $HOME_APP/config/app.toml
+  sed -i '' 's/swagger = false/swagger = true/g' $HOME_APP/config/app.toml
+  sed -i '' 's%"amount": "10000000"%"amount": "1"%g' $HOME_APP/config/genesis.json
+  sed -i '' 's%"quorum": "0.334000000000000000",%"quorum": "0.000000000000000001",%g' $HOME_APP/config/genesis.json
+  sed -i '' 's%"threshold": "0.500000000000000000",%"threshold": "0.000000000000000001",%g' $HOME_APP/config/genesis.json
+  sed -i '' 's%"voting_period": "172800s"%"voting_period": "30s"%g' $HOME_APP/config/genesis.json
   sed -i '' 's%"inflation": "0.130000000000000000",%"inflation": "0.330000000000000000",%g' $HOME_APP/config/genesis.json
 fi
 

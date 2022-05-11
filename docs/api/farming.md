@@ -180,6 +180,12 @@ http://localhost:1317/squad/farming/v1beta1/position/cosmos185fflsvwrz0cx46w6qad
     }
   ],
   "queued_coins": [
+  ],
+  "rewards": [
+    {
+      "denom": "stake",
+      "amount": "1000000"
+    }
   ]
 }
 ```
@@ -202,6 +208,12 @@ http://localhost:1317/squad/farming/v1beta1/position/cosmos185fflsvwrz0cx46w6qad
     }
   ],
   "queued_coins": [
+  ],
+  "rewards": [
+    {
+      "denom": "stake",
+      "amount": "1000000"
+    }
   ]
 }
 ```
@@ -355,10 +367,28 @@ http://localhost:1317/squad/farming/v1beta1/rewards/cosmos185fflsvwrz0cx46w6qada
 {
   "rewards": [
     {
-      "denom": "stake",
-      "amount": "2346201014138"
+      "staking_coin_denom": "pool1",
+      "rewards": [
+        {
+          "denom": "stake",
+          "amount": "2346201014138"
+        }
+      ]
+    },
+    {
+      "staking_coin_denom": "pool2",
+      "rewards": [
+        {
+          "denom": "stake",
+          "amount": "2346201014138"
+        }
+      ]
     }
-  ]
+  ],
+  "pagination": {
+    "next_key": null,
+    "total": "2"
+  }
 }
 ```
 
@@ -376,10 +406,19 @@ http://localhost:1317/squad/farming/v1beta1/rewards/cosmos185fflsvwrz0cx46w6qada
 {
   "rewards": [
     {
-      "denom": "stake",
-      "amount": "2346201014138"
+      "staking_coin_denom": "pool1",
+      "rewards": [
+        {
+          "denom": "stake",
+          "amount": "2346201014138"
+        }
+      ]
     }
-  ]
+  ],
+  "pagination": {
+    "next_key": null,
+    "total": "1"
+  }
 }
 ```
 

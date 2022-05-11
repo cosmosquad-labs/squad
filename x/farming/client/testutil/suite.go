@@ -932,7 +932,9 @@ func (s *QueryCmdTestSuite) TestCmdQueryPosition() {
 			},
 			false,
 			func(resp *types.QueryPositionResponse) {
-				s.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 1500000)), resp.StakedCoins))
+				s.Require().True(coinsEq(utils.ParseCoins("1500000stake"), resp.StakedCoins))
+				s.Require().True(coinsEq(utils.ParseCoins("500000stake"), resp.QueuedCoins))
+				s.Require().True(coinsEq(utils.ParseCoins("99999999node0token"), resp.Rewards))
 			},
 		},
 		{
@@ -1134,7 +1136,9 @@ func (s *QueryCmdTestSuite) TestCmdQueryRewards() {
 			},
 			false,
 			func(resp *types.QueryRewardsResponse) {
-				s.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin("node0token", 99_999_999)), resp.Rewards))
+				s.Require().Len(resp.Rewards, 1)
+				s.Require().Equal("stake", resp.Rewards[0].StakingCoinDenom)
+				s.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin("node0token", 99_999_999)), resp.Rewards[0].Rewards))
 			},
 		},
 		{

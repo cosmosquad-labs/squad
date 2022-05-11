@@ -220,6 +220,12 @@ func (suite *KeeperTestSuite) TestGRPCPlan() {
 }
 
 func (suite *KeeperTestSuite) TestGRPCPosition() {
+	for _, plan := range suite.sampleFixedAmtPlans {
+		suite.keeper.SetPlan(suite.ctx, plan)
+	}
+
+	suite.ctx = suite.ctx.WithBlockTime(utils.ParseTime("2021-08-05T00:00:00Z"))
+	farming.EndBlocker(suite.ctx, suite.keeper)
 	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000), sdk.NewInt64Coin(denom2, 1500)))
 	suite.Stake(suite.addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom1, 500), sdk.NewInt64Coin(denom2, 2000)))
 	suite.advanceEpochDays()
@@ -249,6 +255,7 @@ func (suite *KeeperTestSuite) TestGRPCPosition() {
 				suite.Require().True(coinsEq(
 					sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000), sdk.NewInt64Coin(denom2, 1500)),
 					resp.QueuedCoins))
+				suite.Require().True(coinsEq(utils.ParseCoins("1833333denom3"), resp.Rewards))
 			},
 		},
 		{
@@ -268,6 +275,7 @@ func (suite *KeeperTestSuite) TestGRPCPosition() {
 				suite.Require().True(coinsEq(
 					sdk.NewCoins(sdk.NewInt64Coin(denom2, 2000)),
 					resp.QueuedCoins))
+				suite.Require().True(coinsEq(utils.ParseCoins("400000denom3"), resp.Rewards))
 			},
 		},
 		{
@@ -569,7 +577,15 @@ func (suite *KeeperTestSuite) TestGRPCRewards() {
 				// + 0.7 * 1000000 * 1/1
 				// + 1.0 * 2000000 * 1/2
 				// ~= 1850000
-				suite.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(denom3, 1849999)), resp.Rewards))
+				suite.Require().Len(resp.Rewards, 2)
+				for _, r := range resp.Rewards {
+					switch r.StakingCoinDenom {
+					case denom1:
+						suite.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(denom3, 1150000)), r.Rewards))
+					case denom2:
+						suite.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(denom3, 699999)), r.Rewards))
+					}
+				}
 			},
 		},
 		{
@@ -586,7 +602,9 @@ func (suite *KeeperTestSuite) TestGRPCRewards() {
 				// 0.3 * 1000000 * 1/2
 				// + 1.0 * 2000000 * 1/2
 				// ~= 1150000
-				suite.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(denom3, 1150000)), resp.Rewards))
+				suite.Require().Len(resp.Rewards, 1)
+				suite.Require().Equal(denom1, resp.Rewards[0].StakingCoinDenom)
+				suite.Require().True(coinsEq(sdk.NewCoins(sdk.NewInt64Coin(denom3, 1150000)), resp.Rewards[0].Rewards))
 			},
 		},
 		{

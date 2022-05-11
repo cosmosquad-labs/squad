@@ -166,12 +166,14 @@ func (k Querier) Position(c context.Context, req *types.QueryPositionRequest) (*
 	ctx := sdk.UnwrapSDKContext(c)
 
 	resp := &types.QueryPositionResponse{
-		StakedCoins: sdk.NewCoins(),
-		QueuedCoins: sdk.NewCoins(),
+		StakedCoins: sdk.Coins{},
+		QueuedCoins: sdk.Coins{},
+		Rewards:     sdk.Coins{},
 	}
 	if req.StakingCoinDenom == "" {
 		resp.StakedCoins = k.Keeper.GetAllStakedCoinsByFarmer(ctx, farmerAcc)
 		resp.QueuedCoins = k.Keeper.GetAllQueuedCoinsByFarmer(ctx, farmerAcc)
+		resp.Rewards = k.Keeper.AllRewards(ctx, farmerAcc).Add(k.Keeper.AllUnharvestedRewards(ctx, farmerAcc)...)
 	} else {
 		staking, found := k.Keeper.GetStaking(ctx, req.StakingCoinDenom, farmerAcc)
 		if found {
@@ -181,6 +183,8 @@ func (k Querier) Position(c context.Context, req *types.QueryPositionRequest) (*
 		if queuedStakingAmt.IsPositive() {
 			resp.QueuedCoins = resp.QueuedCoins.Add(sdk.NewCoin(req.StakingCoinDenom, queuedStakingAmt))
 		}
+		unharvested, _ := k.Keeper.GetUnharvestedRewards(ctx, farmerAcc, req.StakingCoinDenom)
+		resp.Rewards = k.Keeper.Rewards(ctx, farmerAcc, req.StakingCoinDenom).Add(unharvested.Rewards...)
 	}
 
 	return resp, nil
@@ -289,7 +293,7 @@ func (k Querier) TotalStakings(c context.Context, req *types.QueryTotalStakingsR
 	}, nil
 }
 
-// Rewards queries accumulated rewards for a farmer.
+// Rewards queries all accumulated rewards for a farmer.
 func (k Querier) Rewards(c context.Context, req *types.QueryRewardsRequest) (*types.QueryRewardsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
@@ -307,20 +311,32 @@ func (k Querier) Rewards(c context.Context, req *types.QueryRewardsRequest) (*ty
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-
-	resp := &types.QueryRewardsResponse{
-		Rewards: sdk.NewCoins(),
-	}
-
-	var rewards sdk.Coins
-	if req.StakingCoinDenom == "" {
-		rewards = k.Keeper.AllRewards(ctx, farmerAcc)
+	store := ctx.KVStore(k.storeKey)
+	var keyPrefix []byte
+	if req.StakingCoinDenom != "" {
+		keyPrefix = types.GetStakingIndexKey(farmerAcc, req.StakingCoinDenom)
 	} else {
-		rewards = k.Keeper.Rewards(ctx, farmerAcc, req.StakingCoinDenom)
+		keyPrefix = types.GetStakingsByFarmerPrefix(farmerAcc)
 	}
-	resp.Rewards = rewards
+	stakingStore := prefix.NewStore(store, keyPrefix)
+	var rewards []types.RewardsResponse
 
-	return resp, nil
+	pageRes, _ := query.FilteredPaginate(stakingStore, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
+		_, stakingCoinDenom := types.ParseStakingIndexKey(append(keyPrefix, key...))
+
+		r := k.Keeper.Rewards(ctx, farmerAcc, stakingCoinDenom)
+
+		if accumulate {
+			rewards = append(rewards, types.RewardsResponse{
+				StakingCoinDenom: stakingCoinDenom,
+				Rewards:          r,
+			})
+		}
+
+		return true, nil
+	})
+
+	return &types.QueryRewardsResponse{Rewards: rewards, Pagination: pageRes}, nil
 }
 
 // UnharvestedRewards queries all unharvested rewards for the farmer.

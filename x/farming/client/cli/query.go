@@ -462,6 +462,7 @@ func GetCmdQueryUnharvestedRewards() *cobra.Command {
 		Short: "Query unharvested rewards for a farmer",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query unharvested rewards for a farmer.
+Unharvested rewards are accumulated when there was a change in staking coin amount, and can be harvested by harvest tx.
 
 Optionally restrict coins by a staking coin denom.
 
