@@ -103,7 +103,7 @@ func (k Keeper) ValidateMsgCreatePool(ctx sdk.Context, msg *types.MsgCreatePool)
 	return nil
 }
 
-// CreatePool handles types.MsgCreatePool and creates a pool.
+// CreatePool handles types.MsgCreatePool and creates a basic pool.
 func (k Keeper) CreatePool(ctx sdk.Context, msg *types.MsgCreatePool) (types.Pool, error) {
 	if err := k.ValidateMsgCreatePool(ctx, msg); err != nil {
 		return types.Pool{}, err
@@ -114,7 +114,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, msg *types.MsgCreatePool) (types.Poo
 
 	// Create and save the new pool object.
 	poolId := k.getNextPoolIdWithUpdate(ctx)
-	pool := types.NewPool(poolId, pair.Id)
+	pool := types.NewBasicPool(poolId, pair.Id, msg.GetCreator())
 	k.SetPool(ctx, pool)
 	k.SetPoolByReserveIndex(ctx, pool)
 	k.SetPoolsByPairIndex(ctx, pool)
@@ -149,6 +149,88 @@ func (k Keeper) CreatePool(ctx sdk.Context, msg *types.MsgCreatePool) (types.Poo
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeCreatePool,
+			sdk.NewAttribute(types.AttributeKeyCreator, msg.Creator),
+			sdk.NewAttribute(types.AttributeKeyPairId, strconv.FormatUint(msg.PairId, 10)),
+			sdk.NewAttribute(types.AttributeKeyDepositCoins, msg.DepositCoins.String()),
+			sdk.NewAttribute(types.AttributeKeyPoolId, strconv.FormatUint(pool.Id, 10)),
+			sdk.NewAttribute(types.AttributeKeyReserveAddress, pool.ReserveAddress),
+			sdk.NewAttribute(types.AttributeKeyMintedPoolCoin, poolCoin.String()),
+		),
+	})
+
+	return pool, nil
+}
+
+// ValidateMsgCreateRangedPool validates types.MsgCreateRangedPool.
+func (k Keeper) ValidateMsgCreateRangedPool(ctx sdk.Context, msg *types.MsgCreateRangedPool) error {
+	pair, found := k.GetPair(ctx, msg.PairId)
+	if !found {
+		return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "pair %d not found", msg.PairId)
+	}
+
+	params := k.GetParams(ctx)
+	for _, coin := range msg.DepositCoins {
+		if coin.Denom != pair.BaseCoinDenom && coin.Denom != pair.QuoteCoinDenom {
+			return sdkerrors.Wrapf(types.ErrInvalidCoinDenom, "coin denom %s is not in the pair", coin.Denom)
+		}
+		minDepositCoin := sdk.NewCoin(coin.Denom, params.MinInitialDepositAmount)
+		if coin.IsLT(minDepositCoin) {
+			return sdkerrors.Wrapf(
+				types.ErrInsufficientDepositAmount, "%s is smaller than %s", coin, minDepositCoin)
+		}
+	}
+
+	// TODO: validate deposit coins against min price, max price
+
+	return nil
+}
+
+// CreateRangedPool handles types.MsgCreateRangedPool and creates a ranged pool.
+func (k Keeper) CreateRangedPool(ctx sdk.Context, msg *types.MsgCreateRangedPool) (types.Pool, error) {
+	if err := k.ValidateMsgCreateRangedPool(ctx, msg); err != nil {
+		return types.Pool{}, err
+	}
+
+	params := k.GetParams(ctx)
+	pair, _ := k.GetPair(ctx, msg.PairId)
+
+	// Create and save the new pool object.
+	poolId := k.getNextPoolIdWithUpdate(ctx)
+	pool := types.NewRangedPool(poolId, pair.Id, msg.GetCreator(), msg.MinPrice, msg.MaxPrice)
+	k.SetPool(ctx, pool)
+	k.SetPoolByReserveIndex(ctx, pool)
+	k.SetPoolsByPairIndex(ctx, pool)
+
+	// Send deposit coins to the pool's reserve account.
+	creator := msg.GetCreator()
+	if err := k.bankKeeper.SendCoins(ctx, creator, pool.GetReserveAddress(), msg.DepositCoins); err != nil {
+		return types.Pool{}, err
+	}
+
+	// Send the pool creation fee to the fee collector.
+	feeCollectorAddr, _ := sdk.AccAddressFromBech32(params.FeeCollectorAddress)
+	if err := k.bankKeeper.SendCoins(ctx, creator, feeCollectorAddr, params.PoolCreationFee); err != nil {
+		return types.Pool{}, sdkerrors.Wrap(err, "insufficient pool creation fee")
+	}
+
+	// Mint and send pool coin to the creator.
+	// Minting pool coin amount is calculated based on two coins' amount.
+	// Minimum minting amount is params.MinInitialPoolCoinSupply.
+	ps := sdk.MaxInt(
+		amm.InitialPoolCoinSupply(msg.DepositCoins[0].Amount, msg.DepositCoins[1].Amount),
+		params.MinInitialPoolCoinSupply,
+	)
+	poolCoin := sdk.NewCoin(pool.PoolCoinDenom, ps)
+	if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(poolCoin)); err != nil {
+		return types.Pool{}, err
+	}
+	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, creator, sdk.NewCoins(poolCoin)); err != nil {
+		return types.Pool{}, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeCreatePool, // TODO: change event type
 			sdk.NewAttribute(types.AttributeKeyCreator, msg.Creator),
 			sdk.NewAttribute(types.AttributeKeyPairId, strconv.FormatUint(msg.PairId, 10)),
 			sdk.NewAttribute(types.AttributeKeyDepositCoins, msg.DepositCoins.String()),

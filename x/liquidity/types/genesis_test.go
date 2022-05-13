@@ -14,7 +14,7 @@ import (
 func TestGenesisState_Validate(t *testing.T) {
 	// Valid structs.
 	pair := types.NewPair(1, "denom1", "denom2")
-	pool := types.NewPool(1, 1)
+	pool := types.NewRangedPool(1, 1)
 	depositReq := types.DepositRequest{
 		Id:             1,
 		PoolId:         1,

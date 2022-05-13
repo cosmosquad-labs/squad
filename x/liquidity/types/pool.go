@@ -28,13 +28,34 @@ func PoolReserveAddress(poolId uint64) sdk.AccAddress {
 	)
 }
 
-// NewPool returns a new pool object.
-func NewPool(id, pairId uint64) Pool {
+// NewBasicPool returns a new basic pool object.
+func NewBasicPool(id, pairId uint64, creator sdk.AccAddress) Pool {
 	return Pool{
+		Type:                  PoolTypeBasic,
 		Id:                    id,
 		PairId:                pairId,
+		Creator:               creator.String(),
 		ReserveAddress:        PoolReserveAddress(id).String(),
 		PoolCoinDenom:         PoolCoinDenom(id),
+		MinPrice:              nil,
+		MaxPrice:              nil,
+		LastDepositRequestId:  0,
+		LastWithdrawRequestId: 0,
+		Disabled:              false,
+	}
+}
+
+// NewRangedPool returns a new ranged pool object.
+func NewRangedPool(id, pairId uint64, creator sdk.AccAddress, minPrice, maxPrice *sdk.Dec) Pool {
+	return Pool{
+		Type:                  PoolTypeRanged,
+		Id:                    id,
+		PairId:                pairId,
+		Creator:               creator.String(),
+		ReserveAddress:        PoolReserveAddress(id).String(),
+		PoolCoinDenom:         PoolCoinDenom(id),
+		MinPrice:              minPrice,
+		MaxPrice:              maxPrice,
 		LastDepositRequestId:  0,
 		LastWithdrawRequestId: 0,
 		Disabled:              false,
