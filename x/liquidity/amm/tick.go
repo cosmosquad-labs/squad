@@ -238,7 +238,7 @@ func EvenTicks(basePrice sdk.Dec, numTicks, tickPrec int) []sdk.Dec {
 	}
 	highestTick = start.Add(highestGap.MulInt64(int64(numTicks)))
 	var ticks []sdk.Dec
-	for i, tick := 0, highestTick; i < numTotalTicks; i, tick = i+1, tick.Sub(highestGap) {
+	for i, tick := 0, highestTick; i < numTotalTicks && !tick.IsNegative(); i, tick = i+1, tick.Sub(highestGap) {
 		ticks = append(ticks, tick)
 	}
 	sortTicks(ticks)

@@ -377,10 +377,11 @@ func TestEvenTicks(t *testing.T) {
 	for i, tc := range []struct {
 		basePrice sdk.Dec
 		numTicks  int
+		tickPrec  amm.TickPrecision
 		ticks     []sdk.Dec
 	}{
 		{
-			dec("999.9"), 3,
+			dec("999.9"), 3, defTickPrec,
 			[]sdk.Dec{
 				dec("1002"),
 				dec("1001"),
@@ -391,7 +392,7 @@ func TestEvenTicks(t *testing.T) {
 			},
 		},
 		{
-			dec("2.0"), 3,
+			dec("2.0"), 3, defTickPrec,
 			[]sdk.Dec{
 				dec("2.003"),
 				dec("2.002"),
@@ -403,7 +404,7 @@ func TestEvenTicks(t *testing.T) {
 			},
 		},
 		{
-			dec("1.000001"), 3,
+			dec("1.000001"), 3, defTickPrec,
 			[]sdk.Dec{
 				dec("1.003"),
 				dec("1.002"),
@@ -414,7 +415,7 @@ func TestEvenTicks(t *testing.T) {
 			},
 		},
 		{
-			dec("1.0"), 3,
+			dec("1.0"), 3, defTickPrec,
 			[]sdk.Dec{
 				dec("1.003"),
 				dec("1.002"),
@@ -426,7 +427,7 @@ func TestEvenTicks(t *testing.T) {
 			},
 		},
 		{
-			dec("0.99999"), 3,
+			dec("0.99999"), 3, defTickPrec,
 			[]sdk.Dec{
 				dec("1.002"),
 				dec("1.001"),
@@ -437,7 +438,7 @@ func TestEvenTicks(t *testing.T) {
 			},
 		},
 		{
-			dec("0.9999"), 3,
+			dec("0.9999"), 3, defTickPrec,
 			[]sdk.Dec{
 				dec("1.002"),
 				dec("1.001"),
@@ -448,7 +449,7 @@ func TestEvenTicks(t *testing.T) {
 			},
 		},
 		{
-			dec("0.99985"), 3,
+			dec("0.99985"), 3, defTickPrec,
 			[]sdk.Dec{
 				dec("1.002"),
 				dec("1.001"),
@@ -459,7 +460,7 @@ func TestEvenTicks(t *testing.T) {
 			},
 		},
 		{
-			dec("0.9998"), 3,
+			dec("0.9998"), 3, defTickPrec,
 			[]sdk.Dec{
 				dec("1.002"),
 				dec("1.001"),
@@ -470,7 +471,7 @@ func TestEvenTicks(t *testing.T) {
 			},
 		},
 		{
-			dec("0.99975"), 3,
+			dec("0.99975"), 3, defTickPrec,
 			[]sdk.Dec{
 				dec("1.000"),
 				dec("0.9999"),
@@ -481,7 +482,7 @@ func TestEvenTicks(t *testing.T) {
 			},
 		},
 		{
-			dec("0.9997"), 3,
+			dec("0.9997"), 3, defTickPrec,
 			[]sdk.Dec{
 				dec("1.000"),
 				dec("0.9999"),
@@ -492,9 +493,19 @@ func TestEvenTicks(t *testing.T) {
 				dec("0.9994"),
 			},
 		},
+		{
+			dec("1.2"), 3, 0,
+			[]sdk.Dec{
+				dec("4.0"),
+				dec("3.0"),
+				dec("2.0"),
+				dec("1.0"),
+				dec("0.0"),
+			},
+		},
 	} {
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
-			require.Equal(t, tc.ticks, amm.EvenTicks(tc.basePrice, tc.numTicks, int(defTickPrec)))
+			require.True(t, sdk.DecsEqual(tc.ticks, amm.EvenTicks(tc.basePrice, tc.numTicks, int(tc.tickPrec))))
 		})
 	}
 }
