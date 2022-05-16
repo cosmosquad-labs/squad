@@ -119,7 +119,7 @@ func TestFindLastMatchableOrders(t *testing.T) {
 }
 
 func TestMatchOrders(t *testing.T) {
-	_, matched := amm.MatchOrders(nil, nil, utils.ParseDec("1.0"))
+	_, matched := amm.MatchOrders(nil, utils.ParseDec("1.0"))
 	require.False(t, matched)
 
 	for _, tc := range []struct {
@@ -173,7 +173,7 @@ func TestMatchOrders(t *testing.T) {
 				return
 			}
 			require.True(sdk.DecEq(t, tc.matchPrice, matchPrice))
-			quoteCoinDust, matched := amm.MatchOrders(buyOrders, sellOrders, tc.matchPrice)
+			quoteCoinDust, matched := amm.MatchOrders(tc.os, tc.matchPrice)
 			require.Equal(t, tc.matched, matched)
 			if matched {
 				require.True(sdk.IntEq(t, tc.quoteCoinDust, quoteCoinDust))

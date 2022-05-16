@@ -35,6 +35,7 @@ type Order interface {
 	GetAmount() sdk.Int // The original order amount
 	GetOpenAmount() sdk.Int
 	SetOpenAmount(amt sdk.Int)
+	DecrOpenAmount(amt sdk.Int)
 	GetOfferCoin() sdk.Coin
 	GetRemainingOfferCoin() sdk.Coin
 	DecrRemainingOfferCoin(amt sdk.Int) // Decrement remaining offer coin amount
@@ -45,6 +46,7 @@ type Order interface {
 }
 
 // TotalOpenAmount returns total open amount of orders.
+// TODO: refactor to TotalAmount?
 func TotalOpenAmount(orders []Order) sdk.Int {
 	amt := sdk.ZeroInt()
 	for _, order := range orders {
@@ -101,6 +103,11 @@ func (order *BaseOrder) GetOpenAmount() sdk.Int {
 // SetOpenAmount sets open amount of the order.
 func (order *BaseOrder) SetOpenAmount(amt sdk.Int) {
 	order.OpenAmount = amt
+}
+
+// DecrOpenAmount decrements open amount of the order.
+func (order *BaseOrder) DecrOpenAmount(amt sdk.Int) {
+	order.OpenAmount = order.OpenAmount.Sub(amt)
 }
 
 func (order *BaseOrder) GetOfferCoin() sdk.Coin {

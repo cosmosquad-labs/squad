@@ -1,6 +1,7 @@
 package amm
 
 import (
+	"fmt"
 	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -8,12 +9,12 @@ import (
 
 // FindMatchPrice returns the best match price for given order sources.
 // If there is no matchable orders, found will be false.
-func FindMatchPrice(os OrderSource, tickPrec int) (matchPrice sdk.Dec, found bool) {
-	highestBuyPrice, found := os.HighestBuyPrice()
+func FindMatchPrice(ov OrderView, tickPrec int) (matchPrice sdk.Dec, found bool) {
+	highestBuyPrice, found := ov.HighestBuyPrice()
 	if !found {
 		return sdk.Dec{}, false
 	}
-	lowestSellPrice, found := os.LowestSellPrice()
+	lowestSellPrice, found := ov.LowestSellPrice()
 	if !found {
 		return sdk.Dec{}, false
 	}
@@ -26,13 +27,13 @@ func FindMatchPrice(os OrderSource, tickPrec int) (matchPrice sdk.Dec, found boo
 	highestTickIdx := prec.TickToIndex(prec.HighestTick())
 	var i, j int
 	i, found = findFirstTrueCondition(lowestTickIdx, highestTickIdx, func(i int) bool {
-		return os.BuyAmountOver(prec.TickFromIndex(i + 1)).LTE(os.SellAmountUnder(prec.TickFromIndex(i)))
+		return ov.BuyAmountOver(prec.TickFromIndex(i + 1)).LTE(ov.SellAmountUnder(prec.TickFromIndex(i)))
 	})
 	if !found {
 		return sdk.Dec{}, false
 	}
 	j, found = findFirstTrueCondition(highestTickIdx, lowestTickIdx, func(i int) bool {
-		return os.BuyAmountOver(prec.TickFromIndex(i)).GTE(os.SellAmountUnder(prec.TickFromIndex(i - 1)))
+		return ov.BuyAmountOver(prec.TickFromIndex(i)).GTE(ov.SellAmountUnder(prec.TickFromIndex(i - 1)))
 	})
 	if !found {
 		return sdk.Dec{}, false
@@ -123,50 +124,154 @@ func FindLastMatchableOrders(buyOrders, sellOrders []Order, matchPrice sdk.Dec) 
 // quoteCoinDust is the difference between total paid quote coin and total
 // received quote coin.
 // quoteCoinDust can be positive because of the decimal truncation.
-func MatchOrders(buyOrders, sellOrders []Order, matchPrice sdk.Dec) (quoteCoinDust sdk.Int, matched bool) {
+func MatchOrders(os OrderSource, matchPrice sdk.Dec) (quoteCoinDust sdk.Int, matched bool) {
+	buyOrders := os.BuyOrdersOver(matchPrice)
+	sellOrders := os.SellOrdersUnder(matchPrice)
+
 	buyOrders = DropSmallOrders(buyOrders, matchPrice)
 	sellOrders = DropSmallOrders(sellOrders, matchPrice)
 
-	bi, si, pmb, pms, found := FindLastMatchableOrders(buyOrders, sellOrders, matchPrice)
-	if !found {
-		return sdk.Int{}, false
-	}
+	sort.SliceStable(buyOrders, func(i, j int) bool {
+		return buyOrders[i].GetPrice().GT(buyOrders[j].GetPrice())
+	})
+	sort.SliceStable(sellOrders, func(i, j int) bool {
+		return sellOrders[i].GetPrice().LT(sellOrders[j].GetPrice())
+	})
+
+	totalBuyAmt := TotalOpenAmount(buyOrders)
+	totalSellAmt := TotalOpenAmount(sellOrders)
 
 	quoteCoinDust = sdk.ZeroInt()
-
-	for i := 0; i <= bi; i++ {
-		buyOrder := buyOrders[i]
-		var receivedBaseCoinAmt sdk.Int
-		if i < bi {
-			receivedBaseCoinAmt = buyOrder.GetOpenAmount()
-		} else {
-			receivedBaseCoinAmt = pmb
+	if totalBuyAmt.Equal(totalSellAmt) {
+		for _, order := range append(buyOrders, sellOrders...) {
+			quoteCoinDust = quoteCoinDust.Add(MatchOrder(order, matchPrice, order.GetOpenAmount()))
 		}
-		paidQuoteCoinAmt := matchPrice.MulInt(receivedBaseCoinAmt).Ceil().TruncateInt()
-		buyOrder.SetOpenAmount(buyOrder.GetOpenAmount().Sub(receivedBaseCoinAmt))
-		buyOrder.DecrRemainingOfferCoin(paidQuoteCoinAmt)
-		buyOrder.IncrReceivedDemandCoin(receivedBaseCoinAmt)
-		buyOrder.SetMatched(true)
-		quoteCoinDust = quoteCoinDust.Add(paidQuoteCoinAmt)
-	}
-
-	for i := 0; i <= si; i++ {
-		sellOrder := sellOrders[i]
-		var paidBaseCoinAmt sdk.Int
-		if i < si {
-			paidBaseCoinAmt = sellOrder.GetOpenAmount()
+	} else {
+		var (
+			smallOrdersAmt           sdk.Int
+			smallOrders, largeOrders []Order
+		)
+		if totalBuyAmt.LT(totalSellAmt) {
+			smallOrdersAmt = totalBuyAmt
+			smallOrders, largeOrders = buyOrders, sellOrders
 		} else {
-			paidBaseCoinAmt = pms
+			smallOrdersAmt = totalSellAmt
+			smallOrders, largeOrders = sellOrders, buyOrders
 		}
-		receivedQuoteCoinAmt := matchPrice.MulInt(paidBaseCoinAmt).TruncateInt()
-		sellOrder.SetOpenAmount(sellOrder.GetOpenAmount().Sub(paidBaseCoinAmt))
-		sellOrder.DecrRemainingOfferCoin(paidBaseCoinAmt)
-		sellOrder.IncrReceivedDemandCoin(receivedQuoteCoinAmt)
-		sellOrder.SetMatched(true)
-		quoteCoinDust = quoteCoinDust.Sub(receivedQuoteCoinAmt)
+
+		bestLargeOrders, restLargeOrders := SplitOrders(largeOrders)
+
+		restLargeOrdersAmt := TotalOpenAmount(restLargeOrders)
+
+		remainingSmallOrdersAmt := smallOrdersAmt.Sub(restLargeOrdersAmt)
+		if remainingSmallOrdersAmt.IsPositive() {
+			totalMatchedAmt := sdk.ZeroInt()
+			remainingAmtDec := remainingSmallOrdersAmt.ToDec()
+
+			for _, order := range bestLargeOrders {
+				openAmtDec := order.GetOpenAmount().ToDec()
+				proportion := openAmtDec.QuoTruncate(remainingAmtDec)
+				matchedAmt := openAmtDec.MulTruncate(proportion).TruncateInt()
+				if matchedAmt.IsPositive() {
+				}
+				totalMatchedAmt = totalMatchedAmt.Add(matchedAmt)
+			}
+		}
+
+		for _, order := range append(smallOrders, restLargeOrders...) {
+			quoteCoinDust = quoteCoinDust.Add(MatchOrder(order, matchPrice, order.GetOpenAmount()))
+		}
 	}
 
 	return quoteCoinDust, true
+}
+
+// SortOrders sorts orders with given less function.
+// When priceAscending is true, then the orders are sorted by price in ascending
+// order.
+// Otherwise, the orders are sorted by price in descending order.
+func SortOrders(orders []Order, less func(a, b Order) bool, priceAscending bool) {
+	sort.Slice(orders, func(i, j int) bool {
+		return less(orders[i], orders[j])
+	})
+	sort.SliceStable(orders, func(i, j int) bool {
+		if priceAscending {
+			return orders[i].GetPrice().LT(orders[j].GetPrice())
+		} else {
+			return orders[i].GetPrice().GT(orders[j].GetPrice())
+		}
+	})
+}
+
+func DistributeAmount(orders []Order, matchPrice sdk.Dec, amt sdk.Int) {
+	totalAmt := TotalOpenAmount(orders)
+	totalMatchedAmt := sdk.ZeroInt()
+
+	for _, order := range orders {
+		orderAmt := order.GetAmount().ToDec()
+		proportion := orderAmt.QuoTruncate(totalAmt.ToDec())
+		matchedAmt := proportion.MulInt(amt).TruncateInt()
+		order.DecrOpenAmount(matchedAmt) // temporarily mark matched amount
+		if matchedAmt.IsPositive() {
+			totalMatchedAmt = totalMatchedAmt.Add(matchedAmt)
+		}
+	}
+
+	remainingAmt := amt.Sub(totalMatchedAmt)
+	if remainingAmt.IsPositive() {
+		for _, order := range orders {
+			matchedAmt := sdk.MinInt(remainingAmt, order.GetOpenAmount())
+			order.DecrOpenAmount(matchedAmt)
+			remainingAmt = remainingAmt.Sub(matchedAmt)
+		}
+	}
+
+	var matchedOrders, notMatchedOrders []Order
+	for _, order := range orders {
+		matchedAmt := order.GetAmount().Sub(order.GetOpenAmount())
+		if !matchedAmt.IsZero() && (order.GetDirection() == Buy || matchPrice.MulInt(matchedAmt).IsPositive()) {
+			matchedOrders = append(matchedOrders, order)
+		} else {
+			notMatchedOrders = append(notMatchedOrders, order)
+		}
+	}
+
+	if len(notMatchedOrders) > 0 {
+		for _, order := range orders {
+			order.SetOpenAmount(order.GetAmount())
+		}
+		DistributeAmount(matchedOrders, matchPrice, amt)
+	}
+}
+
+// Note that the orders are must be sorted by price.
+func SplitOrders(orders []Order) (rest, target []Order) {
+	targetPrice := orders[len(orders)-1].GetPrice()
+	i := sort.Search(len(orders), func(i int) bool {
+		return orders[i].GetPrice().Equal(targetPrice)
+	})
+	return orders[i:], orders[:i]
+}
+
+func MatchOrder(order Order, matchPrice sdk.Dec, amt sdk.Int) (quoteCoinDiff sdk.Int) {
+	switch order.GetDirection() {
+	case Buy:
+		paidQuoteCoinAmt := matchPrice.MulInt(amt).Ceil().TruncateInt()
+		order.DecrOpenAmount(amt)
+		order.DecrRemainingOfferCoin(paidQuoteCoinAmt)
+		order.IncrReceivedDemandCoin(amt)
+		order.SetMatched(true)
+		return paidQuoteCoinAmt
+	case Sell:
+		receivedQuoteCoinAmt := matchPrice.MulInt(amt).TruncateInt()
+		order.DecrOpenAmount(amt)
+		order.DecrRemainingOfferCoin(amt)
+		order.IncrReceivedDemandCoin(receivedQuoteCoinAmt)
+		order.SetMatched(true)
+		return receivedQuoteCoinAmt
+	default:
+		panic(fmt.Errorf("invalid order direction: %s", order.GetDirection()))
+	}
 }
 
 // DropSmallOrders returns filtered orders, where orders with too small amount
