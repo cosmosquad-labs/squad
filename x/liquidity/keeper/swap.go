@@ -355,6 +355,9 @@ func (k Keeper) ExecuteMatching(ctx sdk.Context, pair types.Pair) error {
 
 	var poolOrderSources []amm.OrderSource
 	_ = k.IteratePoolsByPair(ctx, pair.Id, func(pool types.Pool) (stop bool, err error) {
+		if pool.Disabled {
+			return false, nil
+		}
 		rx, ry := k.getPoolBalances(ctx, pool, pair)
 		ps := k.GetPoolCoinSupply(ctx, pool)
 		ammPool := amm.NewBasicPool(rx.Amount, ry.Amount, ps)
