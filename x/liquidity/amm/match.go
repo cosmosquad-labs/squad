@@ -217,8 +217,7 @@ func DropSmallOrders(orders []Order, matchPrice sdk.Dec) []Order {
 	var res []Order
 	for _, order := range orders {
 		amt := order.GetAmount()
-		// TODO: drop only when receiving coin is 0?
-		if amt.GTE(MinCoinAmount) && matchPrice.MulInt(amt).TruncateInt().GTE(MinCoinAmount) {
+		if matchPrice.MulInt(amt).TruncateInt().IsPositive() {
 			res = append(res, order)
 		}
 	}
