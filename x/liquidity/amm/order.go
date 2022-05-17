@@ -2,6 +2,7 @@ package amm
 
 import (
 	"fmt"
+	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -146,4 +147,22 @@ func (order *BaseOrder) IsMatched() bool {
 // SetMatched sets whether the order is matched or not.
 func (order *BaseOrder) SetMatched(matched bool) {
 	order.Matched = matched
+}
+
+// SortOrders sorts the orders in following precedence:
+// 1. Price - ascending or descending depending on priceAscending
+// 2. Amount - Larger order goes first
+// Since there's no way to apply custom sorting criteria,
+// SortOrders should be used in tests only.
+func SortOrders(orders []Order, priceAscending bool) {
+	sort.SliceStable(orders, func(i, j int) bool {
+		if !orders[i].GetPrice().Equal(orders[j].GetPrice()) {
+			if priceAscending {
+				return orders[i].GetPrice().LT(orders[j].GetPrice())
+			} else {
+				return orders[i].GetPrice().GT(orders[j].GetPrice())
+			}
+		}
+		return orders[i].GetAmount().GT(orders[j].GetAmount())
+	})
 }
