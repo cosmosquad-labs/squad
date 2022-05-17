@@ -151,8 +151,8 @@ func DistributeOrderAmount(orders []Order, matchPrice sdk.Dec, amt sdk.Int) {
 
 	var matchedOrders, notMatchedOrders []Order
 	for _, order := range orders {
-		matchedAmt := order.GetAmount().Sub(order.GetOpenAmount())
-		if !matchedAmt.IsZero() && (order.GetDirection() == Buy || matchPrice.MulInt(matchedAmt).IsPositive()) {
+		matchedAmt := order.GetMatchedAmount()
+		if !matchedAmt.IsZero() && (order.GetDirection() == Buy || matchPrice.MulInt(matchedAmt).TruncateInt().IsPositive()) {
 			matchedOrders = append(matchedOrders, order)
 		} else {
 			notMatchedOrders = append(notMatchedOrders, order)
@@ -192,7 +192,7 @@ func matchOrder(order Order, amt sdk.Int) {
 // quoteCoinDiff is how many quote coins are paid and received during
 // the matching and can be zero or a positive number.
 func updateMatchedOrder(order Order, matchPrice sdk.Dec) (quoteCoinDiff sdk.Int) {
-	matchedAmt := order.GetAmount().Sub(order.GetOpenAmount())
+	matchedAmt := order.GetMatchedAmount()
 	switch order.GetDirection() {
 	case Buy:
 		paidQuoteCoinAmt := matchPrice.MulInt(matchedAmt).Ceil().TruncateInt()

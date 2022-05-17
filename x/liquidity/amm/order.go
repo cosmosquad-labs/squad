@@ -36,6 +36,7 @@ type Order interface {
 	GetOpenAmount() sdk.Int
 	SetOpenAmount(amt sdk.Int)
 	DecrOpenAmount(amt sdk.Int)
+	GetMatchedAmount() sdk.Int
 	GetOfferCoin() sdk.Coin
 	GetRemainingOfferCoin() sdk.Coin
 	DecrRemainingOfferCoin(amt sdk.Int) // Decrement remaining offer coin amount
@@ -107,6 +108,10 @@ func (order *BaseOrder) SetOpenAmount(amt sdk.Int) {
 // DecrOpenAmount decrements open amount of the order.
 func (order *BaseOrder) DecrOpenAmount(amt sdk.Int) {
 	order.OpenAmount = order.OpenAmount.Sub(amt)
+}
+
+func (order *BaseOrder) GetMatchedAmount() sdk.Int {
+	return order.Amount.Sub(order.OpenAmount)
 }
 
 func (order *BaseOrder) GetOfferCoin() sdk.Coin {

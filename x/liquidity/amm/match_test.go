@@ -157,3 +157,18 @@ func TestMatchOrders(t *testing.T) {
 		})
 	}
 }
+
+func TestDistributeOrderAmount(t *testing.T) {
+	// TODO: add more cases
+	matchPrice := utils.ParseDec("0.15")
+	orders := []amm.Order{
+		newOrder(amm.Sell, matchPrice, sdk.NewInt(100)),
+		newOrder(amm.Sell, matchPrice, sdk.NewInt(100)),
+		newOrder(amm.Sell, matchPrice, sdk.NewInt(50)),
+	}
+	amt := sdk.NewInt(30)
+	amm.DistributeOrderAmount(orders, matchPrice, amt)
+	require.True(sdk.IntEq(t, sdk.NewInt(15), orders[0].GetMatchedAmount()))
+	require.True(sdk.IntEq(t, sdk.NewInt(15), orders[1].GetMatchedAmount()))
+	require.True(sdk.IntEq(t, sdk.NewInt(0), orders[2].GetMatchedAmount()))
+}
