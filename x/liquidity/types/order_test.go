@@ -62,19 +62,13 @@ func TestOrders_Sort(t *testing.T) {
 			}
 		}
 
-		const ascendingPrice, descendingPrice = 1, 2
-		for _, priceCmp := range []int{1, 2} {
-			switch priceCmp {
-			case ascendingPrice:
-				types.SortOrders(orders, types.PriceAscending)
-			case descendingPrice:
-				types.SortOrders(orders, types.PriceDescending)
-			}
+		for _, priceAscending := range []bool{true, false} {
+			types.SortOrders(orders, priceAscending)
 			for i := 1; i < n; i++ {
-				switch priceCmp {
-				case ascendingPrice:
+				switch priceAscending {
+				case true:
 					require.True(t, orders[i].GetPrice().GTE(orders[i-1].GetPrice()))
-				case descendingPrice:
+				case false:
 					require.True(t, orders[i].GetPrice().LTE(orders[i-1].GetPrice()))
 				}
 				if orders[i].GetPrice().Equal(orders[i-1].GetPrice()) {

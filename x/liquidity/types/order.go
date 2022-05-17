@@ -30,12 +30,12 @@ var (
 type PriceComparator func(a, b amm.Order) bool
 
 // SortOrders sorts orders by these four criteria:
-// 1. Price - descending/ascending based on PriceComparator
+// 1. Price - descending/ascending based on priceAscending parameter
 // 2. Amount - Larger amount takes higher priority than smaller amount
 // 3. Order type - pool orders take higher priority than user orders
 // 4. Time - early orders take higher priority. For pools, the pool with
 //    lower pool id takes higher priority
-func SortOrders(orders []amm.Order, cmp PriceComparator) {
+func SortOrders(orders []amm.Order, priceAscending bool) {
 	sort.SliceStable(orders, func(i, j int) bool {
 		switch orderA := orders[i].(type) {
 		case *UserOrder:
@@ -59,7 +59,11 @@ func SortOrders(orders []amm.Order, cmp PriceComparator) {
 		return orders[i].GetAmount().GT(orders[j].GetAmount())
 	})
 	sort.SliceStable(orders, func(i, j int) bool {
-		return cmp(orders[i], orders[j])
+		if priceAscending {
+			return orders[i].GetPrice().LT(orders[j].GetPrice())
+		} else {
+			return orders[i].GetPrice().GT(orders[j].GetPrice())
+		}
 	})
 }
 

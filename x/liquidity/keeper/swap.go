@@ -375,8 +375,8 @@ func (k Keeper) ExecuteMatching(ctx sdk.Context, pair types.Pair) error {
 		buyOrders := os.BuyOrdersOver(matchPrice)
 		sellOrders := os.SellOrdersUnder(matchPrice)
 
-		types.SortOrders(buyOrders, types.PriceDescending)
-		types.SortOrders(sellOrders, types.PriceAscending)
+		types.SortOrders(buyOrders, false)
+		types.SortOrders(sellOrders, true)
 
 		quoteCoinDust, matched := amm.MatchOrders(buyOrders, sellOrders, matchPrice)
 		if matched {

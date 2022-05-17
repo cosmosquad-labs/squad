@@ -469,7 +469,7 @@ func (s *KeeperTestSuite) TestDustCollector() {
 	s.Require().True(coinsEq(utils.ParseCoins("1000denom1"), s.getBalances(s.addr(1))))
 	s.Require().True(coinsEq(utils.ParseCoins("900denom2"), s.getBalances(s.addr(2))))
 
-	s.Require().True(s.getBalances(pair.GetEscrowAddress()).IsZero())
+	s.Require().True(coinsEq(sdk.Coins{}, s.getBalances(pair.GetEscrowAddress())))
 	params := s.keeper.GetParams(s.ctx)
 	dustCollectorAddr, _ := sdk.AccAddressFromBech32(params.DustCollectorAddress)
 	s.Require().True(coinsEq(utils.ParseCoins("1denom2"), s.getBalances(dustCollectorAddr)))

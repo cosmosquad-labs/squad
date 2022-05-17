@@ -120,23 +120,14 @@ func FindLastMatchableOrders(buyOrders, sellOrders []Order, matchPrice sdk.Dec) 
 }
 
 // MatchOrders matches orders at given matchPrice if matchable.
-// Note that MatchOrders modifies the orders in the parameters.
+// Note that MatchOrders modifies the orders in-place.
+// Orders should be sorted appropriately.
 // quoteCoinDust is the difference between total paid quote coin and total
 // received quote coin.
 // quoteCoinDust can be positive because of the decimal truncation.
-func MatchOrders(os OrderSource, matchPrice sdk.Dec) (quoteCoinDust sdk.Int, matched bool) {
-	buyOrders := os.BuyOrdersOver(matchPrice)
-	sellOrders := os.SellOrdersUnder(matchPrice)
-
+func MatchOrders(buyOrders, sellOrders []Order, matchPrice sdk.Dec) (quoteCoinDust sdk.Int, matched bool) {
 	buyOrders = DropSmallOrders(buyOrders, matchPrice)
 	sellOrders = DropSmallOrders(sellOrders, matchPrice)
-
-	sort.SliceStable(buyOrders, func(i, j int) bool {
-		return buyOrders[i].GetPrice().GT(buyOrders[j].GetPrice())
-	})
-	sort.SliceStable(sellOrders, func(i, j int) bool {
-		return sellOrders[i].GetPrice().LT(sellOrders[j].GetPrice())
-	})
 
 	totalBuyAmt := TotalOpenAmount(buyOrders)
 	totalSellAmt := TotalOpenAmount(sellOrders)
@@ -144,7 +135,7 @@ func MatchOrders(os OrderSource, matchPrice sdk.Dec) (quoteCoinDust sdk.Int, mat
 	quoteCoinDust = sdk.ZeroInt()
 	if totalBuyAmt.Equal(totalSellAmt) {
 		for _, order := range append(buyOrders, sellOrders...) {
-			quoteCoinDust = quoteCoinDust.Add(MatchOrder(order, matchPrice, order.GetOpenAmount()))
+			MatchOrder(order, order.GetAmount())
 		}
 	} else {
 		var (
@@ -161,46 +152,22 @@ func MatchOrders(os OrderSource, matchPrice sdk.Dec) (quoteCoinDust sdk.Int, mat
 
 		bestLargeOrders, restLargeOrders := SplitOrders(largeOrders)
 
-		restLargeOrdersAmt := TotalOpenAmount(restLargeOrders)
-
-		remainingSmallOrdersAmt := smallOrdersAmt.Sub(restLargeOrdersAmt)
-		if remainingSmallOrdersAmt.IsPositive() {
-			totalMatchedAmt := sdk.ZeroInt()
-			remainingAmtDec := remainingSmallOrdersAmt.ToDec()
-
-			for _, order := range bestLargeOrders {
-				openAmtDec := order.GetOpenAmount().ToDec()
-				proportion := openAmtDec.QuoTruncate(remainingAmtDec)
-				matchedAmt := openAmtDec.MulTruncate(proportion).TruncateInt()
-				if matchedAmt.IsPositive() {
-				}
-				totalMatchedAmt = totalMatchedAmt.Add(matchedAmt)
-			}
+		for _, order := range append(smallOrders, restLargeOrders...) {
+			MatchOrder(order, order.GetAmount())
 		}
 
-		for _, order := range append(smallOrders, restLargeOrders...) {
-			quoteCoinDust = quoteCoinDust.Add(MatchOrder(order, matchPrice, order.GetOpenAmount()))
+		restLargeOrdersAmt := TotalOpenAmount(restLargeOrders)
+		remainingSmallOrdersAmt := smallOrdersAmt.Sub(restLargeOrdersAmt)
+		if remainingSmallOrdersAmt.IsPositive() {
+			DistributeAmount(bestLargeOrders, matchPrice, remainingSmallOrdersAmt)
 		}
 	}
 
-	return quoteCoinDust, true
-}
+	for _, order := range append(buyOrders, sellOrders...) {
+		quoteCoinDust = quoteCoinDust.Add(UpdateMatchedOrder(order, matchPrice))
+	}
 
-// SortOrders sorts orders with given less function.
-// When priceAscending is true, then the orders are sorted by price in ascending
-// order.
-// Otherwise, the orders are sorted by price in descending order.
-func SortOrders(orders []Order, less func(a, b Order) bool, priceAscending bool) {
-	sort.Slice(orders, func(i, j int) bool {
-		return less(orders[i], orders[j])
-	})
-	sort.SliceStable(orders, func(i, j int) bool {
-		if priceAscending {
-			return orders[i].GetPrice().LT(orders[j].GetPrice())
-		} else {
-			return orders[i].GetPrice().GT(orders[j].GetPrice())
-		}
-	})
+	return quoteCoinDust, true
 }
 
 func DistributeAmount(orders []Order, matchPrice sdk.Dec, amt sdk.Int) {
@@ -211,7 +178,7 @@ func DistributeAmount(orders []Order, matchPrice sdk.Dec, amt sdk.Int) {
 		orderAmt := order.GetAmount().ToDec()
 		proportion := orderAmt.QuoTruncate(totalAmt.ToDec())
 		matchedAmt := proportion.MulInt(amt).TruncateInt()
-		order.DecrOpenAmount(matchedAmt) // temporarily mark matched amount
+		MatchOrder(order, matchedAmt) // temporarily increment matched amount
 		if matchedAmt.IsPositive() {
 			totalMatchedAmt = totalMatchedAmt.Add(matchedAmt)
 		}
@@ -221,7 +188,7 @@ func DistributeAmount(orders []Order, matchPrice sdk.Dec, amt sdk.Int) {
 	if remainingAmt.IsPositive() {
 		for _, order := range orders {
 			matchedAmt := sdk.MinInt(remainingAmt, order.GetOpenAmount())
-			order.DecrOpenAmount(matchedAmt)
+			MatchOrder(order, matchedAmt) // temporarily increment matched amount
 			remainingAmt = remainingAmt.Sub(matchedAmt)
 		}
 	}
@@ -237,6 +204,7 @@ func DistributeAmount(orders []Order, matchPrice sdk.Dec, amt sdk.Int) {
 	}
 
 	if len(notMatchedOrders) > 0 {
+		// Reset matched amount
 		for _, order := range orders {
 			order.SetOpenAmount(order.GetAmount())
 		}
@@ -253,22 +221,25 @@ func SplitOrders(orders []Order) (rest, target []Order) {
 	return orders[i:], orders[:i]
 }
 
-func MatchOrder(order Order, matchPrice sdk.Dec, amt sdk.Int) (quoteCoinDiff sdk.Int) {
+func MatchOrder(order Order, amt sdk.Int) {
+	order.DecrOpenAmount(amt)
+}
+
+func UpdateMatchedOrder(order Order, matchPrice sdk.Dec) (quoteCoinDiff sdk.Int) {
+	matchedAmt := order.GetAmount().Sub(order.GetOpenAmount())
 	switch order.GetDirection() {
 	case Buy:
-		paidQuoteCoinAmt := matchPrice.MulInt(amt).Ceil().TruncateInt()
-		order.DecrOpenAmount(amt)
+		paidQuoteCoinAmt := matchPrice.MulInt(matchedAmt).Ceil().TruncateInt()
 		order.DecrRemainingOfferCoin(paidQuoteCoinAmt)
-		order.IncrReceivedDemandCoin(amt)
+		order.IncrReceivedDemandCoin(matchedAmt)
 		order.SetMatched(true)
 		return paidQuoteCoinAmt
 	case Sell:
-		receivedQuoteCoinAmt := matchPrice.MulInt(amt).TruncateInt()
-		order.DecrOpenAmount(amt)
-		order.DecrRemainingOfferCoin(amt)
+		receivedQuoteCoinAmt := matchPrice.MulInt(matchedAmt).TruncateInt()
+		order.DecrRemainingOfferCoin(matchedAmt)
 		order.IncrReceivedDemandCoin(receivedQuoteCoinAmt)
 		order.SetMatched(true)
-		return receivedQuoteCoinAmt
+		return receivedQuoteCoinAmt.Neg()
 	default:
 		panic(fmt.Errorf("invalid order direction: %s", order.GetDirection()))
 	}
