@@ -185,7 +185,16 @@ func (msg MsgCreateRangedPool) ValidateBasic() error {
 	if msg.MinPrice == nil && msg.MaxPrice == nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "min price and max price must not be nil at the same time")
 	}
-	// TODO: add more validations
+	if msg.MinPrice != nil && !msg.MinPrice.IsPositive() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "min price must be positive: %s", *msg.MinPrice)
+	}
+	if msg.MaxPrice != nil && !msg.MaxPrice.IsPositive() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "max price must be positive: %s", *msg.MaxPrice)
+	}
+	if msg.MinPrice != nil && msg.MaxPrice != nil && !msg.MaxPrice.GT(*msg.MinPrice) {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "max price must be greater than min price")
+	}
+	// TODO: add more validations against DepositCoins regarding initialPrice
 	return nil
 }
 
