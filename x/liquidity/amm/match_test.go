@@ -79,7 +79,6 @@ func TestFindMatchPrice_Rounding(t *testing.T) {
 	}
 }
 
-
 func TestMatchOrders(t *testing.T) {
 	_, matched := amm.MatchOrders(nil, nil, utils.ParseDec("1.0"))
 	require.False(t, matched)
@@ -156,6 +155,36 @@ func TestMatchOrders(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestProportionalMatch(t *testing.T) {
+	buyOrders := []amm.Order{
+		newOrder(amm.Buy, utils.ParseDec("1.1"), sdk.NewInt(500)),
+		newOrder(amm.Buy, utils.ParseDec("1.1"), sdk.NewInt(100)),
+		newOrder(amm.Buy, utils.ParseDec("1.0"), sdk.NewInt(500)),
+		newOrder(amm.Buy, utils.ParseDec("1.0"), sdk.NewInt(300)),
+		newOrder(amm.Buy, utils.ParseDec("1.0"), sdk.NewInt(200)),
+	}
+	sellOrders := []amm.Order{
+		newOrder(amm.Sell, utils.ParseDec("0.8"), sdk.NewInt(700)),
+		newOrder(amm.Sell, utils.ParseDec("0.9"), sdk.NewInt(750)),
+		newOrder(amm.Sell, utils.ParseDec("0.9"), sdk.NewInt(50)),
+	}
+	ob := amm.NewOrderBook(append(buyOrders, sellOrders...)...)
+	matchPrice, found := amm.FindMatchPrice(ob, 3)
+	require.True(t, found)
+	require.True(sdk.DecEq(t, utils.ParseDec("1.0"), matchPrice))
+	quoteCoinDust, matched := amm.MatchOrders(buyOrders, sellOrders, matchPrice)
+	require.True(t, matched)
+	require.True(sdk.IntEq(t, sdk.ZeroInt(), quoteCoinDust))
+	require.True(sdk.IntEq(t, sdk.NewInt(500), buyOrders[0].GetMatchedAmount()))
+	require.True(sdk.IntEq(t, sdk.NewInt(100), buyOrders[1].GetMatchedAmount()))
+	require.True(sdk.IntEq(t, sdk.NewInt(450), buyOrders[2].GetMatchedAmount()))
+	require.True(sdk.IntEq(t, sdk.NewInt(270), buyOrders[3].GetMatchedAmount()))
+	require.True(sdk.IntEq(t, sdk.NewInt(180), buyOrders[4].GetMatchedAmount()))
+	require.True(sdk.IntEq(t, sdk.NewInt(700), sellOrders[0].GetMatchedAmount()))
+	require.True(sdk.IntEq(t, sdk.NewInt(750), sellOrders[1].GetMatchedAmount()))
+	require.True(sdk.IntEq(t, sdk.NewInt(50), sellOrders[2].GetMatchedAmount()))
 }
 
 func TestDistributeOrderAmount(t *testing.T) {
