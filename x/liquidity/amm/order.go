@@ -45,12 +45,11 @@ type Order interface {
 	SetMatched(matched bool)
 }
 
-// TotalOpenAmount returns total open amount of orders.
-// TODO: refactor to TotalAmount?
-func TotalOpenAmount(orders []Order) sdk.Int {
+// TotalAmount returns total amount of orders.
+func TotalAmount(orders []Order) sdk.Int {
 	amt := sdk.ZeroInt()
 	for _, order := range orders {
-		amt = amt.Add(order.GetOpenAmount())
+		amt = amt.Add(order.GetAmount())
 	}
 	return amt
 }

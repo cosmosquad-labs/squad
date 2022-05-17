@@ -421,10 +421,10 @@ func TestMockPoolOrderSource_Orders(t *testing.T) {
 	os := amm.NewMockPoolOrderSource(pool, "denom1", "denom2")
 	buyOrders := os.BuyOrdersOver(defTickPrec.LowestTick())
 	require.Len(t, buyOrders, 1)
-	require.True(sdk.IntEq(t, os.BuyAmountOver(defTickPrec.LowestTick()), buyOrders[0].GetOpenAmount()))
+	require.True(sdk.IntEq(t, os.BuyAmountOver(defTickPrec.LowestTick()), buyOrders[0].GetAmount()))
 	sellOrders := os.SellOrdersUnder(defTickPrec.HighestTick())
 	require.Len(t, sellOrders, 1)
-	require.True(sdk.IntEq(t, os.SellAmountUnder(defTickPrec.HighestTick()), sellOrders[0].GetOpenAmount()))
+	require.True(sdk.IntEq(t, os.SellAmountUnder(defTickPrec.HighestTick()), sellOrders[0].GetAmount()))
 }
 
 func TestBasicPool_BuyAmountOverOverflow(t *testing.T) {

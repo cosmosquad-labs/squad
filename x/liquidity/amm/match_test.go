@@ -1,7 +1,6 @@
 package amm_test
 
 import (
-	"math/rand"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -80,46 +79,9 @@ func TestFindMatchPrice_Rounding(t *testing.T) {
 	}
 }
 
-func TestFindLastMatchableOrders(t *testing.T) {
-	_, _, _, _, found := amm.FindLastMatchableOrders(nil, nil, utils.ParseDec("1.0"))
-	require.False(t, found)
-
-	for seed := int64(0); seed < 100; seed++ {
-		r := rand.New(rand.NewSource(seed))
-
-		minPrice, maxPrice := utils.ParseDec("0.01"), utils.ParseDec("1.0")
-		minAmt, maxAmt := sdk.NewInt(30), sdk.NewInt(300)
-
-		for i := 0; i < 100; i++ {
-			var buyOrders, sellOrders []amm.Order
-			numBuyOrders := 1 + r.Intn(5)
-			numSellOrders := 1 + r.Intn(5)
-			for j := 0; j < numBuyOrders; j++ {
-				price := utils.ParseDec("1.0") // Price is not important.
-				amt := utils.RandomInt(r, minAmt, maxAmt)
-				buyOrders = append(buyOrders, newOrder(amm.Buy, price, amt))
-			}
-			for j := 0; j < numSellOrders; j++ {
-				price := utils.ParseDec("1.0") // Price is not important.
-				amt := utils.RandomInt(r, minAmt, maxAmt)
-				sellOrders = append(sellOrders, newOrder(amm.Sell, price, amt))
-			}
-			matchPrice := defTickPrec.PriceToDownTick(utils.RandomDec(r, minPrice, maxPrice))
-			// We don't sort orders like in real situations, and it doesn't
-			// actually matter.
-			bi, si, pmb, pms, found := amm.FindLastMatchableOrders(buyOrders, sellOrders, matchPrice)
-			if found {
-				buyAmt := amm.TotalOpenAmount(buyOrders[:bi]).Add(pmb)
-				sellAmt := amm.TotalOpenAmount(sellOrders[:si]).Add(pms)
-				require.True(sdk.IntEq(t, buyAmt, sellAmt))
-				require.False(t, matchPrice.MulInt(pms).TruncateInt().IsZero())
-			}
-		}
-	}
-}
 
 func TestMatchOrders(t *testing.T) {
-	_, matched := amm.MatchOrders(nil, utils.ParseDec("1.0"))
+	_, matched := amm.MatchOrders(nil, nil, utils.ParseDec("1.0"))
 	require.False(t, matched)
 
 	for _, tc := range []struct {
@@ -173,7 +135,7 @@ func TestMatchOrders(t *testing.T) {
 				return
 			}
 			require.True(sdk.DecEq(t, tc.matchPrice, matchPrice))
-			quoteCoinDust, matched := amm.MatchOrders(tc.os, tc.matchPrice)
+			quoteCoinDust, matched := amm.MatchOrders(buyOrders, sellOrders, tc.matchPrice)
 			require.Equal(t, tc.matched, matched)
 			if matched {
 				require.True(sdk.IntEq(t, tc.quoteCoinDust, quoteCoinDust))

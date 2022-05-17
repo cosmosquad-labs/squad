@@ -148,8 +148,8 @@ func (ob *OrderBook) stringRepresentation(prices []sdk.Dec) string {
 	var b strings.Builder
 	b.WriteString("+--------buy---------+------------price-------------+--------sell--------+\n")
 	for _, price := range prices {
-		buyAmt := TotalOpenAmount(ob.BuyOrdersAt(price))
-		sellAmt := TotalOpenAmount(ob.SellOrdersAt(price))
+		buyAmt := TotalAmount(ob.BuyOrdersAt(price))
+		sellAmt := TotalAmount(ob.SellOrdersAt(price))
 		_, _ = fmt.Fprintf(&b, "| %18s | %28s | %-18s |\n", buyAmt, price.String(), sellAmt)
 	}
 	b.WriteString("+--------------------+------------------------------+--------------------+")
@@ -232,7 +232,7 @@ func (ticks orderBookTicks) highestPrice() (sdk.Dec, int, bool) {
 		return sdk.Dec{}, 0, false
 	}
 	for i, tick := range ticks {
-		if TotalOpenAmount(tick.orders).IsPositive() {
+		if TotalAmount(tick.orders).IsPositive() {
 			return tick.price, i, true
 		}
 	}
@@ -244,7 +244,7 @@ func (ticks orderBookTicks) lowestPrice() (sdk.Dec, int, bool) {
 		return sdk.Dec{}, 0, false
 	}
 	for i := len(ticks) - 1; i >= 0; i-- {
-		if TotalOpenAmount(ticks[i].orders).IsPositive() {
+		if TotalAmount(ticks[i].orders).IsPositive() {
 			return ticks[i].price, i, true
 		}
 	}
@@ -258,7 +258,7 @@ func (ticks orderBookTicks) amountOver(price sdk.Dec) sdk.Int {
 	}
 	amt := sdk.ZeroInt()
 	for ; i >= 0; i-- {
-		amt = amt.Add(TotalOpenAmount(ticks[i].orders))
+		amt = amt.Add(TotalAmount(ticks[i].orders))
 	}
 	return amt
 }
@@ -267,7 +267,7 @@ func (ticks orderBookTicks) amountUnder(price sdk.Dec) sdk.Int {
 	i, _ := ticks.findPrice(price)
 	amt := sdk.ZeroInt()
 	for ; i < len(ticks); i++ {
-		amt = amt.Add(TotalOpenAmount(ticks[i].orders))
+		amt = amt.Add(TotalAmount(ticks[i].orders))
 	}
 	return amt
 }

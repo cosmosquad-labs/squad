@@ -65,60 +65,6 @@ func findFirstTrueCondition(start, end int, f func(i int) bool) (i int, found bo
 	return i, true
 }
 
-// FindLastMatchableOrders returns the last matchable order indexes for
-// each buy/sell side.
-// lastBuyPartialMatchAmt and lastSellPartialMatchAmt are
-// the amount of partially matched portion of the last orders.
-// FindLastMatchableOrders drops(ignores) an order if the orderer
-// receives zero demand coin after truncation when the order is either
-// fully matched or partially matched.
-func FindLastMatchableOrders(buyOrders, sellOrders []Order, matchPrice sdk.Dec) (lastBuyIdx, lastSellIdx int, lastBuyPartialMatchAmt, lastSellPartialMatchAmt sdk.Int, found bool) {
-	if len(buyOrders) == 0 || len(sellOrders) == 0 {
-		return 0, 0, sdk.Int{}, sdk.Int{}, false
-	}
-	type Side struct {
-		orders          []Order
-		totalOpenAmt    sdk.Int
-		i               int
-		partialMatchAmt sdk.Int
-	}
-	buySide := &Side{buyOrders, TotalOpenAmount(buyOrders), len(buyOrders) - 1, sdk.Int{}}
-	sellSide := &Side{sellOrders, TotalOpenAmount(sellOrders), len(sellOrders) - 1, sdk.Int{}}
-	sides := map[OrderDirection]*Side{
-		Buy:  buySide,
-		Sell: sellSide,
-	}
-	// Repeatedly check both buy/sell side to see if there is an order to drop.
-	// If there is not, then the loop is finished.
-	for {
-		ok := true
-		for _, dir := range []OrderDirection{Buy, Sell} {
-			side := sides[dir]
-			i := side.i
-			order := side.orders[i]
-			matchAmt := sdk.MinInt(buySide.totalOpenAmt, sellSide.totalOpenAmt)
-			otherOrdersAmt := side.totalOpenAmt.Sub(order.GetOpenAmount())
-			// side.partialMatchAmt can be negative at this moment, but
-			// FindLastMatchableOrders won't return a negative amount because
-			// the if-block below would set ok = false if otherOrdersAmt >= matchAmt
-			// and the loop would be continued.
-			side.partialMatchAmt = matchAmt.Sub(otherOrdersAmt)
-			if otherOrdersAmt.GTE(matchAmt) ||
-				(dir == Sell && matchPrice.MulInt(side.partialMatchAmt).TruncateInt().IsZero()) {
-				if i == 0 { // There's no orders left, which means orders are not matchable.
-					return 0, 0, sdk.Int{}, sdk.Int{}, false
-				}
-				side.totalOpenAmt = side.totalOpenAmt.Sub(order.GetOpenAmount())
-				side.i--
-				ok = false
-			}
-		}
-		if ok {
-			return buySide.i, sellSide.i, buySide.partialMatchAmt, sellSide.partialMatchAmt, true
-		}
-	}
-}
-
 // MatchOrders matches orders at given matchPrice if matchable.
 // Note that MatchOrders modifies the orders in-place.
 // Orders should be sorted appropriately.
@@ -128,14 +74,17 @@ func FindLastMatchableOrders(buyOrders, sellOrders []Order, matchPrice sdk.Dec) 
 func MatchOrders(buyOrders, sellOrders []Order, matchPrice sdk.Dec) (quoteCoinDust sdk.Int, matched bool) {
 	buyOrders = DropSmallOrders(buyOrders, matchPrice)
 	sellOrders = DropSmallOrders(sellOrders, matchPrice)
+	if len(buyOrders) == 0 || len(sellOrders) == 0 {
+		return sdk.Int{}, false
+	}
 
-	totalBuyAmt := TotalOpenAmount(buyOrders)
-	totalSellAmt := TotalOpenAmount(sellOrders)
+	totalBuyAmt := TotalAmount(buyOrders)
+	totalSellAmt := TotalAmount(sellOrders)
 
 	quoteCoinDust = sdk.ZeroInt()
 	if totalBuyAmt.Equal(totalSellAmt) {
 		for _, order := range append(buyOrders, sellOrders...) {
-			MatchOrder(order, order.GetAmount())
+			matchOrder(order, order.GetAmount())
 		}
 	} else {
 		var (
@@ -153,32 +102,39 @@ func MatchOrders(buyOrders, sellOrders []Order, matchPrice sdk.Dec) (quoteCoinDu
 		bestLargeOrders, restLargeOrders := SplitOrders(largeOrders)
 
 		for _, order := range append(smallOrders, restLargeOrders...) {
-			MatchOrder(order, order.GetAmount())
+			matchOrder(order, order.GetAmount())
 		}
 
-		restLargeOrdersAmt := TotalOpenAmount(restLargeOrders)
+		restLargeOrdersAmt := TotalAmount(restLargeOrders)
 		remainingSmallOrdersAmt := smallOrdersAmt.Sub(restLargeOrdersAmt)
 		if remainingSmallOrdersAmt.IsPositive() {
-			DistributeAmount(bestLargeOrders, matchPrice, remainingSmallOrdersAmt)
+			DistributeOrderAmount(bestLargeOrders, matchPrice, remainingSmallOrdersAmt)
 		}
 	}
 
 	for _, order := range append(buyOrders, sellOrders...) {
-		quoteCoinDust = quoteCoinDust.Add(UpdateMatchedOrder(order, matchPrice))
+		quoteCoinDust = quoteCoinDust.Add(updateMatchedOrder(order, matchPrice))
 	}
 
 	return quoteCoinDust, true
 }
 
-func DistributeAmount(orders []Order, matchPrice sdk.Dec, amt sdk.Int) {
-	totalAmt := TotalOpenAmount(orders)
+// DistributeOrderAmount distributes the given order amount to the orders
+// proportional to each order's amount.
+// After distributing the amount based on each order's proportion,
+// remaining amount due to the decimal truncation is distributed
+// to the orders again, by priority.
+// This time, the proportion is not considered and each order takes up
+// the amount as much as possible.
+func DistributeOrderAmount(orders []Order, matchPrice sdk.Dec, amt sdk.Int) {
+	totalAmt := TotalAmount(orders)
 	totalMatchedAmt := sdk.ZeroInt()
 
 	for _, order := range orders {
 		orderAmt := order.GetAmount().ToDec()
 		proportion := orderAmt.QuoTruncate(totalAmt.ToDec())
 		matchedAmt := proportion.MulInt(amt).TruncateInt()
-		MatchOrder(order, matchedAmt) // temporarily increment matched amount
+		matchOrder(order, matchedAmt) // temporarily increment matched amount
 		if matchedAmt.IsPositive() {
 			totalMatchedAmt = totalMatchedAmt.Add(matchedAmt)
 		}
@@ -188,7 +144,7 @@ func DistributeAmount(orders []Order, matchPrice sdk.Dec, amt sdk.Int) {
 	if remainingAmt.IsPositive() {
 		for _, order := range orders {
 			matchedAmt := sdk.MinInt(remainingAmt, order.GetOpenAmount())
-			MatchOrder(order, matchedAmt) // temporarily increment matched amount
+			matchOrder(order, matchedAmt) // temporarily increment matched amount
 			remainingAmt = remainingAmt.Sub(matchedAmt)
 		}
 	}
@@ -208,24 +164,34 @@ func DistributeAmount(orders []Order, matchPrice sdk.Dec, amt sdk.Int) {
 		for _, order := range orders {
 			order.SetOpenAmount(order.GetAmount())
 		}
-		DistributeAmount(matchedOrders, matchPrice, amt)
+		DistributeOrderAmount(matchedOrders, matchPrice, amt)
 	}
 }
 
+// SplitOrders splits orders by price, by returning two order slices,
+// (orders with the best price, rest orders).
+// The best price is the lowest order price for buy orders and
+// the highest price for sell orders.
 // Note that the orders are must be sorted by price.
-func SplitOrders(orders []Order) (rest, target []Order) {
-	targetPrice := orders[len(orders)-1].GetPrice()
+func SplitOrders(orders []Order) (bestOrders, restOrders []Order) {
+	bestPrice := orders[len(orders)-1].GetPrice()
 	i := sort.Search(len(orders), func(i int) bool {
-		return orders[i].GetPrice().Equal(targetPrice)
+		return orders[i].GetPrice().Equal(bestPrice)
 	})
 	return orders[i:], orders[:i]
 }
 
-func MatchOrder(order Order, amt sdk.Int) {
+// matchOrder increments matched amount of an order.
+// Later, updateMatchedOrder should be called for paying/receiving quote coins.
+func matchOrder(order Order, amt sdk.Int) {
 	order.DecrOpenAmount(amt)
 }
 
-func UpdateMatchedOrder(order Order, matchPrice sdk.Dec) (quoteCoinDiff sdk.Int) {
+// updateMatchedOrder finalizes the matched order by updating paying/receiving
+// quote coin amount and marking the order as matched.
+// quoteCoinDiff is how many quote coins are paid and received during
+// the matching and can be zero or a positive number.
+func updateMatchedOrder(order Order, matchPrice sdk.Dec) (quoteCoinDiff sdk.Int) {
 	matchedAmt := order.GetAmount().Sub(order.GetOpenAmount())
 	switch order.GetDirection() {
 	case Buy:
@@ -250,8 +216,9 @@ func UpdateMatchedOrder(order Order, matchPrice sdk.Dec) (quoteCoinDiff sdk.Int)
 func DropSmallOrders(orders []Order, matchPrice sdk.Dec) []Order {
 	var res []Order
 	for _, order := range orders {
-		openAmt := order.GetOpenAmount()
-		if openAmt.GTE(MinCoinAmount) && matchPrice.MulInt(openAmt).TruncateInt().GTE(MinCoinAmount) {
+		amt := order.GetAmount()
+		// TODO: drop only when receiving coin is 0?
+		if amt.GTE(MinCoinAmount) && matchPrice.MulInt(amt).TruncateInt().GTE(MinCoinAmount) {
 			res = append(res, order)
 		}
 	}
