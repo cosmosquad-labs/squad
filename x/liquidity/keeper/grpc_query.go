@@ -586,9 +586,6 @@ func (k Querier) OrderBooks(c context.Context, req *types.QueryOrderBooksRequest
 		}
 		rx, ry := k.getPoolBalances(ctx, pool, pair)
 		ammPool := amm.NewBasicPool(rx.Amount, ry.Amount, sdk.Int{})
-		if ammPool.IsDepleted() {
-			return false, nil
-		}
 		poolOrderViews = append(poolOrderViews, ammPool)
 		return false, nil
 	})
