@@ -46,6 +46,10 @@ func (prec TickPrecision) RoundPrice(price sdk.Dec) sdk.Dec {
 	return RoundPrice(price, int(prec))
 }
 
+func (prec TickPrecision) TickGap(price sdk.Dec) sdk.Dec {
+	return TickGap(price, int(prec))
+}
+
 // char returns the characteristic(integral part) of
 // log10(x * pow(10, sdk.Precision)).
 func char(x sdk.Dec) int {
@@ -187,6 +191,13 @@ func RoundPrice(price sdk.Dec, prec int) sdk.Dec {
 		return price
 	}
 	return TickFromIndex(RoundTickIndex(TickToIndex(tick, prec)), prec)
+}
+
+// TickGap returns tick gap at given price.
+func TickGap(price sdk.Dec, prec int) sdk.Dec {
+	tick := PriceToDownTick(price, prec)
+	l := char(tick)
+	return pow10(l - prec)
 }
 
 // Ticks returns ticks around basePrice with maximum number of numTicks*2+1.

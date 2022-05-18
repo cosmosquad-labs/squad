@@ -274,18 +274,14 @@ message PoolResponse {
 
 message OrderBookResponse {
   uint32                         tick_precision = 1;
-  repeated OrderBookTickResponse ticks          = 2 [(gogoproto.nullable) = false];
+  repeated OrderBookTickResponse buys           = 2 [(gogoproto.nullable) = false];
+  repeated OrderBookTickResponse sells          = 3 [(gogoproto.nullable) = false];
 }
 
 message OrderBookTickResponse {
   string price = 1 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
-  OrderBookSideResponse buy  = 2 [(gogoproto.nullable) = false];
-  OrderBookSideResponse sell = 3 [(gogoproto.nullable) = false];
-}
-
-message OrderBookSideResponse {
-  string user_order_amount = 1
+  string user_order_amount = 2
       [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
-  string pool_order_amount = 2
+  string pool_order_amount = 3
       [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
 }

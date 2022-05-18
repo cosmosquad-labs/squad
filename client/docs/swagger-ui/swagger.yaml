@@ -24353,27 +24353,28 @@ paths:
                     tick_precision:
                       type: integer
                       format: int64
-                    ticks:
+                    buys:
                       type: array
                       items:
                         type: object
                         properties:
                           price:
                             type: string
-                          buy:
-                            type: object
-                            properties:
-                              user_order_amount:
-                                type: string
-                              pool_order_amount:
-                                type: string
-                          sell:
-                            type: object
-                            properties:
-                              user_order_amount:
-                                type: string
-                              pool_order_amount:
-                                type: string
+                          user_order_amount:
+                            type: string
+                          pool_order_amount:
+                            type: string
+                    sells:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          price:
+                            type: string
+                          user_order_amount:
+                            type: string
+                          pool_order_amount:
+                            type: string
             description: >-
               QueryOrderBooksResponse is response type for Query/OrderBooks RPC
               method.
@@ -44621,53 +44622,37 @@ definitions:
       tick_precision:
         type: integer
         format: int64
-      ticks:
+      buys:
         type: array
         items:
           type: object
           properties:
             price:
               type: string
-            buy:
-              type: object
-              properties:
-                user_order_amount:
-                  type: string
-                pool_order_amount:
-                  type: string
-            sell:
-              type: object
-              properties:
-                user_order_amount:
-                  type: string
-                pool_order_amount:
-                  type: string
-  squad.liquidity.v1beta1.OrderBookSideResponse:
-    type: object
-    properties:
-      user_order_amount:
-        type: string
-      pool_order_amount:
-        type: string
+            user_order_amount:
+              type: string
+            pool_order_amount:
+              type: string
+      sells:
+        type: array
+        items:
+          type: object
+          properties:
+            price:
+              type: string
+            user_order_amount:
+              type: string
+            pool_order_amount:
+              type: string
   squad.liquidity.v1beta1.OrderBookTickResponse:
     type: object
     properties:
       price:
         type: string
-      buy:
-        type: object
-        properties:
-          user_order_amount:
-            type: string
-          pool_order_amount:
-            type: string
-      sell:
-        type: object
-        properties:
-          user_order_amount:
-            type: string
-          pool_order_amount:
-            type: string
+      user_order_amount:
+        type: string
+      pool_order_amount:
+        type: string
   squad.liquidity.v1beta1.OrderDirection:
     type: string
     enum:
@@ -45050,27 +45035,28 @@ definitions:
             tick_precision:
               type: integer
               format: int64
-            ticks:
+            buys:
               type: array
               items:
                 type: object
                 properties:
                   price:
                     type: string
-                  buy:
-                    type: object
-                    properties:
-                      user_order_amount:
-                        type: string
-                      pool_order_amount:
-                        type: string
-                  sell:
-                    type: object
-                    properties:
-                      user_order_amount:
-                        type: string
-                      pool_order_amount:
-                        type: string
+                  user_order_amount:
+                    type: string
+                  pool_order_amount:
+                    type: string
+            sells:
+              type: array
+              items:
+                type: object
+                properties:
+                  price:
+                    type: string
+                  user_order_amount:
+                    type: string
+                  pool_order_amount:
+                    type: string
     description: QueryOrderBooksResponse is response type for Query/OrderBooks RPC method.
   squad.liquidity.v1beta1.QueryOrderResponse:
     type: object

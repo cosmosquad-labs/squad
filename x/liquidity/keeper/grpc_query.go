@@ -579,7 +579,7 @@ func (k Querier) OrderBooks(c context.Context, req *types.QueryOrderBooksRequest
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	var poolOrderSources []amm.OrderSource
+	var poolOrderViews []amm.OrderView
 	_ = k.IteratePoolsByPair(ctx, pair.Id, func(pool types.Pool) (stop bool, err error) {
 		if pool.Disabled {
 			return false, nil
@@ -589,16 +589,34 @@ func (k Querier) OrderBooks(c context.Context, req *types.QueryOrderBooksRequest
 		if ammPool.IsDepleted() {
 			return false, nil
 		}
-		poolOrderSource := types.NewBasicPoolOrderSource(ammPool, pool.Id, pool.GetReserveAddress(), pair.BaseCoinDenom, pair.QuoteCoinDenom)
-		poolOrderSources = append(poolOrderSources, poolOrderSource)
+		poolOrderViews = append(poolOrderViews, ammPool)
 		return false, nil
 	})
 
-	os := amm.MergeOrderSources(append(poolOrderSources, ob)...)
+	ov := amm.MergeOrderViews(append(poolOrderViews, ob)...)
 
+	var obs []types.OrderBookResponse
 	params := k.GetParams(ctx)
-	amm.FindMatchPrice(os, int(params.TickPrecision))
-	// TODO: not implemented
+	basePrice, found := types.OrderBookBasePrice(ov, int(params.TickPrecision))
+	if !found {
+		for _, tickPrec := range req.TickPrecisions {
+			obs = append(obs, types.OrderBookResponse{
+				TickPrecision: tickPrec,
+				Buys:          nil,
+				Sells:         nil,
+			})
+		}
+		return &types.QueryOrderBooksResponse{
+			BasePrice:  sdk.Dec{},
+			OrderBooks: obs,
+		}, nil
+	}
 
-	return nil, nil
+	for _, tickPrec := range req.TickPrecisions {
+		obs = append(obs, types.MakeOrderBookResponse(ov, basePrice, int(tickPrec), int(req.NumTicks)))
+	}
+	return &types.QueryOrderBooksResponse{
+		BasePrice:  basePrice,
+		OrderBooks: obs,
+	}, nil
 }
