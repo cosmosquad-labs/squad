@@ -66,7 +66,9 @@ func OrderBookBasePrice(ov amm.OrderView, tickPrec int) (sdk.Dec, bool) {
 // MakeOrderBookResponse returns OrderBookResponse from given inputs.
 func MakeOrderBookResponse(ov amm.OrderView, basePrice sdk.Dec, tickPrec, numTicks int) OrderBookResponse {
 	ammTickPrec := amm.TickPrecision(tickPrec)
-	tickGap := ammTickPrec.TickGap(ammTickPrec.TickFromIndex(ammTickPrec.TickToIndex(basePrice) + (numTicks - 1)))
+	tickGap := ammTickPrec.TickGap(
+		ammTickPrec.TickFromIndex(
+			ammTickPrec.TickToIndex(ammTickPrec.PriceToDownTick(basePrice)) + (numTicks - 1)))
 	matchableAmt := sdk.MinInt(ov.BuyAmountOver(basePrice), ov.SellAmountUnder(basePrice))
 
 	makeTicks := func(dir OrderDirection) []OrderBookTickResponse {
