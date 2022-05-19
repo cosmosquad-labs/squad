@@ -194,7 +194,6 @@ func (msg MsgCreateRangedPool) ValidateBasic() error {
 	if msg.MinPrice != nil && msg.MaxPrice != nil && !msg.MaxPrice.GT(*msg.MinPrice) {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "max price must be greater than min price")
 	}
-	// TODO: add more validations against DepositCoins regarding initialPrice
 	return nil
 }
 

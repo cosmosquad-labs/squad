@@ -192,13 +192,19 @@ func CreateRangedPool(x, y sdk.Int, initialPrice sdk.Dec, minPrice, maxPrice *sd
 	if !x.IsPositive() && !y.IsPositive() {
 		return nil, fmt.Errorf("either x or y must be positive")
 	}
-	if initialPrice.IsZero() {
-		return nil, fmt.Errorf("initial price must not be 0")
+	if !initialPrice.IsPositive() {
+		return nil, fmt.Errorf("initial price must be positive: %s", initialPrice)
 	}
 	if minPrice == nil && maxPrice == nil {
 		return nil, fmt.Errorf("min price and max price must not be nil at the same time")
 	}
-	if minPrice != nil && maxPrice != nil && minPrice.GTE(*maxPrice) {
+	if minPrice != nil && !minPrice.IsPositive() {
+		return nil, fmt.Errorf("min price must be positive: %s", minPrice)
+	}
+	if maxPrice != nil && !maxPrice.IsPositive() {
+		return nil, fmt.Errorf("max price must be positive: %s", maxPrice)
+	}
+	if minPrice != nil && maxPrice != nil && !maxPrice.GT(*minPrice) {
 		return nil, fmt.Errorf("max price must be greater than min price")
 	}
 
