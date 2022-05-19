@@ -80,6 +80,14 @@ func ParsePoolCoinDenom(denom string) (poolId uint64, err error) {
 	return poolId, nil
 }
 
+func (pool Pool) GetCreator() sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(pool.Creator)
+	if err != nil {
+		panic(err)
+	}
+	return addr
+}
+
 func (pool Pool) GetReserveAddress() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(pool.ReserveAddress)
 	if err != nil {
