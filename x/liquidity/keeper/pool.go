@@ -86,20 +86,6 @@ func (k Keeper) ValidateMsgCreatePool(ctx sdk.Context, msg *types.MsgCreatePool)
 		}
 	}
 
-	// Check if there is a pool in the pair.
-	// Creating multiple pools within the same pair is disallowed, but it will be allowed in v2.
-	duplicate := false
-	_ = k.IteratePoolsByPair(ctx, pair.Id, func(pool types.Pool) (stop bool, err error) {
-		if !pool.Disabled {
-			duplicate = true
-			return true, nil
-		}
-		return false, nil
-	})
-	if duplicate {
-		return types.ErrPoolAlreadyExists
-	}
-
 	return nil
 }
 
@@ -109,7 +95,6 @@ func (k Keeper) CreatePool(ctx sdk.Context, msg *types.MsgCreatePool) (types.Poo
 		return types.Pool{}, err
 	}
 
-	params := k.GetParams(ctx)
 	pair, _ := k.GetPair(ctx, msg.PairId)
 
 	// Create and save the new pool object.
@@ -126,6 +111,7 @@ func (k Keeper) CreatePool(ctx sdk.Context, msg *types.MsgCreatePool) (types.Poo
 	}
 
 	// Send the pool creation fee to the fee collector.
+	params := k.GetParams(ctx)
 	feeCollectorAddr, _ := sdk.AccAddressFromBech32(params.FeeCollectorAddress)
 	if err := k.bankKeeper.SendCoins(ctx, creator, feeCollectorAddr, params.PoolCreationFee); err != nil {
 		return types.Pool{}, sdkerrors.Wrap(err, "insufficient pool creation fee")
@@ -180,8 +166,6 @@ func (k Keeper) ValidateMsgCreateRangedPool(ctx sdk.Context, msg *types.MsgCreat
 		}
 	}
 
-	// TODO: validate deposit coins against min price, max price
-
 	return nil
 }
 
@@ -191,7 +175,6 @@ func (k Keeper) CreateRangedPool(ctx sdk.Context, msg *types.MsgCreateRangedPool
 		return types.Pool{}, err
 	}
 
-	params := k.GetParams(ctx)
 	pair, _ := k.GetPair(ctx, msg.PairId)
 
 	x, y := msg.DepositCoins.AmountOf(pair.QuoteCoinDenom), msg.DepositCoins.AmountOf(pair.BaseCoinDenom)
@@ -217,6 +200,7 @@ func (k Keeper) CreateRangedPool(ctx sdk.Context, msg *types.MsgCreateRangedPool
 	}
 
 	// Send the pool creation fee to the fee collector.
+	params := k.GetParams(ctx)
 	feeCollectorAddr, _ := sdk.AccAddressFromBech32(params.FeeCollectorAddress)
 	if err := k.bankKeeper.SendCoins(ctx, creator, feeCollectorAddr, params.PoolCreationFee); err != nil {
 		return types.Pool{}, sdkerrors.Wrap(err, "insufficient pool creation fee")
