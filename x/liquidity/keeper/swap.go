@@ -322,7 +322,6 @@ func (k Keeper) CancelAllOrders(ctx sdk.Context, msg *types.MsgCancelAllOrders) 
 
 func (k Keeper) ExecuteMatching(ctx sdk.Context, pair types.Pair) error {
 	ob := amm.NewOrderBook()
-	skip := true // Whether to skip the matching since there is no orders.
 	if err := k.IterateOrdersByPair(ctx, pair.Id, func(order types.Order) (stop bool, err error) {
 		switch order.Status {
 		case types.OrderStatusNotExecuted,
@@ -339,7 +338,6 @@ func (k Keeper) ExecuteMatching(ctx sdk.Context, pair types.Pair) error {
 				order.SetStatus(types.OrderStatusNotMatched)
 				k.SetOrder(ctx, order)
 			}
-			skip = false
 		case types.OrderStatusCanceled:
 		default:
 			return false, fmt.Errorf("invalid order status: %s", order.Status)
@@ -349,20 +347,19 @@ func (k Keeper) ExecuteMatching(ctx sdk.Context, pair types.Pair) error {
 		return err
 	}
 
-	if skip { // TODO: update this when there are more than one pools
-		return nil
-	}
-
 	var poolOrderSources []amm.OrderSource
 	_ = k.IteratePoolsByPair(ctx, pair.Id, func(pool types.Pool) (stop bool, err error) {
+		if pool.Disabled {
+			return false, nil
+		}
 		rx, ry := k.getPoolBalances(ctx, pool, pair)
 		ps := k.GetPoolCoinSupply(ctx, pool)
-		ammPool := amm.NewBasicPool(rx.Amount, ry.Amount, ps)
+		ammPool := pool.AMMPool(rx.Amount, ry.Amount, ps)
 		if ammPool.IsDepleted() {
 			k.MarkPoolAsDisabled(ctx, pool)
 			return false, nil
 		}
-		poolOrderSource := types.NewBasicPoolOrderSource(ammPool, pool.Id, pool.GetReserveAddress(), pair.BaseCoinDenom, pair.QuoteCoinDenom)
+		poolOrderSource := types.NewPoolOrderSource(ammPool, pool.Id, pool.GetReserveAddress(), pair.BaseCoinDenom, pair.QuoteCoinDenom)
 		poolOrderSources = append(poolOrderSources, poolOrderSource)
 		return false, nil
 	})

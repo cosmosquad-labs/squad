@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	_ amm.OrderSource = (*BasicPoolOrderSource)(nil)
+	_ amm.OrderSource = (*PoolOrderSource)(nil)
 
 	poolCoinDenomRegexp = regexp.MustCompile(`^pool([1-9]\d*)$`)
 )
@@ -125,19 +125,19 @@ func (pool Pool) AMMPool(rx, ry, ps sdk.Int) amm.Pool {
 	}
 }
 
-// BasicPoolOrderSource is the order source for a pool which implements
+// PoolOrderSource is the order source for a pool which implements
 // amm.OrderSource.
-type BasicPoolOrderSource struct {
+type PoolOrderSource struct {
 	amm.Pool
 	PoolId                        uint64
 	PoolReserveAddress            sdk.AccAddress
 	BaseCoinDenom, QuoteCoinDenom string
 }
 
-// NewBasicPoolOrderSource returns a new BasicPoolOrderSource.
-func NewBasicPoolOrderSource(
-	pool amm.Pool, poolId uint64, reserveAddr sdk.AccAddress, baseCoinDenom, quoteCoinDenom string) *BasicPoolOrderSource {
-	return &BasicPoolOrderSource{
+// NewPoolOrderSource returns a new PoolOrderSource.
+func NewPoolOrderSource(
+	pool amm.Pool, poolId uint64, reserveAddr sdk.AccAddress, baseCoinDenom, quoteCoinDenom string) *PoolOrderSource {
+	return &PoolOrderSource{
 		Pool:               pool,
 		PoolId:             poolId,
 		PoolReserveAddress: reserveAddr,
@@ -146,7 +146,7 @@ func NewBasicPoolOrderSource(
 	}
 }
 
-func (os *BasicPoolOrderSource) BuyOrdersOver(price sdk.Dec) []amm.Order {
+func (os *PoolOrderSource) BuyOrdersOver(price sdk.Dec) []amm.Order {
 	amt := os.BuyAmountOver(price)
 	if IsTooSmallOrderAmount(amt, price) {
 		return nil
@@ -155,7 +155,7 @@ func (os *BasicPoolOrderSource) BuyOrdersOver(price sdk.Dec) []amm.Order {
 	return []amm.Order{NewPoolOrder(os.PoolId, os.PoolReserveAddress, amm.Buy, price, amt, quoteCoin, os.BaseCoinDenom)}
 }
 
-func (os *BasicPoolOrderSource) SellOrdersUnder(price sdk.Dec) []amm.Order {
+func (os *PoolOrderSource) SellOrdersUnder(price sdk.Dec) []amm.Order {
 	amt := os.SellAmountUnder(price)
 	if IsTooSmallOrderAmount(amt, price) {
 		return nil
