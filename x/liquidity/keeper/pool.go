@@ -371,7 +371,7 @@ func (k Keeper) ExecuteDepositRequest(ctx sdk.Context, req types.DepositRequest)
 	pair, _ := k.GetPair(ctx, pool.PairId)
 	rx, ry := k.getPoolBalances(ctx, pool, pair)
 	ps := k.GetPoolCoinSupply(ctx, pool)
-	ammPool := amm.NewBasicPool(rx.Amount, ry.Amount, ps)
+	ammPool := pool.AMMPool(rx.Amount, ry.Amount, ps)
 	if ammPool.IsDepleted() {
 		k.MarkPoolAsDisabled(ctx, pool)
 		if err := k.FinishDepositRequest(ctx, req, types.RequestStatusFailed); err != nil {
@@ -457,7 +457,7 @@ func (k Keeper) ExecuteWithdrawRequest(ctx sdk.Context, req types.WithdrawReques
 	pair, _ := k.GetPair(ctx, pool.PairId)
 	rx, ry := k.getPoolBalances(ctx, pool, pair)
 	ps := k.GetPoolCoinSupply(ctx, pool)
-	ammPool := amm.NewBasicPool(rx.Amount, ry.Amount, ps)
+	ammPool := pool.AMMPool(rx.Amount, ry.Amount, ps)
 	if ammPool.IsDepleted() {
 		k.MarkPoolAsDisabled(ctx, pool)
 		if err := k.FinishWithdrawRequest(ctx, req, types.RequestStatusFailed); err != nil {

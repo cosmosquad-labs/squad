@@ -105,6 +105,18 @@ func (pool Pool) Validate() error {
 	return nil
 }
 
+// AMMPool constructs amm.Pool interface from Pool.
+func (pool Pool) AMMPool(rx, ry, ps sdk.Int) amm.Pool {
+	switch pool.Type {
+	case PoolTypeBasic:
+		return amm.NewBasicPool(rx, ry, ps)
+	case PoolTypeRanged:
+		return amm.NewRangedPool(rx, ry, ps, pool.MinPrice, pool.MaxPrice)
+	default:
+		panic(fmt.Errorf("invalid pool type: %s", pool.Type))
+	}
+}
+
 // BasicPoolOrderSource is the order source for a pool which implements
 // amm.OrderSource.
 type BasicPoolOrderSource struct {
