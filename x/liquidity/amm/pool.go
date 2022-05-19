@@ -186,8 +186,8 @@ func (pool *BasicPool) ProvidableYAmountUnder(price sdk.Dec) sdk.Int {
 
 type RangedPool struct {
 	rx, ry sdk.Int
-	ps sdk.Int
-	m, l *sdk.Dec
+	ps     sdk.Int
+	m, l   *sdk.Dec
 }
 
 func NewRangedPool(rx, ry, ps sdk.Int, m, l *sdk.Dec) *RangedPool {
@@ -195,8 +195,8 @@ func NewRangedPool(rx, ry, ps sdk.Int, m, l *sdk.Dec) *RangedPool {
 		rx: rx,
 		ry: ry,
 		ps: ps,
-		m: m,
-		l: l,
+		m:  m,
+		l:  l,
 	}
 }
 
@@ -298,6 +298,9 @@ func (pool *RangedPool) BuyAmountOver(price sdk.Dec) (amt sdk.Int) {
 	if px.IsZero() {
 		return sdk.ZeroInt()
 	}
+	if pool.m != nil && price.LT(*pool.m) {
+		price = *pool.m
+	}
 	a, b := pool.ab()
 	utils.SafeMath(func() {
 		amt = pool.rx.ToDec().Add(a).QuoTruncate(price).Sub(pool.ry.ToDec().Add(b)).TruncateInt()
@@ -322,6 +325,9 @@ func (pool *RangedPool) ProvidableXAmountOver(price sdk.Dec) (amt sdk.Int) {
 	if price.GTE(pool.Price()) {
 		return sdk.ZeroInt()
 	}
+	if pool.m != nil && price.LT(*pool.m) {
+		price = *pool.m
+	}
 	a, b := pool.ab()
 	return pool.rx.ToDec().Add(a).Sub(price.Mul(pool.ry.ToDec().Add(b))).TruncateInt()
 }
@@ -331,6 +337,9 @@ func (pool *RangedPool) ProvidableXAmountOver(price sdk.Dec) (amt sdk.Int) {
 func (pool *RangedPool) ProvidableYAmountUnder(price sdk.Dec) sdk.Int {
 	if price.LTE(pool.Price()) {
 		return sdk.ZeroInt()
+	}
+	if pool.l != nil && price.GT(*pool.l) {
+		price = *pool.l
 	}
 	a, b := pool.ab()
 	return pool.ry.ToDec().Add(b).Sub(pool.rx.ToDec().Add(a).QuoRoundUp(price)).TruncateInt()
