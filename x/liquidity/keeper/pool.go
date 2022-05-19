@@ -195,8 +195,10 @@ func (k Keeper) CreateRangedPool(ctx sdk.Context, msg *types.MsgCreateRangedPool
 	pair, _ := k.GetPair(ctx, msg.PairId)
 
 	x, y := msg.DepositCoins.AmountOf(pair.QuoteCoinDenom), msg.DepositCoins.AmountOf(pair.BaseCoinDenom)
-	// TODO: use `ok` variable
-	ammPool, _ := amm.CreateRangedPool(x, y, msg.InitialPrice, msg.MinPrice, msg.MaxPrice)
+	ammPool, err := amm.CreateRangedPool(x, y, msg.InitialPrice, msg.MinPrice, msg.MaxPrice)
+	if err != nil {
+		return types.Pool{}, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+	}
 	ax, ay := ammPool.Balances()
 
 	// Create and save the new pool object.

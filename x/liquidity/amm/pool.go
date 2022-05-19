@@ -1,6 +1,7 @@
 package amm
 
 import (
+	"fmt"
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -407,7 +408,33 @@ func PoolsOrderBook(pools []Pool, ticks []sdk.Dec) *OrderBook {
 	return ob
 }
 
-func CreateRangedPool(x, y sdk.Int, initialPrice sdk.Dec, minPrice, maxPrice *sdk.Dec) (pool *RangedPool, ok bool) {
+// CreateRangedPool creates new RangedPool from given inputs, while validating
+// the inputs and using only needed amount of x/y coins(the rest should be refunded).
+func CreateRangedPool(x, y sdk.Int, initialPrice sdk.Dec, minPrice, maxPrice *sdk.Dec) (pool *RangedPool, err error) {
+	if !x.IsPositive() && !y.IsPositive() {
+		return nil, fmt.Errorf("either x or y must be positive")
+	}
+	if initialPrice.IsZero() {
+		return nil, fmt.Errorf("initial price must not be 0")
+	}
+	if minPrice == nil && maxPrice == nil {
+		return nil, fmt.Errorf("min price and max price must not be nil at the same time")
+	}
+	if minPrice != nil && maxPrice != nil && minPrice.GTE(*maxPrice) {
+		return nil, fmt.Errorf("max price must be greater than min price")
+	}
+
+	switch {
+	case minPrice != nil && initialPrice.LTE(*minPrice):
+		// single y asset pool
+		ax, ay := sdk.ZeroInt(), y
+		return NewRangedPool(ax, ay, InitialPoolCoinSupply(ax, ay), minPrice, maxPrice), nil
+	case maxPrice != nil && initialPrice.GTE(*maxPrice):
+		// single x asset pool
+		ax, ay := x, sdk.ZeroInt()
+		return NewRangedPool(ax, ay, InitialPoolCoinSupply(ax, ay), minPrice, maxPrice), nil
+	}
+
 	m := sdk.ZeroDec()
 	if minPrice != nil {
 		m = *minPrice
@@ -416,28 +443,28 @@ func CreateRangedPool(x, y sdk.Int, initialPrice sdk.Dec, minPrice, maxPrice *sd
 	var ax, ay sdk.Int
 	if maxPrice != nil {
 		l := *maxPrice
-		r := l.Sub(initialPrice).Quo(l.Mul(initialPrice.Sub(m)))
+		r := l.Sub(initialPrice).Quo(l.Mul(initialPrice.Sub(m))) // r = (l-p)/(l*(p-m)))
 
-		ay = x.ToDec().Mul(r).Ceil().TruncateInt()
+		ay = x.ToDec().Mul(r).Ceil().TruncateInt() // ay = ceil(x * r)
 		if ay.GT(y) {
-			ax = y.ToDec().Quo(r).Ceil().TruncateInt()
+			ax = y.ToDec().Quo(r).Ceil().TruncateInt() // ax = ceil(y / r)
 			ay = y
 		} else {
 			ax = x
 		}
 	} else {
-		r := initialPrice.Sub(m)
+		r := initialPrice.Sub(m) // r = p - m
 
-		ay = x.ToDec().QuoRoundUp(r).Ceil().TruncateInt()
+		ay = x.ToDec().QuoRoundUp(r).Ceil().TruncateInt() // ay = ceil(x / r)
 		if ay.GT(y) {
-			ax = y.ToDec().Mul(r).Ceil().TruncateInt()
+			ax = y.ToDec().Mul(r).Ceil().TruncateInt() // ax = ceil(y * r)
 			ay = y
 		} else {
 			ax = x
 		}
 	}
 
-	return NewRangedPool(ax, ay, InitialPoolCoinSupply(ax, ay), minPrice, maxPrice), true
+	return NewRangedPool(ax, ay, InitialPoolCoinSupply(ax, ay), minPrice, maxPrice), nil
 }
 
 // InitialPoolCoinSupply returns ideal initial pool coin minting amount.
