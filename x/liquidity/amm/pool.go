@@ -427,10 +427,16 @@ func CreateRangedPool(x, y sdk.Int, initialPrice sdk.Dec, minPrice, maxPrice *sd
 	switch {
 	case minPrice != nil && initialPrice.LTE(*minPrice):
 		// single y asset pool
+		if y.IsZero() {
+			return nil, fmt.Errorf("y coin amount must not be 0 for single asset pool")
+		}
 		ax, ay := sdk.ZeroInt(), y
 		return NewRangedPool(ax, ay, InitialPoolCoinSupply(ax, ay), minPrice, maxPrice), nil
 	case maxPrice != nil && initialPrice.GTE(*maxPrice):
 		// single x asset pool
+		if x.IsZero() {
+			return nil, fmt.Errorf("x coin amount must not be 0 for single asset pool")
+		}
 		ax, ay := x, sdk.ZeroInt()
 		return NewRangedPool(ax, ay, InitialPoolCoinSupply(ax, ay), minPrice, maxPrice), nil
 	}
