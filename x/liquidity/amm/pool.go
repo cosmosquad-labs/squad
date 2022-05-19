@@ -142,15 +142,7 @@ func (pool *BasicPool) BuyAmountOver(price sdk.Dec) (amt sdk.Int) {
 	if price.GTE(pool.Price()) {
 		return sdk.ZeroInt()
 	}
-	utils.SafeMath(func() {
-		amt = pool.rx.ToDec().QuoTruncate(price).Sub(pool.ry.ToDec()).TruncateInt()
-		if amt.GT(MaxCoinAmount) {
-			amt = MaxCoinAmount
-		}
-	}, func() {
-		amt = MaxCoinAmount
-	})
-	return
+	return pool.rx.ToDec().QuoTruncate(price).Sub(pool.ry.ToDec()).TruncateInt()
 }
 
 // SellAmountUnder returns the amount of sell orders for price less than
@@ -165,15 +157,7 @@ func (pool *BasicPool) ProvidableXAmountOver(price sdk.Dec) (amt sdk.Int) {
 	if price.GTE(pool.Price()) {
 		return sdk.ZeroInt()
 	}
-	utils.SafeMath(func() {
-		amt = pool.rx.ToDec().Sub(pool.ry.ToDec().Mul(price)).TruncateInt()
-		if amt.GT(MaxCoinAmount) {
-			amt = MaxCoinAmount
-		}
-	}, func() {
-		amt = MaxCoinAmount
-	})
-	return
+	return pool.rx.ToDec().Sub(pool.ry.ToDec().Mul(price)).TruncateInt()
 }
 
 // ProvidableYAmountUnder returns the amount of y coin the pool would provide
@@ -191,6 +175,7 @@ type RangedPool struct {
 	m, l   *sdk.Dec
 }
 
+// NewRangedPool returns a new RangedPool.
 func NewRangedPool(rx, ry, ps sdk.Int, m, l *sdk.Dec) *RangedPool {
 	return &RangedPool{
 		rx: rx,
@@ -199,6 +184,71 @@ func NewRangedPool(rx, ry, ps sdk.Int, m, l *sdk.Dec) *RangedPool {
 		m:  m,
 		l:  l,
 	}
+}
+
+// CreateRangedPool creates new RangedPool from given inputs, while validating
+// the inputs and using only needed amount of x/y coins(the rest should be refunded).
+func CreateRangedPool(x, y sdk.Int, initialPrice sdk.Dec, minPrice, maxPrice *sdk.Dec) (pool *RangedPool, err error) {
+	if !x.IsPositive() && !y.IsPositive() {
+		return nil, fmt.Errorf("either x or y must be positive")
+	}
+	if initialPrice.IsZero() {
+		return nil, fmt.Errorf("initial price must not be 0")
+	}
+	if minPrice == nil && maxPrice == nil {
+		return nil, fmt.Errorf("min price and max price must not be nil at the same time")
+	}
+	if minPrice != nil && maxPrice != nil && minPrice.GTE(*maxPrice) {
+		return nil, fmt.Errorf("max price must be greater than min price")
+	}
+
+	switch {
+	case minPrice != nil && initialPrice.LTE(*minPrice):
+		// single y asset pool
+		if y.IsZero() {
+			return nil, fmt.Errorf("y coin amount must not be 0 for single asset pool")
+		}
+		ax, ay := sdk.ZeroInt(), y
+		return NewRangedPool(ax, ay, InitialPoolCoinSupply(ax, ay), minPrice, maxPrice), nil
+	case maxPrice != nil && initialPrice.GTE(*maxPrice):
+		// single x asset pool
+		if x.IsZero() {
+			return nil, fmt.Errorf("x coin amount must not be 0 for single asset pool")
+		}
+		ax, ay := x, sdk.ZeroInt()
+		return NewRangedPool(ax, ay, InitialPoolCoinSupply(ax, ay), minPrice, maxPrice), nil
+	}
+
+	m := sdk.ZeroDec()
+	if minPrice != nil {
+		m = *minPrice
+	}
+
+	var ax, ay sdk.Int
+	if maxPrice != nil {
+		l := *maxPrice
+		r := l.Sub(initialPrice).Quo(l.Mul(initialPrice.Sub(m))) // r = (l-p)/(l*(p-m)))
+
+		ay = x.ToDec().Mul(r).Ceil().TruncateInt() // ay = ceil(x * r)
+		if ay.GT(y) {
+			ax = y.ToDec().Quo(r).Ceil().TruncateInt() // ax = ceil(y / r)
+			ay = y
+		} else {
+			ax = x
+		}
+	} else {
+		r := initialPrice.Sub(m) // r = p - m
+
+		ay = x.ToDec().QuoRoundUp(r).Ceil().TruncateInt() // ay = ceil(x / r)
+		if ay.GT(y) {
+			ax = y.ToDec().Mul(r).Ceil().TruncateInt() // ax = ceil(y * r)
+			ay = y
+		} else {
+			ax = x
+		}
+	}
+
+	return NewRangedPool(ax, ay, InitialPoolCoinSupply(ax, ay), minPrice, maxPrice), nil
 }
 
 // Balances returns the balances of the pool.
@@ -214,13 +264,16 @@ func (pool *RangedPool) PoolCoinSupply() sdk.Int {
 // Price returns the pool price.
 func (pool *RangedPool) Price() sdk.Dec {
 	a, b := pool.ab()
+	if pool.rx.ToDec().Add(a).IsZero() || pool.ry.ToDec().Add(b).IsZero() {
+		panic("pool price is not defined for a depleted pool")
+	}
 	return pool.rx.ToDec().Add(a).Quo(pool.ry.ToDec().Add(b)) // (rx + a) / (ry + b)
 }
 
 // IsDepleted returns whether the pool is depleted or not.
 func (pool *RangedPool) IsDepleted() bool {
-	// TODO: more conditions?
-	return pool.ps.IsZero()
+	a, b := pool.ab()
+	return pool.ps.IsZero() || pool.rx.ToDec().Add(a).IsZero() || pool.ry.ToDec().Add(b).IsZero()
 }
 
 // Deposit returns accepted x and y coin amount and minted pool coin amount
@@ -293,10 +346,6 @@ func (pool *RangedPool) LowestSellPrice() (price sdk.Dec, found bool) {
 // or equal to given price.
 func (pool *RangedPool) BuyAmountOver(price sdk.Dec) (amt sdk.Int) {
 	if price.GTE(pool.Price()) {
-		return sdk.ZeroInt()
-	}
-	px := pool.ProvidableXAmountOver(price)
-	if px.IsZero() {
 		return sdk.ZeroInt()
 	}
 	if pool.m != nil && price.LT(*pool.m) {
@@ -406,71 +455,6 @@ func PoolsOrderBook(pools []Pool, ticks []sdk.Dec) *OrderBook {
 		}
 	}
 	return ob
-}
-
-// CreateRangedPool creates new RangedPool from given inputs, while validating
-// the inputs and using only needed amount of x/y coins(the rest should be refunded).
-func CreateRangedPool(x, y sdk.Int, initialPrice sdk.Dec, minPrice, maxPrice *sdk.Dec) (pool *RangedPool, err error) {
-	if !x.IsPositive() && !y.IsPositive() {
-		return nil, fmt.Errorf("either x or y must be positive")
-	}
-	if initialPrice.IsZero() {
-		return nil, fmt.Errorf("initial price must not be 0")
-	}
-	if minPrice == nil && maxPrice == nil {
-		return nil, fmt.Errorf("min price and max price must not be nil at the same time")
-	}
-	if minPrice != nil && maxPrice != nil && minPrice.GTE(*maxPrice) {
-		return nil, fmt.Errorf("max price must be greater than min price")
-	}
-
-	switch {
-	case minPrice != nil && initialPrice.LTE(*minPrice):
-		// single y asset pool
-		if y.IsZero() {
-			return nil, fmt.Errorf("y coin amount must not be 0 for single asset pool")
-		}
-		ax, ay := sdk.ZeroInt(), y
-		return NewRangedPool(ax, ay, InitialPoolCoinSupply(ax, ay), minPrice, maxPrice), nil
-	case maxPrice != nil && initialPrice.GTE(*maxPrice):
-		// single x asset pool
-		if x.IsZero() {
-			return nil, fmt.Errorf("x coin amount must not be 0 for single asset pool")
-		}
-		ax, ay := x, sdk.ZeroInt()
-		return NewRangedPool(ax, ay, InitialPoolCoinSupply(ax, ay), minPrice, maxPrice), nil
-	}
-
-	m := sdk.ZeroDec()
-	if minPrice != nil {
-		m = *minPrice
-	}
-
-	var ax, ay sdk.Int
-	if maxPrice != nil {
-		l := *maxPrice
-		r := l.Sub(initialPrice).Quo(l.Mul(initialPrice.Sub(m))) // r = (l-p)/(l*(p-m)))
-
-		ay = x.ToDec().Mul(r).Ceil().TruncateInt() // ay = ceil(x * r)
-		if ay.GT(y) {
-			ax = y.ToDec().Quo(r).Ceil().TruncateInt() // ax = ceil(y / r)
-			ay = y
-		} else {
-			ax = x
-		}
-	} else {
-		r := initialPrice.Sub(m) // r = p - m
-
-		ay = x.ToDec().QuoRoundUp(r).Ceil().TruncateInt() // ay = ceil(x / r)
-		if ay.GT(y) {
-			ax = y.ToDec().Mul(r).Ceil().TruncateInt() // ax = ceil(y * r)
-			ay = y
-		} else {
-			ax = x
-		}
-	}
-
-	return NewRangedPool(ax, ay, InitialPoolCoinSupply(ax, ay), minPrice, maxPrice), nil
 }
 
 // InitialPoolCoinSupply returns ideal initial pool coin minting amount.
