@@ -142,7 +142,15 @@ func (pool *BasicPool) BuyAmountOver(price sdk.Dec) (amt sdk.Int) {
 	if price.GTE(pool.Price()) {
 		return sdk.ZeroInt()
 	}
-	return pool.rx.ToDec().QuoTruncate(price).Sub(pool.ry.ToDec()).TruncateInt()
+	utils.SafeMath(func() {
+		amt = pool.rx.ToDec().QuoTruncate(price).Sub(pool.ry.ToDec()).TruncateInt()
+		if amt.GT(MaxCoinAmount) {
+			amt = MaxCoinAmount
+		}
+	}, func() {
+		amt = MaxCoinAmount
+	})
+	return
 }
 
 // SellAmountUnder returns the amount of sell orders for price less than
