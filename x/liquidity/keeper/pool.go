@@ -86,6 +86,20 @@ func (k Keeper) ValidateMsgCreatePool(ctx sdk.Context, msg *types.MsgCreatePool)
 		}
 	}
 
+	// Check if there is a basic pool in the pair.
+	// Creating multiple basic pools within the same pair is disallowed.
+	duplicate := false
+	_ = k.IteratePoolsByPair(ctx, pair.Id, func(pool types.Pool) (stop bool, err error) {
+		if pool.Type == types.PoolTypeBasic && !pool.Disabled {
+			duplicate = true
+			return true, nil
+		}
+		return false, nil
+	})
+	if duplicate {
+		return types.ErrPoolAlreadyExists
+	}
+
 	return nil
 }
 
