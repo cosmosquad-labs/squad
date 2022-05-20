@@ -87,7 +87,7 @@ func MakeOrderBookResponse(ov amm.OrderView, basePrice sdk.Dec, tickPrec, numTic
 		var ticks []OrderBookTickResponse
 		accAmt := matchableAmt
 		tick := startPrice
-		for i := 0; i < numTicks && tick.IsPositive(); i++ {
+		for i := 0; i < numTicks && !tick.IsNegative(); i++ {
 			var amt sdk.Int
 			switch dir {
 			case OrderDirectionBuy:
