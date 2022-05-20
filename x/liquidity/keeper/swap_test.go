@@ -710,3 +710,26 @@ func (s *KeeperTestSuite) TestPoolOrderOverflow() {
 		liquidity.EndBlocker(s.ctx, s.keeper)
 	})
 }
+
+func (s *KeeperTestSuite) TestRangedPoolCapitalEfficiency() {
+	pair := s.createPair(s.addr(0), "denom1", "denom2", true)
+
+	s.createPool(s.addr(1), pair.Id, utils.ParseCoins("500_000000denom1,500_000000denom2"), true)
+
+	s.buyLimitOrder(s.addr(2), pair.Id, utils.ParseDec("1.01"), sdk.NewInt(50_000000), 0, true)
+	liquidity.EndBlocker(s.ctx, s.keeper)
+	liquidity.BeginBlocker(s.ctx, s.keeper)
+
+	s.Require().True(s.getBalance(s.addr(2), "denom1").Amount.LT(sdk.NewInt(30_000000)))
+
+	pair2 := s.createPair(s.addr(0), "denom3", "denom4", true)
+	s.createRangedPool(
+		s.addr(1), pair2.Id, utils.ParseCoins("500_000000denom3,500_000000denom4"),
+		utils.ParseDec("1.0"), utils.ParseDecP("0.98"), utils.ParseDecP("1.02"), true)
+
+	s.buyLimitOrder(s.addr(2), pair2.Id, utils.ParseDec("1.01"), sdk.NewInt(50_000000), 0, true)
+	liquidity.EndBlocker(s.ctx, s.keeper)
+	liquidity.BeginBlocker(s.ctx, s.keeper)
+
+	s.Require().True(s.getBalance(s.addr(2), "denom3").Amount.Equal(sdk.NewInt(50_000000)))
+}
