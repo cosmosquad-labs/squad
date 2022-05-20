@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -910,18 +909,4 @@ func (s *KeeperTestSuite) TestSellOrdersOnly() {
 			s.Require().True(decEq(utils.ParseDec("987.6"), ob.Sells[0].Price))
 		}
 	}
-}
-
-func printOrderBook(ob types.OrderBookResponse, basePrice sdk.Dec) {
-	fmt.Println("+------------------------------------------------------------------------+")
-	for _, tick := range ob.Sells {
-		fmt.Printf("| %18s | %28s |                    |\n", tick.UserOrderAmount, tick.Price.String())
-	}
-	fmt.Println("|------------------------------------------------------------------------|")
-	fmt.Printf("|                      %28s                      |\n", basePrice.String())
-	fmt.Println("|------------------------------------------------------------------------|")
-	for _, tick := range ob.Buys {
-		fmt.Printf("|                    | %28s | %-18s |\n", tick.Price.String(), tick.UserOrderAmount)
-	}
-	fmt.Println("+------------------------------------------------------------------------+")
 }

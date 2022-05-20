@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
@@ -132,4 +134,19 @@ func FitPriceToGap(price, gap sdk.Dec) sdk.Dec {
 	b := price.BigInt()
 	b.Quo(b, gap.BigInt()).Mul(b, gap.BigInt())
 	return sdk.NewDecFromBigIntWithPrec(b, sdk.Precision)
+}
+
+// PrintOrderBookResponse prints out OrderBookResponse in human-readable form.
+func PrintOrderBookResponse(ob OrderBookResponse, basePrice sdk.Dec) {
+	fmt.Println("+------------------------------------------------------------------------+")
+	for _, tick := range ob.Sells {
+		fmt.Printf("| %18s | %28s |                    |\n", tick.UserOrderAmount, tick.Price.String())
+	}
+	fmt.Println("|------------------------------------------------------------------------|")
+	fmt.Printf("|                      %28s                      |\n", basePrice.String())
+	fmt.Println("|------------------------------------------------------------------------|")
+	for _, tick := range ob.Buys {
+		fmt.Printf("|                    | %28s | %-18s |\n", tick.Price.String(), tick.UserOrderAmount)
+	}
+	fmt.Println("+------------------------------------------------------------------------+")
 }
