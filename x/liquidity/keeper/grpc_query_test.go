@@ -841,14 +841,15 @@ func (s *KeeperTestSuite) TestEmptyOrderBook() {
 	pair := s.createPair(s.addr(0), "denom1", "denom2", true)
 
 	resp, err := s.querier.OrderBooks(sdk.WrapSDKContext(s.ctx), &types.QueryOrderBooksRequest{
-		PairId:         pair.Id,
-		NumTicks:       20,
+		PairIds:        []uint64{pair.Id},
 		TickPrecisions: []uint32{1, 2, 3},
+		NumTicks:       20,
 	})
 	s.Require().NoError(err)
-	s.Require().Len(resp.OrderBooks, 3)
+	s.Require().Len(resp.Pairs, 1)
+	s.Require().Len(resp.Pairs[0].OrderBooks, 3)
 
-	for i, ob := range resp.OrderBooks {
+	for i, ob := range resp.Pairs[0].OrderBooks {
 		s.Require().EqualValues(i+1, ob.TickPrecision)
 		s.Require().Empty(ob.Buys)
 		s.Require().Empty(ob.Sells)
@@ -861,14 +862,15 @@ func (s *KeeperTestSuite) TestBuyOrdersOnlyOrderBook() {
 	s.buyLimitOrder(s.addr(1), pair.Id, utils.ParseDec("987.6"), sdk.NewInt(1000), time.Minute, true)
 
 	resp, err := s.querier.OrderBooks(sdk.WrapSDKContext(s.ctx), &types.QueryOrderBooksRequest{
-		PairId:         pair.Id,
+		PairIds:        []uint64{pair.Id},
 		NumTicks:       20,
 		TickPrecisions: []uint32{1, 2, 3},
 	})
 	s.Require().NoError(err)
-	s.Require().Len(resp.OrderBooks, 3)
+	s.Require().Len(resp.Pairs, 1)
+	s.Require().Len(resp.Pairs[0].OrderBooks, 3)
 
-	for i, ob := range resp.OrderBooks {
+	for i, ob := range resp.Pairs[0].OrderBooks {
 		s.Require().EqualValues(i+1, ob.TickPrecision)
 		s.Require().Len(ob.Buys, 1)
 		switch ob.TickPrecision {
@@ -883,20 +885,21 @@ func (s *KeeperTestSuite) TestBuyOrdersOnlyOrderBook() {
 	}
 }
 
-func (s *KeeperTestSuite) TestSellOrdersOnly() {
+func (s *KeeperTestSuite) TestSellOrdersOnlyOrderBook() {
 	pair := s.createPair(s.addr(0), "denom1", "denom2", true)
 
 	s.sellLimitOrder(s.addr(1), pair.Id, utils.ParseDec("987.6"), sdk.NewInt(1000), time.Minute, true)
 
 	resp, err := s.querier.OrderBooks(sdk.WrapSDKContext(s.ctx), &types.QueryOrderBooksRequest{
-		PairId:         pair.Id,
+		PairIds:        []uint64{pair.Id},
 		NumTicks:       20,
 		TickPrecisions: []uint32{1, 2, 3},
 	})
 	s.Require().NoError(err)
-	s.Require().Len(resp.OrderBooks, 3)
+	s.Require().Len(resp.Pairs, 1)
+	s.Require().Len(resp.Pairs[0].OrderBooks, 3)
 
-	for i, ob := range resp.OrderBooks {
+	for i, ob := range resp.Pairs[0].OrderBooks {
 		s.Require().EqualValues(i+1, ob.TickPrecision)
 		s.Require().Empty(ob.Buys)
 		s.Require().Len(ob.Sells, 1)

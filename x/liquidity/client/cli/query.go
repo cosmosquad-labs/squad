@@ -656,15 +656,15 @@ $ %s query %s order 1 1
 // NewQueryOrderBooksCmd implements the order books query command.
 func NewQueryOrderBooksCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "order-books [pair-id] [num-ticks] [tick-precisions]",
-		Args:  cobra.ExactArgs(3),
-		Short: "Query order books of the specific pair",
+		Use:   "order-books [pair-ids] [tick-precisions] [num-ticks]",
+		Args:  cobra.ExactArgs(2),
+		Short: "Query order books",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query order books of the specific pair.
+			fmt.Sprintf(`Query order books of specified pairs and tick precisions.
 
 Example:
-$ %s query %s order-books 1 10 1,2,3
-$ %s query %s order-books 2 20 3
+$ %s query %s order-books 1 1,2,3 --num-ticks=10
+$ %s query %s order-books 2,3 3
 `,
 				version.AppName, types.ModuleName,
 				version.AppName, types.ModuleName,
@@ -676,19 +676,21 @@ $ %s query %s order-books 2 20 3
 				return err
 			}
 
-			pairId, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return err
+			numTicks, _ := cmd.Flags().GetUint32(FlagNumTicks)
+
+			pairIdStrings := strings.Split(args[0], ",")
+			var pairIds []uint64
+			for _, pairIdStr := range pairIdStrings {
+				pairId, err := strconv.ParseUint(pairIdStr, 10, 64)
+				if err != nil {
+					return fmt.Errorf("parse pair id: %w", err)
+				}
+				pairIds = append(pairIds, pairId)
 			}
 
-			numTicks, err := strconv.ParseUint(args[1], 10, 32)
-			if err != nil {
-				return err
-			}
-
-			tickPrecStrs := strings.Split(args[2], ",")
+			tickPrecStrings := strings.Split(args[1], ",")
 			var tickPrecisions []uint32
-			for _, tickPrecStr := range tickPrecStrs {
+			for _, tickPrecStr := range tickPrecStrings {
 				tickPrec, err := strconv.ParseUint(tickPrecStr, 10, 32)
 				if err != nil {
 					return fmt.Errorf("parse tick precision: %w", err)
@@ -701,9 +703,9 @@ $ %s query %s order-books 2 20 3
 			res, err := queryClient.OrderBooks(
 				cmd.Context(),
 				&types.QueryOrderBooksRequest{
-					PairId:         pairId,
-					NumTicks:       uint32(numTicks),
+					PairIds:        pairIds,
 					TickPrecisions: tickPrecisions,
+					NumTicks:       numTicks,
 				})
 			if err != nil {
 				return err
@@ -713,6 +715,7 @@ $ %s query %s order-books 2 20 3
 		},
 	}
 
+	cmd.Flags().Uint32P(FlagNumTicks, "n", 20, "maximum number of ticks displayed on each buy/sell side")
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd

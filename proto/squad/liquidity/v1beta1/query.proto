@@ -82,7 +82,7 @@ service Query {
   }
 
   rpc OrderBooks(QueryOrderBooksRequest) returns (QueryOrderBooksResponse) {
-    option (google.api.http).get = "/squad/liquidity/v1beta1/pairs/{pair_id}/order_books";
+    option (google.api.http).get = "/squad/liquidity/v1beta1/order_books";
   }
 }
 
@@ -238,16 +238,14 @@ message QueryOrdersByOrdererRequest {
 
 // QueryOrderBooksRequest is request type for the Query/OrderBooks RPC method.
 message QueryOrderBooksRequest {
-  uint64          pair_id         = 1;
-  uint32          num_ticks       = 2;
-  repeated uint32 tick_precisions = 3;
+  repeated uint64 pair_ids        = 1;
+  repeated uint32 tick_precisions = 2;
+  uint32          num_ticks       = 3;
 }
 
 // QueryOrderBooksResponse is response type for Query/OrderBooks RPC method.
 message QueryOrderBooksResponse {
-  string base_price = 1
-      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
-  repeated OrderBookResponse order_books = 2 [(gogoproto.nullable) = false];
+  repeated OrderBookPairResponse pairs = 2 [(gogoproto.nullable) = false];
 }
 
 //
@@ -270,6 +268,13 @@ message PoolResponse {
   uint64 last_deposit_request_id = 6;
 
   uint64 last_withdraw_request_id = 7;
+}
+
+message OrderBookPairResponse {
+  uint64 pair_id    = 1;
+  string base_price = 2
+      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  repeated OrderBookResponse order_books = 3 [(gogoproto.nullable) = false];
 }
 
 message OrderBookResponse {

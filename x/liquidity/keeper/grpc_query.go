@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	"google.golang.org/grpc/codes"
@@ -534,16 +533,24 @@ func (k Querier) OrderBooks(c context.Context, req *types.QueryOrderBooksRequest
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if req.PairId == 0 {
-		return nil, status.Error(codes.InvalidArgument, "pair id must not be 0")
+	if len(req.PairIds) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "pair ids must not be empty")
+	}
+
+	if len(req.TickPrecisions) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "tick precisions must not be empty")
 	}
 
 	if req.NumTicks == 0 {
 		return nil, status.Error(codes.InvalidArgument, "number of ticks must not be 0")
 	}
 
-	if len(req.TickPrecisions) == 0 {
-		return nil, status.Error(codes.InvalidArgument, "tick precisions must not be empty")
+	pairIdSet := map[uint64]struct{}{}
+	for _, pairId := range req.PairIds {
+		if _, ok := pairIdSet[pairId]; ok {
+			return nil, status.Errorf(codes.InvalidArgument, "duplicate pair id: %d", pairId)
+		}
+		pairIdSet[pairId] = struct{}{}
 	}
 
 	tickPrecSet := map[uint32]struct{}{}
@@ -556,64 +563,68 @@ func (k Querier) OrderBooks(c context.Context, req *types.QueryOrderBooksRequest
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	pair, found := k.GetPair(ctx, req.PairId)
-	if !found {
-		return nil, status.Errorf(codes.NotFound, "pair %d doesn't exist", req.PairId)
-	}
-
-	ob := amm.NewOrderBook()
-	if err := k.IterateOrdersByPair(ctx, pair.Id, func(order types.Order) (stop bool, err error) {
-		switch order.Status {
-		case types.OrderStatusNotExecuted,
-			types.OrderStatusNotMatched,
-			types.OrderStatusPartiallyMatched:
-			ob.Add(types.NewUserOrder(order))
-		case types.OrderStatusCanceled,
-			types.OrderStatusExpired,
-			types.OrderStatusCompleted:
-		default:
-			return false, fmt.Errorf("invalid order status: %s", order.Status)
-		}
-		return false, nil
-	}); err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	var poolOrderViews []amm.OrderView
-	_ = k.IteratePoolsByPair(ctx, pair.Id, func(pool types.Pool) (stop bool, err error) {
-		if pool.Disabled {
-			return false, nil
-		}
-		rx, ry := k.getPoolBalances(ctx, pool, pair)
-		ammPool := amm.NewBasicPool(rx.Amount, ry.Amount, sdk.Int{})
-		poolOrderViews = append(poolOrderViews, ammPool)
-		return false, nil
-	})
-
-	ov := amm.MergeOrderViews(append(poolOrderViews, ob)...)
-
-	var obs []types.OrderBookResponse
 	params := k.GetParams(ctx)
-	basePrice, found := types.OrderBookBasePrice(ov, int(params.TickPrecision))
-	if !found {
-		for _, tickPrec := range req.TickPrecisions {
-			obs = append(obs, types.OrderBookResponse{
-				TickPrecision: tickPrec,
-				Buys:          nil,
-				Sells:         nil,
-			})
+
+	var pairs []types.OrderBookPairResponse
+	for _, pairId := range req.PairIds {
+		pair, found := k.GetPair(ctx, pairId)
+		if !found {
+			return nil, status.Errorf(codes.NotFound, "pair %d doesn't exist", pairId)
 		}
-		return &types.QueryOrderBooksResponse{
-			BasePrice:  sdk.Dec{},
+
+		ob := amm.NewOrderBook()
+		_ = k.IterateOrdersByPair(ctx, pairId, func(order types.Order) (stop bool, err error) {
+			switch order.Status {
+			case types.OrderStatusNotExecuted,
+				types.OrderStatusNotMatched,
+				types.OrderStatusPartiallyMatched:
+				ob.Add(types.NewUserOrder(order))
+			}
+			return false, nil
+		})
+
+		var poolOrderViews []amm.OrderView
+		_ = k.IteratePoolsByPair(ctx, pairId, func(pool types.Pool) (stop bool, err error) {
+			if pool.Disabled {
+				return false, nil
+			}
+			rx, ry := k.getPoolBalances(ctx, pool, pair)
+			ammPool := amm.NewBasicPool(rx.Amount, ry.Amount, sdk.Int{})
+			poolOrderViews = append(poolOrderViews, ammPool)
+			return false, nil
+		})
+
+		ov := amm.MergeOrderViews(append(poolOrderViews, ob)...)
+
+		var obs []types.OrderBookResponse
+		basePrice, found := types.OrderBookBasePrice(ov, int(params.TickPrecision))
+		if !found {
+			for _, tickPrec := range req.TickPrecisions {
+				obs = append(obs, types.OrderBookResponse{
+					TickPrecision: tickPrec,
+					Buys:          nil,
+					Sells:         nil,
+				})
+			}
+			pairs = append(pairs, types.OrderBookPairResponse{
+				PairId:     pairId,
+				BasePrice:  sdk.Dec{},
+				OrderBooks: obs,
+			})
+			continue
+		}
+
+		for _, tickPrec := range req.TickPrecisions {
+			obs = append(obs, types.MakeOrderBookResponse(ov, basePrice, int(tickPrec), int(req.NumTicks)))
+		}
+		pairs = append(pairs, types.OrderBookPairResponse{
+			PairId:     pairId,
+			BasePrice:  basePrice,
 			OrderBooks: obs,
-		}, nil
+		})
 	}
 
-	for _, tickPrec := range req.TickPrecisions {
-		obs = append(obs, types.MakeOrderBookResponse(ov, basePrice, int(tickPrec), int(req.NumTicks)))
-	}
 	return &types.QueryOrderBooksResponse{
-		BasePrice:  basePrice,
-		OrderBooks: obs,
+		Pairs: pairs,
 	}, nil
 }
