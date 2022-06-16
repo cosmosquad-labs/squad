@@ -26,19 +26,6 @@ func PoolReserveAddress(poolId uint64) sdk.AccAddress {
 	)
 }
 
-// NewPool returns a new pool object.
-func NewPool(id, pairId uint64) Pool {
-	return Pool{
-		Id:                    id,
-		PairId:                pairId,
-		ReserveAddress:        PoolReserveAddress(id).String(),
-		PoolCoinDenom:         PoolCoinDenom(id),
-		LastDepositRequestId:  0,
-		LastWithdrawRequestId: 0,
-		Disabled:              false,
-	}
-}
-
 // PoolCoinDenom returns a unique pool coin denom for a pool.
 func PoolCoinDenom(poolId uint64) string {
 	return fmt.Sprintf("pool%d", poolId)
@@ -55,6 +42,53 @@ func ParsePoolCoinDenom(denom string) (poolId uint64, err error) {
 		return 0, fmt.Errorf("parse pool id: %w", err)
 	}
 	return poolId, nil
+}
+
+// NewBasicPool returns a new basic pool object.
+func NewBasicPool(id, pairId uint64, creator sdk.AccAddress) Pool {
+	return Pool{
+		Type:                  PoolTypeBasic,
+		Id:                    id,
+		PairId:                pairId,
+		Creator:               creator.String(),
+		ReserveAddress:        PoolReserveAddress(id).String(),
+		PoolCoinDenom:         PoolCoinDenom(id),
+		TranslationX:          nil,
+		TranslationY:          nil,
+		LastDepositRequestId:  0,
+		LastWithdrawRequestId: 0,
+		Disabled:              false,
+	}
+}
+
+// NewRangedPool returns a new ranged pool object.
+func NewRangedPool(id, pairId uint64, creator sdk.AccAddress, minPrice, maxPrice *sdk.Dec, transX, transY sdk.Dec) Pool {
+	return Pool{
+		Type:                  PoolTypeRanged,
+		Id:                    id,
+		PairId:                pairId,
+		Creator:               creator.String(),
+		ReserveAddress:        PoolReserveAddress(id).String(),
+		PoolCoinDenom:         PoolCoinDenom(id),
+		MinPrice:              minPrice,
+		MaxPrice:              maxPrice,
+		TranslationX:          &transX,
+		TranslationY:          &transY,
+		LastDepositRequestId:  0,
+		LastWithdrawRequestId: 0,
+		Disabled:              false,
+	}
+}
+
+func (pool Pool) GetCreator() sdk.AccAddress {
+	if pool.Creator == "" {
+		return nil
+	}
+	addr, err := sdk.AccAddressFromBech32(pool.Creator)
+	if err != nil {
+		panic(err)
+	}
+	return addr
 }
 
 func (pool Pool) GetReserveAddress() sdk.AccAddress {
@@ -82,6 +116,18 @@ func (pool Pool) Validate() error {
 	return nil
 }
 
+// AMMPool constructs amm.Pool interface from Pool.
+func (pool Pool) AMMPool(rx, ry, ps sdk.Int) amm.Pool {
+	switch pool.Type {
+	case PoolTypeBasic:
+		return amm.NewBasicPool(rx, ry, ps)
+	case PoolTypeRanged:
+		return amm.NewRangedPool(rx, ry, ps, *pool.TranslationX, *pool.TranslationY, pool.MinPrice, pool.MaxPrice)
+	default:
+		panic(fmt.Errorf("invalid pool type: %s", pool.Type))
+	}
+}
+
 type PoolOrderer struct {
 	amm.Pool
 	Id                            uint64
@@ -89,8 +135,8 @@ type PoolOrderer struct {
 	BaseCoinDenom, QuoteCoinDenom string
 }
 
-func NewPoolOrderer(pool amm.Pool, id uint64, reserveAddr sdk.AccAddress, baseCoinDenom, quoteCoinDenom string) PoolOrderer {
-	return PoolOrderer{
+func NewPoolOrderer(pool amm.Pool, id uint64, reserveAddr sdk.AccAddress, baseCoinDenom, quoteCoinDenom string) *PoolOrderer {
+	return &PoolOrderer{
 		Pool:           pool,
 		Id:             id,
 		ReserveAddress: reserveAddr,
@@ -99,7 +145,7 @@ func NewPoolOrderer(pool amm.Pool, id uint64, reserveAddr sdk.AccAddress, baseCo
 	}
 }
 
-func (orderer PoolOrderer) NewOrder(dir amm.OrderDirection, price sdk.Dec, amt sdk.Int) amm.Order {
+func (orderer *PoolOrderer) Order(dir amm.OrderDirection, price sdk.Dec, amt sdk.Int) amm.Order {
 	var offerCoinDenom, demandCoinDenom string
 	switch dir {
 	case amm.Buy:
