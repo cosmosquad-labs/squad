@@ -36,7 +36,7 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.app = chain.Setup(false)
 	hdr := tmproto.Header{
 		Height: 1,
-		Time: utils.ParseTime("2022-01-01T00:00:00Z"),
+		Time:   utils.ParseTime("2022-01-01T00:00:00Z"),
 	}
 	s.app.BeginBlock(abci.RequestBeginBlock{Header: hdr})
 	s.ctx = s.app.BaseApp.NewContext(false, hdr)
