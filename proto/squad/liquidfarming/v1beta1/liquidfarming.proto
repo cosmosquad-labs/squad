@@ -1,0 +1,85 @@
+syntax = "proto3";
+package squad.liquidfarming.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package                      = "github.com/cosmosquad-labs/squad/x/liquidfarming/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// LiquidFarm defines ...
+message LiquidFarm {
+  // id specifies the id for the liquidfarm
+  uint64 id = 1;
+
+  // pool_id specifies the pool id
+  uint64 pool_id = 2;
+
+  // pool_coin_denom specifies pool coin denom
+  string pool_coin_denom = 3;
+
+  // lf_coin_denom specifies liquid farming coin denom that is synthetic version of the pool coin denom
+  string lf_coin_denom = 4;
+
+  // reserve_address specifies the bech32-encoded address that reserves pool coin for deposits
+  string reserve_address = 5;
+}
+
+// DepositRequest defines a deposit request.
+message DepositRequest {
+  // id specifies the id for the request
+  uint64 id = 1;
+
+  // liquid_farm_id specifies the liquidfarm id
+  uint64 liquid_farm_id = 2;
+
+  // depositor specifies the bech32-encoded address that makes a deposit to the pool
+  string depositor = 3;
+
+  // deposit_coin specifies the amount of pool coin to deposit
+  cosmos.base.v1beta1.Coin deposit_coin = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"
+  ];
+
+  RequestStatus status = 8;
+}
+
+// AuctionState defines an auction state.
+message AuctionState {
+  // liquid_farm_id specifies the liquidfarm id
+  uint64 liquid_farm_id = 1;
+
+  // auction_id specifies the auction id from the auction module
+  uint64 auction_id = 2;
+
+  uint64 last_auction_id = 3;
+  
+  string last_winner = 4;
+  
+  repeated cosmos.base.v1beta1.Coin last_rewards = 5
+    [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+
+  string last_winning_price = 6 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// RequestStatus enumerates request statuses.
+enum RequestStatus {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  // REQUEST_STATUS_UNSPECIFIED specifies unknown request status
+  REQUEST_STATUS_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "RequestStatusUnspecified"];
+
+  // REQUEST_STATUS_NOT_EXECUTED indicates the request is not executed yet
+  REQUEST_STATUS_NOT_EXECUTED = 1 [(gogoproto.enumvalue_customname) = "RequestStatusNotExecuted"];
+
+  // REQUEST_STATUS_SUCCEEDED indicates the request has been succeeded
+  REQUEST_STATUS_SUCCEEDED = 2 [(gogoproto.enumvalue_customname) = "RequestStatusSucceeded"];
+
+  // REQUEST_STATUS_CANCELED indicates the request is failed
+  REQUEST_STATUS_CANCELED = 3 [(gogoproto.enumvalue_customname) = "RequestStatusCanceled"];
+}
+
