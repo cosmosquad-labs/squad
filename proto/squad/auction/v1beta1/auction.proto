@@ -76,8 +76,8 @@ message BaseAuction {
 message FixedPriceAuction {
   BaseAuction base_auction = 1 [ (gogoproto.embed) = true ];
 
-  // remaining_coins specifies the remaining amount of selling coins to sell
-  repeated cosmos.base.v1beta1.Coin remaining_coins = 2
+  // remaining_selling_coins specifies the remaining amount of selling coins to sell
+  repeated cosmos.base.v1beta1.Coin remaining_selling_coins = 2
       [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
 }
 
