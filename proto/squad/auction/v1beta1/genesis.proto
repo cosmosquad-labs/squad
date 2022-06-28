@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package squad.auction.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+import "squad/auction/v1beta1/auction.proto";
+import "squad/auction/v1beta1/params.proto";
+
+option go_package = "github.com/cosmosquad-labs/squad/x/auction/types";
+
+// GenesisState defines the fundraising module's genesis state.
+message GenesisState {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // params defines all the parameters for the module
+  Params params = 1 [ (gogoproto.nullable) = false ];
+
+  // auctions define the auction interface for genesis state; the module
+  // supports FixedPriceAuction or BatchAuction
+  repeated google.protobuf.Any auctions = 2
+      [ (cosmos_proto.accepts_interface) = "AuctionI" ];
+
+  // bids define the bid records used for genesis state
+  repeated Bid bids = 4 [ (gogoproto.nullable) = false ];
+
+  // vesting_queues define the vesting queue records used for genesis
+  // state
+  repeated VestingQueue vesting_queues = 5 [ (gogoproto.nullable) = false ];
+}
