@@ -1,0 +1,16 @@
+syntax = "proto3";
+package squad.liquidfarming.v1beta1;
+
+option go_package = "github.com/cosmosquad-labs/squad/x/liquidfarming/types";
+
+// Msg defines the Msg service.
+service Msg {
+//   // Create defines a method for creating a LiquidFarm
+//   rpc Create(MsgCreate) returns (MsgCreateResponse);
+
+//   // Deposit defines a method for depositing pool coin for the liquid farm
+//   rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
+
+//   // Withdraw defines a method for withdrawing LF coin from the liquid farm
+//   rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
+}

@@ -1,0 +1,13 @@
+syntax = "proto3";
+package squad.auction.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "squad/auction/v1beta1/params.proto";
+
+option go_package                      = "github.com/cosmosquad-labs/squad/x/auction/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// GenesisState defines the liquidfarming module's genesis state.
+message GenesisState {
+  Params params = 1 [(gogoproto.nullable) = false];
+}
