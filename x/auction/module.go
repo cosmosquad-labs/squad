@@ -14,9 +14,12 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	auctionclient "github.com/cosmosquad-labs/squad/x/auction/client"
 	"github.com/cosmosquad-labs/squad/x/auction/client/cli"
+	"github.com/cosmosquad-labs/squad/x/auction/client/rest"
 	"github.com/cosmosquad-labs/squad/x/auction/keeper"
 	"github.com/cosmosquad-labs/squad/x/auction/types"
 )
@@ -32,11 +35,14 @@ var (
 
 // AppModuleBasic implements the AppModuleBasic interface for the module.
 type AppModuleBasic struct {
-	cdc codec.BinaryCodec
+	cdc             codec.BinaryCodec
+	auctionHandlers []auctionclient.AuctionHandler // auction handlers which live in governance cli and rest
 }
 
-func NewAppModuleBasic(cdc codec.BinaryCodec) AppModuleBasic {
-	return AppModuleBasic{cdc: cdc}
+func NewAppModuleBasic(auctionHandlers ...auctionclient.AuctionHandler) AppModuleBasic {
+	return AppModuleBasic{
+		auctionHandlers: auctionHandlers,
+	}
 }
 
 // Name returns the module's name.
@@ -68,8 +74,15 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 	return genState.Validate()
 }
 
-// RegisterRESTRoutes registers the module's REST service handlers.
-func (AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {}
+// RegisterRESTRoutes registers the REST routes for the module.
+func (a AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
+	auctionRESTHandlers := make([]rest.AuctionRESTHandler, 0, len(a.auctionHandlers))
+	for _, auctionHandler := range a.auctionHandlers {
+		auctionRESTHandlers = append(auctionRESTHandlers, auctionHandler.RESTHandler(clientCtx))
+	}
+
+	rest.RegisterHandlers(clientCtx, rtr, auctionRESTHandlers)
+}
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
@@ -80,7 +93,12 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 
 // GetTxCmd returns the module's root tx command.
 func (a AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli.GetTxCmd()
+	auctionCLIHandlers := make([]*cobra.Command, 0, len(a.auctionHandlers))
+	for _, auctionHandler := range a.auctionHandlers {
+		auctionCLIHandlers = append(auctionCLIHandlers, auctionHandler.CLIHandler())
+	}
+
+	return cli.NewTxCmd(auctionCLIHandlers)
 }
 
 // GetQueryCmd returns the module's root query command.
@@ -109,7 +127,7 @@ func NewAppModule(
 	bankKeeper types.BankKeeper,
 ) AppModule {
 	return AppModule{
-		AppModuleBasic: NewAppModuleBasic(cdc),
+		AppModuleBasic: AppModuleBasic{cdc: cdc},
 		keeper:         keeper,
 		accountKeeper:  accountKeeper,
 		bankKeeper:     bankKeeper,

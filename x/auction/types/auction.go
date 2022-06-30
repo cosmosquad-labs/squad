@@ -8,6 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 const DefaultStartingAuctionID uint64 = 1
@@ -133,3 +134,47 @@ func (a *FixedPriceAuction) AuctionRoute() string { return RouterKey }
 func (a *FixedPriceAuction) AuctionType() string { return AuctionTypeFixedPrice }
 
 func (a *FixedPriceAuction) ValidateBasic() error { return ValidateAbstract(a) }
+
+// CustomFromAuctionType returns a Custom object based on the auction type.
+func CustomFromAuctionType(
+	auctioneer sdk.AccAddress,
+	startPrice sdk.Dec,
+	sellingCoins sdk.Coins,
+	payingCoinDenom string,
+	startTime time.Time,
+	endTime time.Time,
+	status AuctionStatus,
+	ty string,
+) Custom {
+	switch ty {
+	case AuctionTypeFixedPrice:
+		remainingSellingCoin := sellingCoins[0]
+		return NewFixedPriceAuction(
+			auctioneer.String(),
+			startPrice,
+			sellingCoins[0],
+			remainingSellingCoin,
+			payingCoinDenom,
+			startTime,
+			endTime,
+			status,
+		)
+	default:
+		return nil
+	}
+}
+
+// AuctionHandler implements the Handler interface for auction module-based
+// auctions (ie. FixedPriceAuction ). Since these are
+// merely signaling mechanisms at the moment and do not affect state, it
+// performs a no-op.
+func AuctionHandler(_ sdk.Context, c Custom) error {
+	switch c.AuctionType() {
+	case AuctionTypeFixedPrice:
+		// both auction types do not change state so this performs a no-op
+		return nil
+
+	default:
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized gov proposal type: %s", c.AuctionType())
+	}
+}

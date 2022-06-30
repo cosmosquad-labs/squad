@@ -97,7 +97,10 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	farmingparams "github.com/cosmosquad-labs/squad/app/params"
-	"github.com/cosmosquad-labs/squad/app/upgrades/mainnet/v2.0.0"
+	v2_0_0 "github.com/cosmosquad-labs/squad/app/upgrades/mainnet/v2.0.0"
+	"github.com/cosmosquad-labs/squad/x/auction"
+	auctionkeeper "github.com/cosmosquad-labs/squad/x/auction/keeper"
+	auctiontypes "github.com/cosmosquad-labs/squad/x/auction/types"
 	"github.com/cosmosquad-labs/squad/x/claim"
 	claimkeeper "github.com/cosmosquad-labs/squad/x/claim/keeper"
 	claimtypes "github.com/cosmosquad-labs/squad/x/claim/types"
@@ -158,6 +161,7 @@ var (
 		liquidity.AppModuleBasic{},
 		liquidstaking.AppModuleBasic{},
 		claim.AppModuleBasic{},
+		auction.NewAppModuleBasic(),
 	)
 
 	// module account permissions
@@ -174,6 +178,7 @@ var (
 		liquidstakingtypes.ModuleName:  {authtypes.Minter, authtypes.Burner},
 		claimtypes.ModuleName:          nil,
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
+		auctiontypes.ModuleName:        nil,
 	}
 )
 
@@ -221,6 +226,7 @@ type App struct {
 	LiquidityKeeper     liquiditykeeper.Keeper
 	LiquidStakingKeeper liquidstakingkeeper.Keeper
 	ClaimKeeper         claimkeeper.Keeper
+	AuctionKeeper       auctionkeeper.Keeper
 
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
@@ -288,6 +294,7 @@ func NewApp(
 		liquiditytypes.StoreKey,
 		liquidstakingtypes.StoreKey,
 		claimtypes.StoreKey,
+		auctiontypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -362,7 +369,6 @@ func NewApp(
 		app.BankKeeper,
 		authtypes.FeeCollectorName,
 	)
-
 	app.DistrKeeper = distrkeeper.NewKeeper(
 		appCodec,
 		keys[distrtypes.StoreKey],
@@ -447,6 +453,20 @@ func NewApp(
 		app.BankKeeper,
 		app.StakingKeeper,
 		govRouter,
+	)
+
+	// register the auction types
+	auctionRouter := auctiontypes.NewRouter()
+	auctionRouter.
+		AddRoute(auctiontypes.RouterKey, auctiontypes.AuctionHandler)
+
+	app.AuctionKeeper = auctionkeeper.NewKeeper(
+		appCodec,
+		keys[auctiontypes.StoreKey],
+		app.GetSubspace(auctiontypes.ModuleName),
+		app.AccountKeeper,
+		app.BankKeeper,
+		auctionRouter,
 	)
 
 	app.LiquidStakingKeeper = liquidstakingkeeper.NewKeeper(
@@ -537,6 +557,7 @@ func NewApp(
 		farming.NewAppModule(appCodec, app.FarmingKeeper, app.AccountKeeper, app.BankKeeper),
 		liquidstaking.NewAppModule(appCodec, app.LiquidStakingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GovKeeper),
 		claim.NewAppModule(appCodec, app.ClaimKeeper, app.AccountKeeper, app.BankKeeper, app.DistrKeeper, app.GovKeeper, app.LiquidityKeeper, app.LiquidStakingKeeper),
+		auction.NewAppModule(appCodec, app.AuctionKeeper, app.AccountKeeper, app.BankKeeper),
 		app.transferModule,
 	)
 
@@ -570,6 +591,7 @@ func NewApp(
 		ibctransfertypes.ModuleName,
 		farmingtypes.ModuleName,
 		claimtypes.ModuleName,
+		auctiontypes.ModuleName,
 	)
 	app.mm.SetOrderEndBlockers(
 		// EndBlocker of crisis module called AssertInvariants
@@ -598,6 +620,7 @@ func NewApp(
 		ibctransfertypes.ModuleName,
 		claimtypes.ModuleName,
 		budgettypes.ModuleName,
+		auctiontypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -625,6 +648,7 @@ func NewApp(
 		liquiditytypes.ModuleName,
 		liquidstakingtypes.ModuleName,
 		claimtypes.ModuleName,
+		auctiontypes.ModuleName,
 
 		// empty logic modules
 		paramstypes.ModuleName,
