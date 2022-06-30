@@ -18,8 +18,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 
 		switch msg := msg.(type) {
-		case *types.MsgCreateFixedPriceAuction:
-			res, err := msgServer.CreateFixedPriceAuction(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgCreateAuction:
+			res, err := msgServer.CreateAuction(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
 		default:

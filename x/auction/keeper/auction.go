@@ -30,25 +30,13 @@ func (k Keeper) CreateAuction(ctx sdk.Context, msg *types.MsgCreateAuction) (typ
 		return types.Auction{}, sdkerrors.Wrap(types.ErrInvalidAuctionCustom, err.Error())
 	}
 
-	if ctx.BlockTime().After(msg.EndTime) { // EndTime < CurrentTime
-		return types.Auction{}, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "end time must be set after the current time")
-	}
-
 	auction, err := types.NewAuction(
 		custom,
 		k.GetNextAuctionIdWithUpdate(ctx),
 		msg.Auctioneer,
-		types.AuctionStatusStandBy,
-		msg.StartTime,
-		msg.EndTime,
 	)
 	if err != nil {
 		return types.Auction{}, err
-	}
-
-	// Update status if the start time is already passed over the current time
-	if !auction.GetStartTime().After(ctx.BlockTime()) {
-		auction.Status = types.AuctionStatusStarted
 	}
 
 	// Store auction

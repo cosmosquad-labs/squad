@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-	time "time"
 
 	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	"github.com/cosmos/cosmos-sdk/codec/types"
@@ -21,22 +20,9 @@ const (
 	TypeMsgCreateAuction = "create_auction"
 )
 
-func NewMsgCreateAuction(
-	custom Custom,
-	auctioneer string,
-	startPrice sdk.Dec,
-	sellingCoin sdk.Coin,
-	payingCoinDenom string,
-	startTime time.Time,
-	endTime time.Time,
-) (*MsgCreateAuction, error) {
+func NewMsgCreateAuction(custom Custom, auctioneer string) (*MsgCreateAuction, error) {
 	m := &MsgCreateAuction{
-		Auctioneer:      auctioneer,
-		StartPrice:      startPrice,
-		SellingCoin:     sellingCoin,
-		PayingCoinDenom: payingCoinDenom,
-		StartTime:       startTime,
-		EndTime:         endTime,
+		Auctioneer: auctioneer,
 	}
 
 	err := m.SetCustom(custom)
@@ -83,18 +69,6 @@ func (msg MsgCreateAuction) Type() string { return TypeMsgCreateAuction }
 func (msg MsgCreateAuction) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Auctioneer); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid auctioneer address: %v", err)
-	}
-	if !msg.StartPrice.IsPositive() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "start price must be positive")
-	}
-	if err := msg.SellingCoin.Validate(); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid selling coin: %v", err)
-	}
-	if err := sdk.ValidateDenom(msg.PayingCoinDenom); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid paying coin denom: %v", err)
-	}
-	if !msg.EndTime.After(msg.StartTime) {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "end time must be set after start time")
 	}
 	return nil
 }
