@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
@@ -11,12 +12,14 @@ import (
 type Custom interface {
 	GetId() uint64
 	GetAuctioneer() string
+	AuctionRoute() string
 	AuctionType() string
 	GetStatus() AuctionStatus
 	GetStartTime() time.Time
 	GetEndTime() time.Time
-	// ProposalRoute() string
 }
+
+type Handler func(ctx sdk.Context, custom Custom) error
 
 func ValidateAbstract(c Custom) error {
 	if c.GetId() == 0 {

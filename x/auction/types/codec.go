@@ -9,12 +9,12 @@ import (
 
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterInterface((*Custom)(nil), nil)
-	cdc.RegisterConcrete(&FixedPriceAuction{}, "squad/FixedPriceAuction", nil)
+	cdc.RegisterConcrete(&MsgCreateAuction{}, "squad/MsgCreateAuction", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgCreateFixedPriceAuction{},
+		&MsgCreateAuction{},
 	)
 
 	registry.RegisterInterface(

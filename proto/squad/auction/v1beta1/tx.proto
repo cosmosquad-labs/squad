@@ -5,6 +5,7 @@ package squad.auction.v1beta1;
 import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
 import "squad/auction/v1beta1/auction.proto";
 
@@ -12,39 +13,39 @@ option go_package = "github.com/cosmosquad-labs/squad/x/auction/types";
 
 // Msg defines the Msg service.
 service Msg {
-  // Submit a create fixed price auction message.
-  rpc CreateFixedPriceAuction(MsgCreateFixedPriceAuction)
-      returns (MsgCreateFixedPriceAuctionResponse);
+  rpc CreateAuction(MsgCreateAuction)
+      returns (MsgCreateAuctionResponse);
 }
 
-// MsgCreateFixedPriceAuction defines a SDK message for creating a fixed price
-// auction.
-message MsgCreateFixedPriceAuction {
-  option (gogoproto.goproto_getters) = false;
+message MsgCreateAuction {
+  option (gogoproto.equal)            = false;
+  option (gogoproto.goproto_stringer) = false;
+  option (gogoproto.stringer)         = false;
+  option (gogoproto.goproto_getters)  = false;
 
-  string auctioneer = 1;
+  google.protobuf.Any custom            = 1 [(cosmos_proto.accepts_interface) = "Custom"];
 
-  string start_price = 2 [
+  string auctioneer = 2;
+
+  string start_price = 3 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
 
-  cosmos.base.v1beta1.Coin selling_coin = 3 [
+  cosmos.base.v1beta1.Coin selling_coin = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"
   ];
 
-  string paying_coin_denom = 4;
+  string paying_coin_denom = 5;
 
   // start_time specifies the start time of the plan
-  google.protobuf.Timestamp start_time = 5
+  google.protobuf.Timestamp start_time = 6
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 
   // end_time specifies the end time of the plan
-  google.protobuf.Timestamp end_time = 6
+  google.protobuf.Timestamp end_time = 7
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 }
 
-// MsgCreateFixedPriceAuctionResponse defines the
-// Msg/MsgCreateFixedPriceAuctionResponse response type.
-message MsgCreateFixedPriceAuctionResponse {}
+message MsgCreateAuctionResponse {}

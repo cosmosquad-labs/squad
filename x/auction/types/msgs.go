@@ -1,32 +1,36 @@
 package types
 
 import (
+	"fmt"
 	time "time"
 
 	"github.com/cosmos/cosmos-sdk/codec/legacy"
+	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/gogo/protobuf/proto"
+	"gopkg.in/yaml.v2"
 )
 
 var (
-	_ sdk.Msg = (*MsgCreateFixedPriceAuction)(nil)
+	_ sdk.Msg                       = (*MsgCreateAuction)(nil)
+	_ types.UnpackInterfacesMessage = &MsgCreateAuction{}
 )
 
-// Message types for the fundraising module.
 const (
-	TypeMsgCreateFixedPriceAuction = "create_fixed_price_auction"
+	TypeMsgCreateAuction = "create_auction"
 )
 
-// NewMsgCreateFixedPriceAuction creates a new MsgCreateFixedPriceAuction.
-func NewMsgCreateFixedPriceAuction(
+func NewMsgCreateAuction(
+	custom Custom,
 	auctioneer string,
 	startPrice sdk.Dec,
 	sellingCoin sdk.Coin,
 	payingCoinDenom string,
 	startTime time.Time,
 	endTime time.Time,
-) *MsgCreateFixedPriceAuction {
-	return &MsgCreateFixedPriceAuction{
+) (*MsgCreateAuction, error) {
+	m := &MsgCreateAuction{
 		Auctioneer:      auctioneer,
 		StartPrice:      startPrice,
 		SellingCoin:     sellingCoin,
@@ -34,13 +38,49 @@ func NewMsgCreateFixedPriceAuction(
 		StartTime:       startTime,
 		EndTime:         endTime,
 	}
+
+	err := m.SetCustom(custom)
+	if err != nil {
+		return nil, err
+	}
+
+	return m, nil
 }
 
-func (msg MsgCreateFixedPriceAuction) Route() string { return RouterKey }
+func (m *MsgCreateAuction) GetCustom() Custom {
+	custom, ok := m.Custom.GetCachedValue().(Custom)
+	if !ok {
+		return nil
+	}
+	return custom
+}
 
-func (msg MsgCreateFixedPriceAuction) Type() string { return TypeMsgCreateFixedPriceAuction }
+func (msg MsgCreateAuction) GetAuctioneer() sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(msg.Auctioneer)
+	if err != nil {
+		panic(err)
+	}
+	return addr
+}
 
-func (msg MsgCreateFixedPriceAuction) ValidateBasic() error {
+func (m *MsgCreateAuction) SetCustom(custom Custom) error {
+	msg, ok := custom.(proto.Message)
+	if !ok {
+		return fmt.Errorf("can't proto marshal %T", msg)
+	}
+	any, err := types.NewAnyWithValue(msg)
+	if err != nil {
+		return err
+	}
+	m.Custom = any
+	return nil
+}
+
+func (msg MsgCreateAuction) Route() string { return RouterKey }
+
+func (msg MsgCreateAuction) Type() string { return TypeMsgCreateAuction }
+
+func (msg MsgCreateAuction) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Auctioneer); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid auctioneer address: %v", err)
 	}
@@ -59,11 +99,11 @@ func (msg MsgCreateFixedPriceAuction) ValidateBasic() error {
 	return nil
 }
 
-func (msg MsgCreateFixedPriceAuction) GetSignBytes() []byte {
+func (msg MsgCreateAuction) GetSignBytes() []byte {
 	return sdk.MustSortJSON(legacy.Cdc.MustMarshalJSON(&msg))
 }
 
-func (msg MsgCreateFixedPriceAuction) GetSigners() []sdk.AccAddress {
+func (msg MsgCreateAuction) GetSigners() []sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.Auctioneer)
 	if err != nil {
 		panic(err)
@@ -71,10 +111,14 @@ func (msg MsgCreateFixedPriceAuction) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
-func (msg MsgCreateFixedPriceAuction) GetAuctioneer() sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(msg.Auctioneer)
-	if err != nil {
-		panic(err)
-	}
-	return addr
+// String implements the Stringer interface
+func (m MsgCreateAuction) String() string {
+	out, _ := yaml.Marshal(m)
+	return string(out)
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (m MsgCreateAuction) UnpackInterfaces(unpacker types.AnyUnpacker) error {
+	var custom Custom
+	return unpacker.UnpackAny(m.Custom, &custom)
 }

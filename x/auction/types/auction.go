@@ -23,9 +23,9 @@ func NewAuction(custom Custom, id uint64, auctioneer string, status AuctionStatu
 	}
 
 	auction := Auction{
+		Custom:     any,
 		Id:         id,
 		Auctioneer: auctioneer,
-		Custom:     any,
 		Status:     status,
 		StartTime:  startTime,
 		EndTime:    endTime,
@@ -34,12 +34,6 @@ func NewAuction(custom Custom, id uint64, auctioneer string, status AuctionStatu
 	return auction, nil
 }
 
-// TODO: proto file must be updated to getters all false
-// func (a Auction) String() string {
-// 	out, _ := yaml.Marshal(p)
-// 	return string(out)
-// }
-
 // GetCustom returns the auction Custom
 func (a Auction) GetCustom() Custom {
 	custom, ok := a.Custom.GetCachedValue().(Custom)
@@ -47,6 +41,10 @@ func (a Auction) GetCustom() Custom {
 		return nil
 	}
 	return custom
+}
+
+func (a Auction) AuctionId() uint64 {
+	return a.Id
 }
 
 func (a Auction) AuctionType() string {
@@ -72,3 +70,9 @@ func (a Auction) GetStartTime() time.Time {
 func (a Auction) GetEndTime() time.Time {
 	return a.EndTime
 }
+
+// TODO: proto file must be updated to getters all false
+// func (a Auction) String() string {
+// 	out, _ := yaml.Marshal(p)
+// 	return string(out)
+// }

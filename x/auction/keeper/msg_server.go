@@ -20,13 +20,16 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
-// CreateFixedPriceAuction defines a method to create fixed price auction.
-func (m msgServer) CreateFixedPriceAuction(goCtx context.Context, msg *types.MsgCreateFixedPriceAuction) (*types.MsgCreateFixedPriceAuctionResponse, error) {
+func (m msgServer) CreateAuction(goCtx context.Context, msg *types.MsgCreateAuction) (*types.MsgCreateAuctionResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := m.Keeper.CreateFixedPriceAuction(ctx, msg); err != nil {
+	auction, err := m.Keeper.CreateAuction(ctx, msg)
+	if err != nil {
 		return nil, err
 	}
 
-	return &types.MsgCreateFixedPriceAuctionResponse{}, nil
+	// Test
+	ctx.Logger().Info("CreateAuction...", "auction", auction)
+
+	return &types.MsgCreateAuctionResponse{}, nil
 }

@@ -18,6 +18,9 @@ type Keeper struct {
 	paramSpace    paramtypes.Subspace
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
+
+	// Auction router
+	router types.Router
 }
 
 func NewKeeper(
@@ -27,6 +30,7 @@ func NewKeeper(
 	paramSpace paramtypes.Subspace,
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
+	rtr types.Router,
 ) Keeper {
 	// Ensure fundraising module account is set
 	if addr := accountKeeper.GetModuleAddress(types.ModuleName); addr == nil {
@@ -37,6 +41,11 @@ func NewKeeper(
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
+
+	// It is vital to seal the governance proposal router here as to not allow
+	// further handlers to be registered after the keeper is created since this
+	// could create invalid or non-deterministic behavior.
+	rtr.Seal()
 
 	return Keeper{
 		cdc:           cdc,
@@ -50,6 +59,11 @@ func NewKeeper(
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+}
+
+// Router returns the auction Keeper's Router
+func (keeper Keeper) Router() types.Router {
+	return keeper.router
 }
 
 // GetParams returns the parameters for the fundraising module.

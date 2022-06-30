@@ -6,8 +6,9 @@ package types
 import (
 	context "context"
 	fmt "fmt"
+	types "github.com/cosmos/cosmos-sdk/codec/types"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
-	types "github.com/cosmos/cosmos-sdk/types"
+	types1 "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
@@ -35,31 +36,29 @@ var _ = time.Kitchen
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// MsgCreateFixedPriceAuction defines a SDK message for creating a fixed price
-// auction.
-type MsgCreateFixedPriceAuction struct {
-	Auctioneer      string                                 `protobuf:"bytes,1,opt,name=auctioneer,proto3" json:"auctioneer,omitempty"`
-	StartPrice      github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,2,opt,name=start_price,json=startPrice,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"start_price"`
-	SellingCoin     types.Coin                             `protobuf:"bytes,3,opt,name=selling_coin,json=sellingCoin,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coin" json:"selling_coin"`
-	PayingCoinDenom string                                 `protobuf:"bytes,4,opt,name=paying_coin_denom,json=payingCoinDenom,proto3" json:"paying_coin_denom,omitempty"`
+type MsgCreateAuction struct {
+	Custom          *types.Any                             `protobuf:"bytes,1,opt,name=custom,proto3" json:"custom,omitempty"`
+	Auctioneer      string                                 `protobuf:"bytes,2,opt,name=auctioneer,proto3" json:"auctioneer,omitempty"`
+	StartPrice      github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,3,opt,name=start_price,json=startPrice,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"start_price"`
+	SellingCoin     types1.Coin                            `protobuf:"bytes,4,opt,name=selling_coin,json=sellingCoin,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coin" json:"selling_coin"`
+	PayingCoinDenom string                                 `protobuf:"bytes,5,opt,name=paying_coin_denom,json=payingCoinDenom,proto3" json:"paying_coin_denom,omitempty"`
 	// start_time specifies the start time of the plan
-	StartTime time.Time `protobuf:"bytes,5,opt,name=start_time,json=startTime,proto3,stdtime" json:"start_time"`
+	StartTime time.Time `protobuf:"bytes,6,opt,name=start_time,json=startTime,proto3,stdtime" json:"start_time"`
 	// end_time specifies the end time of the plan
-	EndTime time.Time `protobuf:"bytes,6,opt,name=end_time,json=endTime,proto3,stdtime" json:"end_time"`
+	EndTime time.Time `protobuf:"bytes,7,opt,name=end_time,json=endTime,proto3,stdtime" json:"end_time"`
 }
 
-func (m *MsgCreateFixedPriceAuction) Reset()         { *m = MsgCreateFixedPriceAuction{} }
-func (m *MsgCreateFixedPriceAuction) String() string { return proto.CompactTextString(m) }
-func (*MsgCreateFixedPriceAuction) ProtoMessage()    {}
-func (*MsgCreateFixedPriceAuction) Descriptor() ([]byte, []int) {
+func (m *MsgCreateAuction) Reset()      { *m = MsgCreateAuction{} }
+func (*MsgCreateAuction) ProtoMessage() {}
+func (*MsgCreateAuction) Descriptor() ([]byte, []int) {
 	return fileDescriptor_5715cbe414447688, []int{0}
 }
-func (m *MsgCreateFixedPriceAuction) XXX_Unmarshal(b []byte) error {
+func (m *MsgCreateAuction) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgCreateFixedPriceAuction) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgCreateAuction) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgCreateFixedPriceAuction.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgCreateAuction.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -69,35 +68,33 @@ func (m *MsgCreateFixedPriceAuction) XXX_Marshal(b []byte, deterministic bool) (
 		return b[:n], nil
 	}
 }
-func (m *MsgCreateFixedPriceAuction) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgCreateFixedPriceAuction.Merge(m, src)
+func (m *MsgCreateAuction) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCreateAuction.Merge(m, src)
 }
-func (m *MsgCreateFixedPriceAuction) XXX_Size() int {
+func (m *MsgCreateAuction) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgCreateFixedPriceAuction) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgCreateFixedPriceAuction.DiscardUnknown(m)
+func (m *MsgCreateAuction) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCreateAuction.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgCreateFixedPriceAuction proto.InternalMessageInfo
+var xxx_messageInfo_MsgCreateAuction proto.InternalMessageInfo
 
-// MsgCreateFixedPriceAuctionResponse defines the
-// Msg/MsgCreateFixedPriceAuctionResponse response type.
-type MsgCreateFixedPriceAuctionResponse struct {
+type MsgCreateAuctionResponse struct {
 }
 
-func (m *MsgCreateFixedPriceAuctionResponse) Reset()         { *m = MsgCreateFixedPriceAuctionResponse{} }
-func (m *MsgCreateFixedPriceAuctionResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgCreateFixedPriceAuctionResponse) ProtoMessage()    {}
-func (*MsgCreateFixedPriceAuctionResponse) Descriptor() ([]byte, []int) {
+func (m *MsgCreateAuctionResponse) Reset()         { *m = MsgCreateAuctionResponse{} }
+func (m *MsgCreateAuctionResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgCreateAuctionResponse) ProtoMessage()    {}
+func (*MsgCreateAuctionResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_5715cbe414447688, []int{1}
 }
-func (m *MsgCreateFixedPriceAuctionResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgCreateAuctionResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgCreateFixedPriceAuctionResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgCreateAuctionResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgCreateFixedPriceAuctionResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgCreateAuctionResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -107,57 +104,59 @@ func (m *MsgCreateFixedPriceAuctionResponse) XXX_Marshal(b []byte, deterministic
 		return b[:n], nil
 	}
 }
-func (m *MsgCreateFixedPriceAuctionResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgCreateFixedPriceAuctionResponse.Merge(m, src)
+func (m *MsgCreateAuctionResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCreateAuctionResponse.Merge(m, src)
 }
-func (m *MsgCreateFixedPriceAuctionResponse) XXX_Size() int {
+func (m *MsgCreateAuctionResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgCreateFixedPriceAuctionResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgCreateFixedPriceAuctionResponse.DiscardUnknown(m)
+func (m *MsgCreateAuctionResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCreateAuctionResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgCreateFixedPriceAuctionResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgCreateAuctionResponse proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterType((*MsgCreateFixedPriceAuction)(nil), "squad.auction.v1beta1.MsgCreateFixedPriceAuction")
-	proto.RegisterType((*MsgCreateFixedPriceAuctionResponse)(nil), "squad.auction.v1beta1.MsgCreateFixedPriceAuctionResponse")
+	proto.RegisterType((*MsgCreateAuction)(nil), "squad.auction.v1beta1.MsgCreateAuction")
+	proto.RegisterType((*MsgCreateAuctionResponse)(nil), "squad.auction.v1beta1.MsgCreateAuctionResponse")
 }
 
 func init() { proto.RegisterFile("squad/auction/v1beta1/tx.proto", fileDescriptor_5715cbe414447688) }
 
 var fileDescriptor_5715cbe414447688 = []byte{
-	// 475 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x52, 0xcf, 0x6b, 0xd4, 0x40,
-	0x14, 0xce, 0xb8, 0xb5, 0xb6, 0xb3, 0x82, 0x18, 0x14, 0xd3, 0x1c, 0x26, 0x65, 0x15, 0x2d, 0x42,
-	0x67, 0xdc, 0x7a, 0xd2, 0x8b, 0xb8, 0x5b, 0x3c, 0x08, 0x45, 0x09, 0x9e, 0xbc, 0x84, 0x49, 0xf2,
-	0x8c, 0xc1, 0x4d, 0x26, 0x66, 0x26, 0xb2, 0xfd, 0x0b, 0xf4, 0x66, 0xff, 0x04, 0xcf, 0x9e, 0xfd,
-	0x23, 0x7a, 0xec, 0x51, 0x3c, 0xb4, 0xb2, 0xfb, 0x8f, 0xc8, 0xfc, 0x48, 0x11, 0xec, 0x82, 0x3d,
-	0x25, 0x6f, 0xbe, 0xef, 0xbd, 0xef, 0x9b, 0xf7, 0x0d, 0x26, 0xf2, 0x63, 0xc7, 0x73, 0xc6, 0xbb,
-	0x4c, 0x95, 0xa2, 0x66, 0x9f, 0xc6, 0x29, 0x28, 0x3e, 0x66, 0x6a, 0x4e, 0x9b, 0x56, 0x28, 0xe1,
-	0xdf, 0x36, 0x38, 0x75, 0x38, 0x75, 0x78, 0x78, 0xab, 0x10, 0x85, 0x30, 0x0c, 0xa6, 0xff, 0x2c,
-	0x39, 0xdc, 0xca, 0x84, 0xac, 0x84, 0x4c, 0x2c, 0x60, 0x0b, 0x07, 0x11, 0x5b, 0xb1, 0x94, 0x4b,
-	0x38, 0x57, 0xc9, 0x44, 0x59, 0x3b, 0x3c, 0x2a, 0x84, 0x28, 0x66, 0xc0, 0x4c, 0x95, 0x76, 0xef,
-	0x98, 0x2a, 0x2b, 0x90, 0x8a, 0x57, 0x8d, 0x23, 0xdc, 0xbd, 0xd8, 0x68, 0x6f, 0xcc, 0x90, 0x46,
-	0x3f, 0x06, 0x38, 0x3c, 0x90, 0xc5, 0xb4, 0x05, 0xae, 0xe0, 0x45, 0x39, 0x87, 0xfc, 0x75, 0x5b,
-	0x66, 0xf0, 0xdc, 0x92, 0x7c, 0x82, 0xb1, 0xe3, 0x03, 0xb4, 0x01, 0xda, 0x46, 0x3b, 0x9b, 0xf1,
-	0x5f, 0x27, 0xfe, 0x2b, 0x3c, 0x94, 0x8a, 0xb7, 0x2a, 0x69, 0x74, 0x57, 0x70, 0x45, 0x13, 0x26,
-	0xf4, 0xf8, 0x34, 0xf2, 0x7e, 0x9d, 0x46, 0xf7, 0x8b, 0x52, 0xbd, 0xef, 0x52, 0x9a, 0x89, 0xca,
-	0x5d, 0xcd, 0x7d, 0x76, 0x65, 0xfe, 0x81, 0xa9, 0xc3, 0x06, 0x24, 0xdd, 0x87, 0x2c, 0xc6, 0x66,
-	0x84, 0xd1, 0xf5, 0x2b, 0x7c, 0x5d, 0xc2, 0x6c, 0x56, 0xd6, 0x45, 0xa2, 0xef, 0x1a, 0x0c, 0xb6,
-	0xd1, 0xce, 0x70, 0x6f, 0x8b, 0xba, 0xd5, 0xe8, 0x65, 0xf4, 0x2b, 0xa5, 0x53, 0x51, 0xd6, 0x13,
-	0xa6, 0xc5, 0xbe, 0x9f, 0x45, 0x0f, 0xfe, 0x43, 0x4c, 0x37, 0xc4, 0x43, 0x37, 0x5f, 0x17, 0xfe,
-	0x43, 0x7c, 0xb3, 0xe1, 0x87, 0xbd, 0x5a, 0x92, 0x43, 0x2d, 0xaa, 0x60, 0xcd, 0x5c, 0xf3, 0x86,
-	0x05, 0x34, 0x6d, 0x5f, 0x1f, 0xfb, 0x53, 0x6c, 0x8d, 0x26, 0x7a, 0xd1, 0xc1, 0x55, 0x63, 0x2c,
-	0xa4, 0x36, 0x05, 0xda, 0xa7, 0x40, 0xdf, 0xf4, 0x29, 0x4c, 0x36, 0xb4, 0xb3, 0xa3, 0xb3, 0x08,
-	0xc5, 0x9b, 0xa6, 0x4f, 0x23, 0xfe, 0x33, 0xbc, 0x01, 0x75, 0x6e, 0x47, 0xac, 0x5f, 0x62, 0xc4,
-	0x35, 0xa8, 0x73, 0x7d, 0xfe, 0x74, 0xed, 0xcb, 0xb7, 0xc8, 0x1b, 0xdd, 0xc3, 0xa3, 0xd5, 0xa9,
-	0xc5, 0x20, 0x1b, 0x51, 0x4b, 0xd8, 0xfb, 0x8a, 0xf0, 0xe0, 0x40, 0x16, 0xfe, 0x67, 0x84, 0xef,
-	0xac, 0x4a, 0x78, 0x4c, 0x2f, 0x7c, 0xaf, 0x74, 0xf5, 0xf8, 0xf0, 0xc9, 0xa5, 0x5b, 0x7a, 0x47,
-	0x93, 0x97, 0xc7, 0x0b, 0x82, 0x4e, 0x16, 0x04, 0xfd, 0x5e, 0x10, 0x74, 0xb4, 0x24, 0xde, 0xc9,
-	0x92, 0x78, 0x3f, 0x97, 0xc4, 0x7b, 0xfb, 0xe8, 0x9f, 0xfc, 0xb4, 0xc6, 0xee, 0x8c, 0xa7, 0x92,
-	0xd9, 0x87, 0x3c, 0x3f, 0x7f, 0xca, 0x26, 0xcd, 0x74, 0xdd, 0x2c, 0xec, 0xf1, 0x9f, 0x00, 0x00,
-	0x00, 0xff, 0xff, 0xdd, 0x1a, 0x20, 0xc4, 0x91, 0x03, 0x00, 0x00,
+	// 512 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x52, 0xbf, 0x6f, 0xd4, 0x30,
+	0x18, 0x4d, 0x28, 0x5c, 0x5b, 0x1f, 0x88, 0x12, 0x15, 0x29, 0xcd, 0xe0, 0x9c, 0x8a, 0x44, 0x2b,
+	0xa4, 0xb3, 0x69, 0x59, 0x10, 0x0b, 0x6a, 0xae, 0x13, 0x52, 0x05, 0x8a, 0x98, 0x58, 0x22, 0x27,
+	0x31, 0x21, 0xe2, 0x62, 0x87, 0xd8, 0x41, 0xbd, 0x8d, 0x91, 0xb1, 0x23, 0xe3, 0xcd, 0xcc, 0xfc,
+	0x11, 0x15, 0x53, 0x47, 0x84, 0x50, 0x8b, 0xee, 0x16, 0x46, 0xfe, 0x04, 0xe4, 0x1f, 0xa9, 0xe0,
+	0xda, 0xa1, 0x4c, 0xc9, 0xe7, 0xf7, 0xfc, 0xde, 0xe7, 0xef, 0x7d, 0x00, 0x8a, 0x77, 0x2d, 0xc9,
+	0x31, 0x69, 0x33, 0x59, 0x72, 0x86, 0xdf, 0xef, 0xa4, 0x54, 0x92, 0x1d, 0x2c, 0x0f, 0x51, 0xdd,
+	0x70, 0xc9, 0xbd, 0xbb, 0x1a, 0x47, 0x16, 0x47, 0x16, 0x0f, 0xd6, 0x0b, 0x5e, 0x70, 0xcd, 0xc0,
+	0xea, 0xcf, 0x90, 0x83, 0x8d, 0x8c, 0x8b, 0x8a, 0x8b, 0xc4, 0x00, 0xa6, 0xb0, 0x10, 0x34, 0x15,
+	0x4e, 0x89, 0xa0, 0xe7, 0x2e, 0x19, 0x2f, 0x59, 0x77, 0xb5, 0xe0, 0xbc, 0x18, 0x53, 0xac, 0xab,
+	0xb4, 0x7d, 0x8d, 0x09, 0x9b, 0x58, 0x28, 0x5c, 0x84, 0x64, 0x59, 0x51, 0x21, 0x49, 0x55, 0x5b,
+	0xc2, 0xbd, 0xcb, 0xdf, 0xd0, 0xf5, 0xac, 0x49, 0x9b, 0xbf, 0x97, 0xc0, 0xda, 0x81, 0x28, 0x46,
+	0x0d, 0x25, 0x92, 0xee, 0x19, 0xc8, 0x7b, 0x0c, 0x7a, 0x59, 0x2b, 0x24, 0xaf, 0x7c, 0x77, 0xe0,
+	0x6e, 0xf7, 0x77, 0xd7, 0x91, 0xf1, 0x42, 0x9d, 0x17, 0xda, 0x63, 0x93, 0x08, 0x7c, 0xfd, 0x32,
+	0xec, 0x8d, 0x34, 0x2f, 0xb6, 0x7c, 0x0f, 0x02, 0x60, 0xf5, 0x29, 0x6d, 0xfc, 0x6b, 0x03, 0x77,
+	0x7b, 0x35, 0xfe, 0xeb, 0xc4, 0x7b, 0x0e, 0xfa, 0x42, 0x92, 0x46, 0x26, 0x75, 0x53, 0x66, 0xd4,
+	0x5f, 0x52, 0x84, 0x08, 0x1d, 0x9f, 0x86, 0xce, 0xf7, 0xd3, 0xf0, 0x7e, 0x51, 0xca, 0x37, 0x6d,
+	0x8a, 0x32, 0x5e, 0xd9, 0x29, 0xd9, 0xcf, 0x50, 0xe4, 0x6f, 0xb1, 0x9c, 0xd4, 0x54, 0xa0, 0x7d,
+	0x9a, 0xc5, 0x40, 0x4b, 0xbc, 0x50, 0x0a, 0x5e, 0x05, 0x6e, 0x0a, 0x3a, 0x1e, 0x97, 0xac, 0x48,
+	0xd4, 0xd8, 0xfc, 0xeb, 0xba, 0xe1, 0x0d, 0x64, 0xa7, 0xac, 0xe6, 0xda, 0xa5, 0x83, 0x46, 0xbc,
+	0x64, 0x11, 0x56, 0x66, 0x9f, 0xcf, 0xc2, 0xad, 0x2b, 0x98, 0xa9, 0x0b, 0x71, 0xdf, 0xea, 0xab,
+	0xc2, 0x7b, 0x00, 0xee, 0xd4, 0x64, 0xd2, 0xb9, 0x25, 0x39, 0x65, 0xbc, 0xf2, 0x6f, 0xe8, 0x67,
+	0xde, 0x36, 0x80, 0xa2, 0xed, 0xab, 0x63, 0x6f, 0x04, 0x4c, 0xa3, 0x89, 0x0a, 0xc6, 0xef, 0xe9,
+	0xc6, 0x82, 0x0b, 0x93, 0x7c, 0xd9, 0xa5, 0x16, 0xad, 0xa8, 0xce, 0x8e, 0xce, 0x42, 0x37, 0x5e,
+	0xd5, 0xf7, 0x14, 0xe2, 0x3d, 0x05, 0x2b, 0x94, 0xe5, 0x46, 0x62, 0xf9, 0x3f, 0x24, 0x96, 0x29,
+	0xcb, 0xd5, 0xf9, 0x93, 0xb5, 0x8f, 0xd3, 0xd0, 0xf9, 0x34, 0x0d, 0x9d, 0x5f, 0xd3, 0xd0, 0xf9,
+	0xf0, 0x63, 0xe0, 0x6c, 0x06, 0xc0, 0x5f, 0x4c, 0x3c, 0xa6, 0xa2, 0xe6, 0x4c, 0xd0, 0xdd, 0x1a,
+	0x2c, 0x1d, 0x88, 0xc2, 0x2b, 0xc1, 0xad, 0x7f, 0x37, 0x62, 0x0b, 0x5d, 0xba, 0xf0, 0x68, 0x51,
+	0x28, 0xc0, 0x57, 0x24, 0x76, 0x8e, 0xd1, 0xb3, 0xe3, 0x19, 0x74, 0x4f, 0x66, 0xd0, 0xfd, 0x39,
+	0x83, 0xee, 0xd1, 0x1c, 0x3a, 0x27, 0x73, 0xe8, 0x7c, 0x9b, 0x43, 0xe7, 0xd5, 0xc3, 0x0b, 0x09,
+	0x29, 0xe5, 0xe1, 0x98, 0xa4, 0x02, 0x9b, 0xd5, 0x3e, 0x3c, 0x5f, 0x6e, 0x9d, 0x57, 0xda, 0xd3,
+	0x23, 0x79, 0xf4, 0x27, 0x00, 0x00, 0xff, 0xff, 0xc8, 0xd0, 0x11, 0xfa, 0xbe, 0x03, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -172,8 +171,7 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
-	// Submit a create fixed price auction message.
-	CreateFixedPriceAuction(ctx context.Context, in *MsgCreateFixedPriceAuction, opts ...grpc.CallOption) (*MsgCreateFixedPriceAuctionResponse, error)
+	CreateAuction(ctx context.Context, in *MsgCreateAuction, opts ...grpc.CallOption) (*MsgCreateAuctionResponse, error)
 }
 
 type msgClient struct {
@@ -184,9 +182,9 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 	return &msgClient{cc}
 }
 
-func (c *msgClient) CreateFixedPriceAuction(ctx context.Context, in *MsgCreateFixedPriceAuction, opts ...grpc.CallOption) (*MsgCreateFixedPriceAuctionResponse, error) {
-	out := new(MsgCreateFixedPriceAuctionResponse)
-	err := c.cc.Invoke(ctx, "/squad.auction.v1beta1.Msg/CreateFixedPriceAuction", in, out, opts...)
+func (c *msgClient) CreateAuction(ctx context.Context, in *MsgCreateAuction, opts ...grpc.CallOption) (*MsgCreateAuctionResponse, error) {
+	out := new(MsgCreateAuctionResponse)
+	err := c.cc.Invoke(ctx, "/squad.auction.v1beta1.Msg/CreateAuction", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -195,36 +193,35 @@ func (c *msgClient) CreateFixedPriceAuction(ctx context.Context, in *MsgCreateFi
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
-	// Submit a create fixed price auction message.
-	CreateFixedPriceAuction(context.Context, *MsgCreateFixedPriceAuction) (*MsgCreateFixedPriceAuctionResponse, error)
+	CreateAuction(context.Context, *MsgCreateAuction) (*MsgCreateAuctionResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
 type UnimplementedMsgServer struct {
 }
 
-func (*UnimplementedMsgServer) CreateFixedPriceAuction(ctx context.Context, req *MsgCreateFixedPriceAuction) (*MsgCreateFixedPriceAuctionResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateFixedPriceAuction not implemented")
+func (*UnimplementedMsgServer) CreateAuction(ctx context.Context, req *MsgCreateAuction) (*MsgCreateAuctionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateAuction not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
 	s.RegisterService(&_Msg_serviceDesc, srv)
 }
 
-func _Msg_CreateFixedPriceAuction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgCreateFixedPriceAuction)
+func _Msg_CreateAuction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgCreateAuction)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).CreateFixedPriceAuction(ctx, in)
+		return srv.(MsgServer).CreateAuction(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/squad.auction.v1beta1.Msg/CreateFixedPriceAuction",
+		FullMethod: "/squad.auction.v1beta1.Msg/CreateAuction",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).CreateFixedPriceAuction(ctx, req.(*MsgCreateFixedPriceAuction))
+		return srv.(MsgServer).CreateAuction(ctx, req.(*MsgCreateAuction))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -234,15 +231,15 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateFixedPriceAuction",
-			Handler:    _Msg_CreateFixedPriceAuction_Handler,
+			MethodName: "CreateAuction",
+			Handler:    _Msg_CreateAuction_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "squad/auction/v1beta1/tx.proto",
 }
 
-func (m *MsgCreateFixedPriceAuction) Marshal() (dAtA []byte, err error) {
+func (m *MsgCreateAuction) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -252,12 +249,12 @@ func (m *MsgCreateFixedPriceAuction) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgCreateFixedPriceAuction) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgCreateAuction) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgCreateFixedPriceAuction) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgCreateAuction) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -269,7 +266,7 @@ func (m *MsgCreateFixedPriceAuction) MarshalToSizedBuffer(dAtA []byte) (int, err
 	i -= n1
 	i = encodeVarintTx(dAtA, i, uint64(n1))
 	i--
-	dAtA[i] = 0x32
+	dAtA[i] = 0x3a
 	n2, err2 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.StartTime, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.StartTime):])
 	if err2 != nil {
 		return 0, err2
@@ -277,13 +274,13 @@ func (m *MsgCreateFixedPriceAuction) MarshalToSizedBuffer(dAtA []byte) (int, err
 	i -= n2
 	i = encodeVarintTx(dAtA, i, uint64(n2))
 	i--
-	dAtA[i] = 0x2a
+	dAtA[i] = 0x32
 	if len(m.PayingCoinDenom) > 0 {
 		i -= len(m.PayingCoinDenom)
 		copy(dAtA[i:], m.PayingCoinDenom)
 		i = encodeVarintTx(dAtA, i, uint64(len(m.PayingCoinDenom)))
 		i--
-		dAtA[i] = 0x22
+		dAtA[i] = 0x2a
 	}
 	{
 		size, err := m.SellingCoin.MarshalToSizedBuffer(dAtA[:i])
@@ -294,7 +291,7 @@ func (m *MsgCreateFixedPriceAuction) MarshalToSizedBuffer(dAtA []byte) (int, err
 		i = encodeVarintTx(dAtA, i, uint64(size))
 	}
 	i--
-	dAtA[i] = 0x1a
+	dAtA[i] = 0x22
 	{
 		size := m.StartPrice.Size()
 		i -= size
@@ -304,18 +301,30 @@ func (m *MsgCreateFixedPriceAuction) MarshalToSizedBuffer(dAtA []byte) (int, err
 		i = encodeVarintTx(dAtA, i, uint64(size))
 	}
 	i--
-	dAtA[i] = 0x12
+	dAtA[i] = 0x1a
 	if len(m.Auctioneer) > 0 {
 		i -= len(m.Auctioneer)
 		copy(dAtA[i:], m.Auctioneer)
 		i = encodeVarintTx(dAtA, i, uint64(len(m.Auctioneer)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Custom != nil {
+		{
+			size, err := m.Custom.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTx(dAtA, i, uint64(size))
+		}
 		i--
 		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgCreateFixedPriceAuctionResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgCreateAuctionResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -325,12 +334,12 @@ func (m *MsgCreateFixedPriceAuctionResponse) Marshal() (dAtA []byte, err error) 
 	return dAtA[:n], nil
 }
 
-func (m *MsgCreateFixedPriceAuctionResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgCreateAuctionResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgCreateFixedPriceAuctionResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgCreateAuctionResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -349,12 +358,16 @@ func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *MsgCreateFixedPriceAuction) Size() (n int) {
+func (m *MsgCreateAuction) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
+	if m.Custom != nil {
+		l = m.Custom.Size()
+		n += 1 + l + sovTx(uint64(l))
+	}
 	l = len(m.Auctioneer)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
@@ -374,7 +387,7 @@ func (m *MsgCreateFixedPriceAuction) Size() (n int) {
 	return n
 }
 
-func (m *MsgCreateFixedPriceAuctionResponse) Size() (n int) {
+func (m *MsgCreateAuctionResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -389,7 +402,7 @@ func sovTx(x uint64) (n int) {
 func sozTx(x uint64) (n int) {
 	return sovTx(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *MsgCreateFixedPriceAuction) Unmarshal(dAtA []byte) error {
+func (m *MsgCreateAuction) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -412,13 +425,49 @@ func (m *MsgCreateFixedPriceAuction) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgCreateFixedPriceAuction: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgCreateAuction: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgCreateFixedPriceAuction: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgCreateAuction: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Custom", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Custom == nil {
+				m.Custom = &types.Any{}
+			}
+			if err := m.Custom.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Auctioneer", wireType)
 			}
@@ -450,7 +499,7 @@ func (m *MsgCreateFixedPriceAuction) Unmarshal(dAtA []byte) error {
 			}
 			m.Auctioneer = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 2:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field StartPrice", wireType)
 			}
@@ -484,7 +533,7 @@ func (m *MsgCreateFixedPriceAuction) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 3:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field SellingCoin", wireType)
 			}
@@ -517,7 +566,7 @@ func (m *MsgCreateFixedPriceAuction) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 4:
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field PayingCoinDenom", wireType)
 			}
@@ -549,7 +598,7 @@ func (m *MsgCreateFixedPriceAuction) Unmarshal(dAtA []byte) error {
 			}
 			m.PayingCoinDenom = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 5:
+		case 6:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field StartTime", wireType)
 			}
@@ -582,7 +631,7 @@ func (m *MsgCreateFixedPriceAuction) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 6:
+		case 7:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field EndTime", wireType)
 			}
@@ -636,7 +685,7 @@ func (m *MsgCreateFixedPriceAuction) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgCreateFixedPriceAuctionResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgCreateAuctionResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -659,10 +708,10 @@ func (m *MsgCreateFixedPriceAuctionResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgCreateFixedPriceAuctionResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgCreateAuctionResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgCreateFixedPriceAuctionResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgCreateAuctionResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
