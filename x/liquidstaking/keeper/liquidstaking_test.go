@@ -7,9 +7,9 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	utils "github.com/cosmosquad-labs/squad/types"
-	"github.com/cosmosquad-labs/squad/x/liquidstaking/types"
-	minttypes "github.com/cosmosquad-labs/squad/x/mint/types"
+	utils "github.com/cosmosquad-labs/squad/v2/types"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidstaking/types"
+	minttypes "github.com/cosmosquad-labs/squad/v2/x/mint/types"
 )
 
 // tests LiquidStake, LiquidUnstake

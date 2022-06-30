@@ -3,9 +3,9 @@ package types_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	utils "github.com/cosmosquad-labs/squad/types"
-	"github.com/cosmosquad-labs/squad/x/liquidity/amm"
-	"github.com/cosmosquad-labs/squad/x/liquidity/types"
+	utils "github.com/cosmosquad-labs/squad/v2/types"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidity/amm"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidity/types"
 )
 
 func ExampleMakeOrderBookResponse() {

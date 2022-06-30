@@ -18,10 +18,10 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmosquad-labs/squad/x/liquidity/client/cli"
-	"github.com/cosmosquad-labs/squad/x/liquidity/keeper"
-	"github.com/cosmosquad-labs/squad/x/liquidity/simulation"
-	"github.com/cosmosquad-labs/squad/x/liquidity/types"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidity/client/cli"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidity/keeper"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidity/simulation"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidity/types"
 )
 
 var (

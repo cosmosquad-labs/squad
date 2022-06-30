@@ -12,11 +12,11 @@ import (
 	abcitypes "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	chain "github.com/cosmosquad-labs/squad/app"
-	utils "github.com/cosmosquad-labs/squad/types"
-	"github.com/cosmosquad-labs/squad/x/mint"
-	"github.com/cosmosquad-labs/squad/x/mint/keeper"
-	"github.com/cosmosquad-labs/squad/x/mint/types"
+	chain "github.com/cosmosquad-labs/squad/v2/app"
+	utils "github.com/cosmosquad-labs/squad/v2/types"
+	"github.com/cosmosquad-labs/squad/v2/x/mint"
+	"github.com/cosmosquad-labs/squad/v2/x/mint/keeper"
+	"github.com/cosmosquad-labs/squad/v2/x/mint/types"
 )
 
 var (

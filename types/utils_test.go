@@ -9,7 +9,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmosquad-labs/squad/types"
+	"github.com/cosmosquad-labs/squad/v2/types"
 )
 
 func TestGetShareValue(t *testing.T) {

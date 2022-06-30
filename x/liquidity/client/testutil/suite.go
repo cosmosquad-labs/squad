@@ -18,11 +18,11 @@ import (
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	dbm "github.com/tendermint/tm-db"
 
-	chain "github.com/cosmosquad-labs/squad/app"
-	squadparams "github.com/cosmosquad-labs/squad/app/params"
-	utils "github.com/cosmosquad-labs/squad/types"
-	"github.com/cosmosquad-labs/squad/x/liquidity/client/cli"
-	"github.com/cosmosquad-labs/squad/x/liquidity/types"
+	chain "github.com/cosmosquad-labs/squad/v2/app"
+	squadparams "github.com/cosmosquad-labs/squad/v2/app/params"
+	utils "github.com/cosmosquad-labs/squad/v2/types"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidity/client/cli"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidity/types"
 )
 
 type IntegrationTestSuite struct {

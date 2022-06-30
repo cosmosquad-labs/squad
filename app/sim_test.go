@@ -36,11 +36,11 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	claimtypes "github.com/cosmosquad-labs/squad/x/claim/types"
-	farmingtypes "github.com/cosmosquad-labs/squad/x/farming/types"
-	liquiditytypes "github.com/cosmosquad-labs/squad/x/liquidity/types"
-	liquidstakingtypes "github.com/cosmosquad-labs/squad/x/liquidstaking/types"
-	minttypes "github.com/cosmosquad-labs/squad/x/mint/types"
+	claimtypes "github.com/cosmosquad-labs/squad/v2/x/claim/types"
+	farmingtypes "github.com/cosmosquad-labs/squad/v2/x/farming/types"
+	liquiditytypes "github.com/cosmosquad-labs/squad/v2/x/liquidity/types"
+	liquidstakingtypes "github.com/cosmosquad-labs/squad/v2/x/liquidstaking/types"
+	minttypes "github.com/cosmosquad-labs/squad/v2/x/mint/types"
 )
 
 // Get flags every time the simulator is run

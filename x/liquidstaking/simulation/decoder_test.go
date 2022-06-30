@@ -9,8 +9,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/simapp"
 	"github.com/cosmos/cosmos-sdk/types/kv"
 
-	"github.com/cosmosquad-labs/squad/x/liquidstaking/simulation"
-	"github.com/cosmosquad-labs/squad/x/liquidstaking/types"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidstaking/simulation"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidstaking/types"
 )
 
 func TestDecodeLiquidStakingStore(t *testing.T) {

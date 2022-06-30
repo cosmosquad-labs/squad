@@ -21,15 +21,15 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	chain "github.com/cosmosquad-labs/squad/app"
-	utils "github.com/cosmosquad-labs/squad/types"
-	"github.com/cosmosquad-labs/squad/x/farming"
-	farmingtypes "github.com/cosmosquad-labs/squad/x/farming/types"
-	liquiditytypes "github.com/cosmosquad-labs/squad/x/liquidity/types"
-	"github.com/cosmosquad-labs/squad/x/liquidstaking"
-	"github.com/cosmosquad-labs/squad/x/liquidstaking/keeper"
-	"github.com/cosmosquad-labs/squad/x/liquidstaking/types"
-	"github.com/cosmosquad-labs/squad/x/mint"
+	chain "github.com/cosmosquad-labs/squad/v2/app"
+	utils "github.com/cosmosquad-labs/squad/v2/types"
+	"github.com/cosmosquad-labs/squad/v2/x/farming"
+	farmingtypes "github.com/cosmosquad-labs/squad/v2/x/farming/types"
+	liquiditytypes "github.com/cosmosquad-labs/squad/v2/x/liquidity/types"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidstaking"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidstaking/keeper"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidstaking/types"
+	"github.com/cosmosquad-labs/squad/v2/x/mint"
 )
 
 var (

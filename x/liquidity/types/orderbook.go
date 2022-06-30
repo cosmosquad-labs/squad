@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmosquad-labs/squad/x/liquidity/amm"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidity/amm"
 )
 
 func OrderBookBasePrice(ov amm.OrderView, tickPrec int) (sdk.Dec, bool) {

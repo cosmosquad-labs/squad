@@ -3,8 +3,8 @@ package mint
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmosquad-labs/squad/x/mint/keeper"
-	"github.com/cosmosquad-labs/squad/x/mint/types"
+	"github.com/cosmosquad-labs/squad/v2/x/mint/keeper"
+	"github.com/cosmosquad-labs/squad/v2/x/mint/types"
 )
 
 // InitGenesis new mint genesis

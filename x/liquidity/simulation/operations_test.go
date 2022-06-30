@@ -11,12 +11,12 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	chain "github.com/cosmosquad-labs/squad/app"
-	utils "github.com/cosmosquad-labs/squad/types"
-	"github.com/cosmosquad-labs/squad/x/liquidity/amm"
-	"github.com/cosmosquad-labs/squad/x/liquidity/keeper"
-	"github.com/cosmosquad-labs/squad/x/liquidity/simulation"
-	"github.com/cosmosquad-labs/squad/x/liquidity/types"
+	chain "github.com/cosmosquad-labs/squad/v2/app"
+	utils "github.com/cosmosquad-labs/squad/v2/types"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidity/amm"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidity/keeper"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidity/simulation"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidity/types"
 )
 
 type SimTestSuite struct {

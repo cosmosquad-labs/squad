@@ -19,10 +19,10 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	//"github.com/squad-network/squad/x/liquidstaking/client/rest"
-	"github.com/cosmosquad-labs/squad/x/liquidstaking/client/cli"
-	"github.com/cosmosquad-labs/squad/x/liquidstaking/keeper"
-	"github.com/cosmosquad-labs/squad/x/liquidstaking/simulation"
-	"github.com/cosmosquad-labs/squad/x/liquidstaking/types"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidstaking/client/cli"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidstaking/keeper"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidstaking/simulation"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidstaking/types"
 )
 
 var (

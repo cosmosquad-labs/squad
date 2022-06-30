@@ -6,8 +6,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmosquad-labs/squad/x/claim/keeper"
-	"github.com/cosmosquad-labs/squad/x/claim/types"
+	"github.com/cosmosquad-labs/squad/v2/x/claim/keeper"
+	"github.com/cosmosquad-labs/squad/v2/x/claim/types"
 )
 
 func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
