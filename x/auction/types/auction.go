@@ -25,7 +25,7 @@ func NewAuction(custom Custom, id uint64, auctioneer string) (Auction, error) {
 		Id:                    id,
 		Auctioneer:            auctioneer,
 		SellingReserveAddress: SellingReserveAddress(id).String(),
-		PayingReserveAddress:  SellingReserveAddress(id).String(),
+		PayingReserveAddress:  PayingReserveAddress(id).String(),
 	}
 
 	return auction, nil
