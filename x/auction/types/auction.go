@@ -2,16 +2,12 @@ package types
 
 import (
 	"fmt"
-	time "time"
 
 	"github.com/gogo/protobuf/proto"
 
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
-
-const DefaultStartingAuctionID uint64 = 1
 
 func NewAuction(custom Custom, id uint64, auctioneer string) (Auction, error) {
 	msg, ok := custom.(proto.Message)
@@ -64,117 +60,21 @@ func (a Auction) GetAuctioneer() string {
 	return addr.String()
 }
 
-// TODO: proto file must be updated to getters all false
-// func (a Auction) String() string {
-// 	out, _ := yaml.Marshal(p)
-// 	return string(out)
-// }
+var validAuctionTypes = map[string]struct{}{}
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-const (
-	AuctionTypeFixedPrice string = "FixedPrice"
-)
-
-// Implements Custom interface
-var _ Custom = &FixedPriceAuction{}
-
-func NewFixedPriceAuction(
-	auctioneer string,
-	startPrice sdk.Dec,
-	sellingCoin sdk.Coin,
-	remainingSellingCoin sdk.Coin,
-	payingCoinDenom string,
-	startTime time.Time,
-	endTime time.Time,
-	status AuctionStatus,
-) Custom {
-	return &FixedPriceAuction{
-		Auctioneer:           auctioneer,
-		StartPrice:           startPrice,
-		SellingCoin:          sellingCoin,
-		RemainingSellingCoin: remainingSellingCoin,
-		PayingCoinDenom:      payingCoinDenom,
-		StartTime:            startTime,
-		EndTime:              endTime,
-		Status:               status,
+func RegisterAuctionType(ty string) {
+	if _, ok := validAuctionTypes[ty]; ok {
+		panic(fmt.Sprintf("already registered auction type: %s", ty))
 	}
-}
 
-func (a *FixedPriceAuction) GetAuctioneer() string {
-	return a.Auctioneer
-}
-
-func (a *FixedPriceAuction) GetStartPrice() sdk.Dec {
-	return a.StartPrice
-}
-
-func (a *FixedPriceAuction) GetSellingCoins() sdk.Coins {
-	return sdk.NewCoins(a.SellingCoin)
-}
-
-func (a *FixedPriceAuction) GetPayingCoinDenom() string {
-	return a.PayingCoinDenom
-}
-
-func (a *FixedPriceAuction) GetStartTime() time.Time {
-	return a.StartTime
-}
-
-func (a *FixedPriceAuction) GetEndTime() time.Time {
-	return a.EndTime
-}
-
-func (a *FixedPriceAuction) GetStatus() AuctionStatus {
-	return a.Status
-}
-
-func (a *FixedPriceAuction) AuctionRoute() string { return RouterKey }
-
-func (a *FixedPriceAuction) AuctionType() string { return AuctionTypeFixedPrice }
-
-func (a *FixedPriceAuction) ValidateBasic() error { return ValidateAbstract(a) }
-
-// CustomFromAuctionType returns a Custom object based on the auction type.
-func CustomFromAuctionType(
-	auctioneer sdk.AccAddress,
-	startPrice sdk.Dec,
-	sellingCoins sdk.Coins,
-	payingCoinDenom string,
-	startTime time.Time,
-	endTime time.Time,
-	status AuctionStatus,
-	ty string,
-) Custom {
-	switch ty {
-	case AuctionTypeFixedPrice:
-		remainingSellingCoin := sellingCoins[0]
-		return NewFixedPriceAuction(
-			auctioneer.String(),
-			startPrice,
-			sellingCoins[0],
-			remainingSellingCoin,
-			payingCoinDenom,
-			startTime,
-			endTime,
-			status,
-		)
-	default:
-		return nil
-	}
+	validAuctionTypes[ty] = struct{}{}
 }
 
 // AuctionHandler implements the Handler interface for auction module-based
 // auctions (ie. FixedPriceAuction ). Since these are
 // merely signaling mechanisms at the moment and do not affect state, it
 // performs a no-op.
-func AuctionHandler(_ sdk.Context, c Custom) error {
-	switch c.AuctionType() {
-	case AuctionTypeFixedPrice:
-		// both auction types do not change state so this performs a no-op
-		return nil
-
-	default:
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized gov proposal type: %s", c.AuctionType())
-	}
+func AuctionHandler(ctx sdk.Context, c Custom) error {
+	ctx.Logger().Debug(">>> AuctionHandler...")
+	return nil
 }

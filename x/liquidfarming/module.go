@@ -79,9 +79,7 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 }
 
 // GetTxCmd returns the module's root tx command.
-func (a AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli.GetTxCmd()
-}
+func (AppModuleBasic) GetTxCmd() *cobra.Command { return nil }
 
 // GetQueryCmd returns the module's root query command.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
@@ -121,10 +119,7 @@ func (am AppModule) Name() string {
 	return am.AppModuleBasic.Name()
 }
 
-// Route returns the module's message routing key.
-func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(types.RouterKey, NewHandler(am.keeper))
-}
+func (AppModule) Route() sdk.Route { return sdk.Route{} }
 
 // QuerierRoute returns the module's query routing key.
 func (AppModule) QuerierRoute() string { return types.QuerierRoute }
@@ -141,9 +136,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 }
 
 // RegisterInvariants registers the module's invariants.
-func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
-	// TODO: not implemented yet
-}
+func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // InitGenesis performs the module's genesis initialization It returns
 // no validator updates.
@@ -175,5 +168,3 @@ func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Valid
 // ----------------------------------------------------------------------------
 // AppModuleSimulation
 // ----------------------------------------------------------------------------
-
-// TODO: not implemented yet

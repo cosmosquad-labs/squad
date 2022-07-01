@@ -23,10 +23,8 @@ const (
 // Parameter store keys.
 var (
 	KeyAuctionCreationFee = []byte("AuctionCreationFee")
-	KeyPlaceBidFee        = []byte("PlaceBidFee")
 
 	DefaultAuctionCreationFee = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100_000_000)))
-	DefaultPlaceBidFee        = sdk.Coins{}
 )
 
 var _ paramstypes.ParamSet = (*Params)(nil)
@@ -40,7 +38,6 @@ func ParamKeyTable() paramstypes.KeyTable {
 func DefaultParams() Params {
 	return Params{
 		AuctionCreationFee: DefaultAuctionCreationFee,
-		PlaceBidFee:        DefaultPlaceBidFee,
 	}
 }
 
@@ -48,7 +45,6 @@ func DefaultParams() Params {
 func (p *Params) ParamSetPairs() paramstypes.ParamSetPairs {
 	return paramstypes.ParamSetPairs{
 		paramstypes.NewParamSetPair(KeyAuctionCreationFee, &p.AuctionCreationFee, validateAuctionCreationFee),
-		paramstypes.NewParamSetPair(KeyPlaceBidFee, &p.PlaceBidFee, validatePlaceBidFee),
 	}
 }
 
@@ -65,7 +61,6 @@ func (p Params) Validate() error {
 		validator func(interface{}) error
 	}{
 		{p.AuctionCreationFee, validateAuctionCreationFee},
-		{p.PlaceBidFee, validatePlaceBidFee},
 	} {
 		if err := v.validator(v.value); err != nil {
 			return err
@@ -75,19 +70,6 @@ func (p Params) Validate() error {
 }
 
 func validateAuctionCreationFee(i interface{}) error {
-	v, ok := i.(sdk.Coins)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if err := v.Validate(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func validatePlaceBidFee(i interface{}) error {
 	v, ok := i.(sdk.Coins)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)

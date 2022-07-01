@@ -51,6 +51,7 @@ func NewKeeper(
 		paramSpace:    paramSpace,
 		accountKeeper: accountKeeper,
 		bankKeeper:    bankKeeper,
+		router:        rtr,
 	}
 }
 

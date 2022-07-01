@@ -36,7 +36,7 @@ var (
 // AppModuleBasic implements the AppModuleBasic interface for the module.
 type AppModuleBasic struct {
 	cdc             codec.BinaryCodec
-	auctionHandlers []auctionclient.AuctionHandler // auction handlers which live in governance cli and rest
+	auctionHandlers []auctionclient.AuctionHandler // auction handlers which live in auction cli and rest
 }
 
 func NewAppModuleBasic(auctionHandlers ...auctionclient.AuctionHandler) AppModuleBasic {

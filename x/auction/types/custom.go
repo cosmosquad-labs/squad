@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,6 +14,7 @@ type Custom interface {
 	GetPayingCoinDenom() string
 	GetStartTime() time.Time
 	GetEndTime() time.Time
+
 	AuctionRoute() string
 	AuctionType() string
 	ValidateBasic() error
@@ -21,6 +23,6 @@ type Custom interface {
 type Handler func(ctx sdk.Context, custom Custom) error
 
 func ValidateAbstract(c Custom) error {
-	// TODO: not implemented yet
+	fmt.Println(">>> ValidateAbstract")
 	return nil
 }

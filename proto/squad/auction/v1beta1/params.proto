@@ -22,13 +22,4 @@ message Params {
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
     (gogoproto.nullable) = false
   ];
-
-  // place_bid_fee specifies the fee for placing a bid for an auction.
-  // this prevents from spamming attack and it is collected in the community
-  // pool
-  repeated cosmos.base.v1beta1.Coin place_bid_fee = 2 [
-    (gogoproto.moretags) = "yaml:\"place_bid_fee\"",
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
-    (gogoproto.nullable) = false
-  ];
 }

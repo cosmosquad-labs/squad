@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -29,7 +30,7 @@ func (m msgServer) CreateAuction(goCtx context.Context, msg *types.MsgCreateAuct
 	}
 
 	// Test
-	ctx.Logger().Info("CreateAuction...", "auction", auction)
+	fmt.Println(">>> CreateAuction: ", auction)
 
 	return &types.MsgCreateAuctionResponse{}, nil
 }

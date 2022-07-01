@@ -6,21 +6,30 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	auctiontypes "github.com/cosmosquad-labs/squad/x/auction/types"
 	"github.com/cosmosquad-labs/squad/x/liquidfarming/keeper"
 	"github.com/cosmosquad-labs/squad/x/liquidfarming/types"
 )
 
-// NewHandler returns a new msg handler.
-func NewHandler(k keeper.Keeper) sdk.Handler {
-	// msgServer := keeper.NewMsgServerImpl(k)
+func NewCreateFixedPriceAuctionHandler(k keeper.Keeper) auctiontypes.Handler {
+	return func(ctx sdk.Context, custom auctiontypes.Custom) error {
+		fmt.Println(">>> NewCreateFixedPriceAuctionHandler...", custom.AuctionType())
 
-	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
-		ctx = ctx.WithEventManager(sdk.NewEventManager())
+		switch c := custom.(type) {
+		case *types.FixedPriceAuction:
+			return handleCreateFixedPriceAuction(ctx, k, c)
 
-		switch msg := msg.(type) {
-		// TODO: not implemented yet
 		default:
-			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg))
+			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized auction custom type: %T", c)
 		}
 	}
+}
+
+func handleCreateFixedPriceAuction(ctx sdk.Context, k keeper.Keeper, a *types.FixedPriceAuction) error {
+	fmt.Println(">>> Handling CreateFixedPriceAuction...", a)
+
+	// TODO: not implemented yet
+	// Store
+
+	return nil
 }

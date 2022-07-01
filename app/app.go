@@ -108,6 +108,10 @@ import (
 	farmingclient "github.com/cosmosquad-labs/squad/x/farming/client"
 	farmingkeeper "github.com/cosmosquad-labs/squad/x/farming/keeper"
 	farmingtypes "github.com/cosmosquad-labs/squad/x/farming/types"
+	"github.com/cosmosquad-labs/squad/x/liquidfarming"
+	liquidfarmingclient "github.com/cosmosquad-labs/squad/x/liquidfarming/client"
+	liquidfarmingkeeper "github.com/cosmosquad-labs/squad/x/liquidfarming/keeper"
+	liquidfarmingtypes "github.com/cosmosquad-labs/squad/x/liquidfarming/types"
 	"github.com/cosmosquad-labs/squad/x/liquidity"
 	liquiditykeeper "github.com/cosmosquad-labs/squad/x/liquidity/keeper"
 	liquiditytypes "github.com/cosmosquad-labs/squad/x/liquidity/types"
@@ -161,7 +165,10 @@ var (
 		liquidity.AppModuleBasic{},
 		liquidstaking.AppModuleBasic{},
 		claim.AppModuleBasic{},
-		auction.NewAppModuleBasic(),
+		auction.NewAppModuleBasic(
+			liquidfarmingclient.AuctionHandler,
+		),
+		liquidfarming.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -179,6 +186,7 @@ var (
 		claimtypes.ModuleName:          nil,
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		auctiontypes.ModuleName:        nil,
+		liquidfarmingtypes.ModuleName:  nil,
 	}
 )
 
@@ -227,6 +235,7 @@ type App struct {
 	LiquidStakingKeeper liquidstakingkeeper.Keeper
 	ClaimKeeper         claimkeeper.Keeper
 	AuctionKeeper       auctionkeeper.Keeper
+	LiquidFarmingKeeper liquidfarmingkeeper.Keeper
 
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
@@ -295,6 +304,7 @@ func NewApp(
 		liquidstakingtypes.StoreKey,
 		claimtypes.StoreKey,
 		auctiontypes.StoreKey,
+		liquidfarmingtypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -434,6 +444,11 @@ func NewApp(
 		app.AccountKeeper,
 		app.BankKeeper,
 	)
+	app.LiquidFarmingKeeper = liquidfarmingkeeper.NewKeeper(
+		appCodec,
+		keys[liquidfarmingtypes.StoreKey],
+		app.GetSubspace(liquidfarmingtypes.ModuleName),
+	)
 
 	// register the proposal types
 	govRouter := govtypes.NewRouter()
@@ -458,7 +473,8 @@ func NewApp(
 	// register the auction types
 	auctionRouter := auctiontypes.NewRouter()
 	auctionRouter.
-		AddRoute(auctiontypes.RouterKey, auctiontypes.AuctionHandler)
+		AddRoute(auctiontypes.RouterKey, auctiontypes.AuctionHandler).
+		AddRoute(liquidfarmingtypes.RouterKey, liquidfarming.NewCreateFixedPriceAuctionHandler(app.LiquidFarmingKeeper))
 
 	app.AuctionKeeper = auctionkeeper.NewKeeper(
 		appCodec,
@@ -558,6 +574,7 @@ func NewApp(
 		liquidstaking.NewAppModule(appCodec, app.LiquidStakingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GovKeeper),
 		claim.NewAppModule(appCodec, app.ClaimKeeper, app.AccountKeeper, app.BankKeeper, app.DistrKeeper, app.GovKeeper, app.LiquidityKeeper, app.LiquidStakingKeeper),
 		auction.NewAppModule(appCodec, app.AuctionKeeper, app.AccountKeeper, app.BankKeeper),
+		liquidfarming.NewAppModule(appCodec, app.LiquidFarmingKeeper, app.AccountKeeper, app.BankKeeper),
 		app.transferModule,
 	)
 
@@ -592,6 +609,7 @@ func NewApp(
 		farmingtypes.ModuleName,
 		claimtypes.ModuleName,
 		auctiontypes.ModuleName,
+		liquidfarmingtypes.ModuleName,
 	)
 	app.mm.SetOrderEndBlockers(
 		// EndBlocker of crisis module called AssertInvariants
@@ -621,6 +639,7 @@ func NewApp(
 		claimtypes.ModuleName,
 		budgettypes.ModuleName,
 		auctiontypes.ModuleName,
+		liquidfarmingtypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -649,6 +668,7 @@ func NewApp(
 		liquidstakingtypes.ModuleName,
 		claimtypes.ModuleName,
 		auctiontypes.ModuleName,
+		liquidfarmingtypes.ModuleName,
 
 		// empty logic modules
 		paramstypes.ModuleName,
@@ -892,6 +912,8 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(farmingtypes.ModuleName)
 	paramsKeeper.Subspace(liquiditytypes.ModuleName)
 	paramsKeeper.Subspace(liquidstakingtypes.ModuleName)
+	paramsKeeper.Subspace(auctiontypes.ModuleName).WithKeyTable(auctiontypes.ParamKeyTable())
+	paramsKeeper.Subspace(liquidfarmingtypes.ModuleName)
 
 	return paramsKeeper
 }
