@@ -81,8 +81,6 @@ Where auction.json contains:
 				return fmt.Errorf("invalid message: %w", err)
 			}
 
-			fmt.Println(">>> GenerateOrBroadcastTxCLI....")
-
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
