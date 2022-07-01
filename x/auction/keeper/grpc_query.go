@@ -27,4 +27,15 @@ func (k Keeper) Params(c context.Context, req *types.QueryParamsRequest) (*types
 	return &types.QueryParamsResponse{Params: k.GetParams(ctx)}, nil
 }
 
-// TODO: not implemented yet
+func (k Keeper) Auctions(c context.Context, req *types.QueryAuctionsRequest) (*types.QueryAuctionsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+
+	// TEST
+	auctions := k.GetAuctions(ctx)
+
+	return &types.QueryAuctionsResponse{Auctions: auctions, Pagination: nil}, nil
+}

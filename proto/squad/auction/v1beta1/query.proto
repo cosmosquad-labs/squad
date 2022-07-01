@@ -6,24 +6,36 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
 import "google/protobuf/timestamp.proto";
 import "squad/auction/v1beta1/params.proto";
+import "squad/auction/v1beta1/auction.proto";
 
 option go_package = "github.com/cosmosquad-labs/squad/x/auction/types";
 
 // Query defines the gRPC querier service.
 service Query {
-    // Params returns parameters of the fundraising module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/cosmos/fundraising/v1beta1/params";
+    option (google.api.http).get = "/squad/auction/v1beta1/params";
+  }
+
+  rpc Auctions(QueryAuctionsRequest) returns (QueryAuctionsResponse) {
+    option (google.api.http).get = "/squad/auction/v1beta1/auctions";
   }
 }
 
-// QueryParamsRequest is request type for the Query/Params RPC method.
 message QueryParamsRequest {}
 
-// QueryParamsResponse is response type for the Query/Params RPC method.
 message QueryParamsResponse {
-  // params holds all the parameters of this module.
   Params params = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryAuctionsRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAuctionsResponse {
+  repeated Auction auctions = 1 [ (gogoproto.nullable) = false ];
+
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
