@@ -6,8 +6,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 
-	chain "github.com/cosmosquad-labs/squad/app"
-	"github.com/cosmosquad-labs/squad/cmd/squad/cmd"
+	chain "github.com/cosmosquad-labs/squad/v2/app"
+	"github.com/cosmosquad-labs/squad/v2/cmd/squad/cmd"
 )
 
 func main() {

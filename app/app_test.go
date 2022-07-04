@@ -35,11 +35,11 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/cosmosquad-labs/squad/x/claim"
-	"github.com/cosmosquad-labs/squad/x/farming"
-	"github.com/cosmosquad-labs/squad/x/liquidity"
-	"github.com/cosmosquad-labs/squad/x/liquidstaking"
-	"github.com/cosmosquad-labs/squad/x/mint"
+	"github.com/cosmosquad-labs/squad/v2/x/claim"
+	"github.com/cosmosquad-labs/squad/v2/x/farming"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidity"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidstaking"
+	"github.com/cosmosquad-labs/squad/v2/x/mint"
 )
 
 func TestSimAppExportAndBlockedAddrs(t *testing.T) {

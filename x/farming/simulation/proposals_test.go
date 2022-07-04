@@ -8,9 +8,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmosquad-labs/squad/app/params"
-	"github.com/cosmosquad-labs/squad/x/farming/simulation"
-	"github.com/cosmosquad-labs/squad/x/farming/types"
+	"github.com/cosmosquad-labs/squad/v2/app/params"
+	"github.com/cosmosquad-labs/squad/v2/x/farming/simulation"
+	"github.com/cosmosquad-labs/squad/v2/x/farming/types"
 )
 
 func TestProposalContents(t *testing.T) {

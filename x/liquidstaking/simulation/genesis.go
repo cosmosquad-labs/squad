@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/cosmosquad-labs/squad/x/liquidstaking/types"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidstaking/types"
 )
 
 // DONTCOVER

@@ -8,10 +8,10 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
 
-	chain "github.com/cosmosquad-labs/squad/app"
-	utils "github.com/cosmosquad-labs/squad/types"
-	"github.com/cosmosquad-labs/squad/x/claim/simulation"
-	"github.com/cosmosquad-labs/squad/x/claim/types"
+	chain "github.com/cosmosquad-labs/squad/v2/app"
+	utils "github.com/cosmosquad-labs/squad/v2/types"
+	"github.com/cosmosquad-labs/squad/v2/x/claim/simulation"
+	"github.com/cosmosquad-labs/squad/v2/x/claim/types"
 )
 
 func TestDecodeClaimStore(t *testing.T) {

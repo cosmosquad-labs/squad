@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-	"github.com/cosmosquad-labs/squad/x/liquidity/types"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidity/types"
 )
 
 func (s *KeeperTestSuite) TestGetBatchSize() {

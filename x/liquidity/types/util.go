@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/cosmosquad-labs/squad/x/liquidity/amm"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidity/amm"
 )
 
 type sendCoinsTxKey struct {

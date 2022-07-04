@@ -3,7 +3,7 @@ package cli
 import (
 	"strings"
 
-	"github.com/cosmosquad-labs/squad/x/claim/types"
+	"github.com/cosmosquad-labs/squad/v2/x/claim/types"
 )
 
 // NormalizeConditionType normalizes specified condition type.

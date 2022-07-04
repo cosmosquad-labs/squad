@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmosquad-labs/squad/x/claim/types"
+	"github.com/cosmosquad-labs/squad/v2/x/claim/types"
 )
 
 type msgServer struct {

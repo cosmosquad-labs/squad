@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	utils "github.com/cosmosquad-labs/squad/types"
+	utils "github.com/cosmosquad-labs/squad/v2/types"
 )
 
 // NewGenesisState creates a new GenesisState object

@@ -1,4 +1,4 @@
-module github.com/cosmosquad-labs/squad
+module github.com/cosmosquad-labs/squad/v2
 
 go 1.17
 

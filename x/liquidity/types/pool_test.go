@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmosquad-labs/squad/x/liquidity/types"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidity/types"
 )
 
 func TestPoolReserveAddress(t *testing.T) {

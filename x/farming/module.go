@@ -19,10 +19,10 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	//"github.com/squad-network/squad/x/farming/client/rest"
-	"github.com/cosmosquad-labs/squad/x/farming/client/cli"
-	"github.com/cosmosquad-labs/squad/x/farming/keeper"
-	"github.com/cosmosquad-labs/squad/x/farming/simulation"
-	"github.com/cosmosquad-labs/squad/x/farming/types"
+	"github.com/cosmosquad-labs/squad/v2/x/farming/client/cli"
+	"github.com/cosmosquad-labs/squad/v2/x/farming/keeper"
+	"github.com/cosmosquad-labs/squad/v2/x/farming/simulation"
+	"github.com/cosmosquad-labs/squad/v2/x/farming/types"
 )
 
 var (

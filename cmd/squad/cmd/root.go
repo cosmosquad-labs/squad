@@ -32,8 +32,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
-	chain "github.com/cosmosquad-labs/squad/app"
-	farmingparams "github.com/cosmosquad-labs/squad/app/params"
+	chain "github.com/cosmosquad-labs/squad/v2/app"
+	farmingparams "github.com/cosmosquad-labs/squad/v2/app/params"
 )
 
 var (

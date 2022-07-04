@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/kv"
 
-	"github.com/cosmosquad-labs/squad/x/liquidity/types"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidity/types"
 )
 
 func NewDecodeStore(cdc codec.Codec) func(kvA, kvB kv.Pair) string {

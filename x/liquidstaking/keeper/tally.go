@@ -8,10 +8,10 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	utils "github.com/cosmosquad-labs/squad/types"
-	farmingtypes "github.com/cosmosquad-labs/squad/x/farming/types"
-	liquiditytypes "github.com/cosmosquad-labs/squad/x/liquidity/types"
-	"github.com/cosmosquad-labs/squad/x/liquidstaking/types"
+	utils "github.com/cosmosquad-labs/squad/v2/types"
+	farmingtypes "github.com/cosmosquad-labs/squad/v2/x/farming/types"
+	liquiditytypes "github.com/cosmosquad-labs/squad/v2/x/liquidity/types"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidstaking/types"
 )
 
 // GetVoterBalanceByDenom return map of balance amount of voter by denom
