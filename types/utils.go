@@ -209,3 +209,9 @@ func IsOverflow(r interface{}) bool {
 	}
 	return false
 }
+
+type MsgDeposit struct {
+	LiquidFarmId uint64
+	Depositor    string
+	DepositCoin  sdk.Coin
+}

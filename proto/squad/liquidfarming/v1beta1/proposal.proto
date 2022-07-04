@@ -1,0 +1,33 @@
+syntax = "proto3";
+package squad.liquidfarming.v1beta1;
+
+import "gogoproto/gogo.proto";
+
+option go_package                      = "github.com/cosmosquad-labs/squad/x/liquidfarming/types";
+
+// LiquidFarmProposal defines ...
+message LiquidFarmProposal {
+  option (gogoproto.goproto_getters)  = false;
+  option (gogoproto.goproto_stringer) = false;
+
+  string title = 1;
+
+  string description = 2;
+
+  repeated LiquidFarm liquidfarms = 3 [(gogoproto.nullable) = false];
+}
+
+// LiquidFarm defines ...
+message LiquidFarm {
+ option (gogoproto.goproto_stringer) = false;
+
+  uint64 id = 1;
+
+  uint64 pool_id = 2;
+
+  string pool_coin_denom = 3;
+
+  string lf_coin_denom = 4;
+
+  string reserve_address = 5;
+}

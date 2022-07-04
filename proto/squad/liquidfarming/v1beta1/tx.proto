@@ -1,16 +1,86 @@
 syntax = "proto3";
 package squad.liquidfarming.v1beta1;
 
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
 option go_package = "github.com/cosmosquad-labs/squad/x/liquidfarming/types";
 
 // Msg defines the Msg service.
 service Msg {
-//   // Create defines a method for creating a LiquidFarm
-//   rpc Create(MsgCreate) returns (MsgCreateResponse);
+  // Deposit defines a method for ...
+  rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
 
-//   // Deposit defines a method for depositing pool coin for the liquid farm
-//   rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
+  // Cancel defines a method for ...
+  rpc Cancel(MsgCancel) returns (MsgCancelResponse);
+  
+  // Withdraw defines a method for ...
+  rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
 
-//   // Withdraw defines a method for withdrawing LF coin from the liquid farm
-//   rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
+  // PlaceBid defines a method for ...
+  rpc PlaceBid(MsgPlaceBid) returns (MsgPlaceBidResponse);
 }
+
+// MsgDeposit defines a SDK message for ...
+message MsgDeposit {
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 liquidfarm_id = 1;
+
+  string depositor = 2;
+
+  cosmos.base.v1beta1.Coin deposit_coin = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"
+  ];
+}
+
+// MsgDepositResponse defines the MsgDepositResponse response type.
+message MsgDepositResponse {}
+
+
+// MsgCancel defines a SDK message for ...
+message MsgCancel {
+  option (gogoproto.goproto_getters) = false;
+
+  string depositor = 1;
+
+  uint64 deposit_id = 2;
+}
+
+// MsgCancelResponse defines the MsgCancelResponse response type.
+message MsgCancelResponse {}
+
+// MsgWithdraw defines a SDK message for ...
+message MsgWithdraw {
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 deposit_id = 1;
+
+  string withdrawer = 2;
+
+  cosmos.base.v1beta1.Coin lf_coin = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"
+  ];
+}
+
+// MsgWithdrawResponse defines the MsgWithdrawResponse response type.
+message MsgWithdrawResponse {}
+
+// MsgPlaceBid defines a SDK message for ...
+message MsgPlaceBid {
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 auction_id = 1;
+
+  string bidder = 2;
+
+  cosmos.base.v1beta1.Coin amount = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"
+  ];
+}
+
+// MsgPlaceBidResponse defines the MsgPlaceBidResponse response type.
+message MsgPlaceBidResponse {}

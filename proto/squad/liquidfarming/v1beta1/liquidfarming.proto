@@ -2,30 +2,14 @@ syntax = "proto3";
 package squad.liquidfarming.v1beta1;
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package                      = "github.com/cosmosquad-labs/squad/x/liquidfarming/types";
 option (gogoproto.goproto_getters_all) = false;
 
-// LiquidFarm defines ...
-message LiquidFarm {
-  // id specifies the id for the liquidfarm
-  uint64 id = 1;
-
-  // pool_id specifies the pool id
-  uint64 pool_id = 2;
-
-  // pool_coin_denom specifies pool coin denom
-  string pool_coin_denom = 3;
-
-  // lf_coin_denom specifies liquid farming coin denom that is synthetic version of the pool coin denom
-  string lf_coin_denom = 4;
-
-  // reserve_address specifies the bech32-encoded address that reserves pool coin for deposits
-  string reserve_address = 5;
-}
-
-// DepositRequest defines a deposit request.
+// DepositRequest defines ...
 message DepositRequest {
   // id specifies the id for the request
   uint64 id = 1;
@@ -45,25 +29,46 @@ message DepositRequest {
   RequestStatus status = 8;
 }
 
-// AuctionState defines an auction state.
-message AuctionState {
-  // liquid_farm_id specifies the liquidfarm id
-  uint64 liquid_farm_id = 1;
+// RewardsAuction defines ...
+message RewardsAuction {
+  uint64 id = 1;
 
-  // auction_id specifies the auction id from the auction module
-  uint64 auction_id = 2;
-
-  uint64 last_auction_id = 3;
+  uint64 liquid_farm_id = 2;
   
-  string last_winner = 4;
-  
-  repeated cosmos.base.v1beta1.Coin last_rewards = 5
+  repeated cosmos.base.v1beta1.Coin selling_rewards = 3
     [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
 
-  string last_winning_price = 6 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable) = false
+  string bidding_coin_denom = 4;
+
+  string selling_reserve_address = 5;
+
+  string paying_reserve_address = 6;
+  
+  google.protobuf.Timestamp start_time = 7
+      [(gogoproto.stdtime) = true, (gogoproto.nullable) = true, (gogoproto.moretags) = "yaml:\"start_time\""];
+
+  google.protobuf.Timestamp end_time = 8
+      [(gogoproto.stdtime) = true, (gogoproto.nullable) = true, (gogoproto.moretags) = "yaml:\"end_time\""];
+
+  AuctionStatus status = 9;
+}
+
+// Bid defines ...
+message Bid {
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 auction_id = 1;
+
+  string bidder = 2;
+
+  uint64 id = 3;
+
+  cosmos.base.v1beta1.Coin amount = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"
   ];
+
+  bool is_matched = 5;
 }
 
 // RequestStatus enumerates request statuses.
@@ -81,5 +86,20 @@ enum RequestStatus {
 
   // REQUEST_STATUS_CANCELED indicates the request is failed
   REQUEST_STATUS_CANCELED = 3 [(gogoproto.enumvalue_customname) = "RequestStatusCanceled"];
+}
+
+// AuctionStatus enumerates the valid status of an auction.
+enum AuctionStatus {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  // AUCTION_STATUS_UNSPECIFIED defines the default auction status
+  AUCTION_STATUS_UNSPECIFIED = 0
+      [ (gogoproto.enumvalue_customname) = "AuctionStatusNil" ];
+  // AUCTION_STATUS_STARTED defines the started auction status
+  AUCTION_STATUS_STARTED = 1
+      [ (gogoproto.enumvalue_customname) = "AuctionStatusStarted" ];
+  // AUCTION_STATUS_FINISHED defines the finished auction status
+  AUCTION_STATUS_FINISHED = 2
+      [ (gogoproto.enumvalue_customname) = "AuctionStatusFinished" ];
 }
 

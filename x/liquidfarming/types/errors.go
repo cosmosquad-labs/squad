@@ -8,6 +8,5 @@ import (
 
 // x/liquidfarming module sentinel errors
 var (
-	ErrSample = sdkerrors.Register(ModuleName, 1100, "sample error")
-	
+	ErrEmptyLiquidFarms = sdkerrors.Register(ModuleName, 4, "submitted parameter liquid farms are empty")
 )
