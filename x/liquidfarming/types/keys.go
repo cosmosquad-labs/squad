@@ -1,5 +1,10 @@
 package types
 
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/address"
+)
+
 const (
 	// ModuleName defines the module name
 	ModuleName = "liquidfarming"
@@ -17,6 +22,31 @@ const (
 	MemStoreKey = "mem_liquidfarming"
 )
 
-func KeyPrefix(p string) []byte {
-	return []byte(p)
+var (
+	LastLiquidFarmIdKey = []byte{0xe0} // key to retrieve the latest liquidfarm id
+	LastAuctionIdKey    = []byte{0xe1} // key to retrieve the latest auction id
+
+	LiquidFarmKeyPrefix = []byte{0xe4}
+
+	DepositRequestKeyPrefix      = []byte{0xe6}
+	DepositRequestIndexKeyPrefix = []byte{0xe7}
+
+	AuctionKeyPrefix = []byte{0xea}
+)
+
+func GetLiquidFarmKey(liquidfarmId uint64) []byte {
+	return append(LiquidFarmKeyPrefix, sdk.Uint64ToBigEndian(liquidfarmId)...)
+}
+
+func GetDepositRequestKey(liquidfarmId, reqId uint64) []byte {
+	return append(append(DepositRequestKeyPrefix, sdk.Uint64ToBigEndian(liquidfarmId)...), sdk.Uint64ToBigEndian(reqId)...)
+}
+
+func GetDepositRequestIndexKey(depositor sdk.AccAddress, liquidfarmId, reqId uint64) []byte {
+	return append(append(append(DepositRequestIndexKeyPrefix, address.MustLengthPrefix(depositor)...),
+		sdk.Uint64ToBigEndian(liquidfarmId)...), sdk.Uint64ToBigEndian(reqId)...)
+}
+
+func GetAuctionKey(auctionId uint64) []byte {
+	return append(AuctionKeyPrefix, sdk.Uint64ToBigEndian(auctionId)...)
 }
