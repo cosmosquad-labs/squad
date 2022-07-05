@@ -23,8 +23,8 @@ const (
 )
 
 var (
-	LastLiquidfarmIdKey = []byte{0xe0} // key to retrieve the latest liquidfarm id
-	LastAuctionIdKey    = []byte{0xe1} // key to retrieve the latest auction id
+	LastLiquidfarmIdKey     = []byte{0xe0} // key to retrieve the latest liquidfarm id
+	LastRewardsAuctionIdKey = []byte{0xe1} // key to retrieve the latest auction id
 
 	LiquidFarmKeyPrefix = []byte{0xe4}
 
@@ -47,6 +47,6 @@ func GetDepositRequestIndexKey(depositor sdk.AccAddress, liquidfarmId, reqId uin
 		sdk.Uint64ToBigEndian(liquidfarmId)...), sdk.Uint64ToBigEndian(reqId)...)
 }
 
-func GetAuctionKey(auctionId uint64) []byte {
-	return append(AuctionKeyPrefix, sdk.Uint64ToBigEndian(auctionId)...)
+func GetRewardsAuctionKey(liquidfarmId, auctionId uint64) []byte {
+	return append(append(AuctionKeyPrefix, sdk.Uint64ToBigEndian(liquidfarmId)...), sdk.Uint64ToBigEndian(auctionId)...)
 }

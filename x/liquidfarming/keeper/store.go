@@ -30,11 +30,11 @@ func (k Keeper) SetLastLiquidfarmId(ctx sdk.Context, id uint64) {
 	store.Set(types.LastLiquidfarmIdKey, bz)
 }
 
-// GetLastAuctionId returns the last auction id.
-func (k Keeper) GetLastAuctionId(ctx sdk.Context) uint64 {
+// GetLastRewardsAuctionId returns the last auction id.
+func (k Keeper) GetLastRewardsAuctionId(ctx sdk.Context) uint64 {
 	var id uint64
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.LastAuctionIdKey)
+	bz := store.Get(types.LastRewardsAuctionIdKey)
 	if bz == nil {
 		id = 0 // initialize the auction id
 	} else {
@@ -45,11 +45,11 @@ func (k Keeper) GetLastAuctionId(ctx sdk.Context) uint64 {
 	return id
 }
 
-// SetLastAuctionId stores the last auction id.
-func (k Keeper) SetLastAuctionId(ctx sdk.Context, id uint64) {
+// SetRewardsLastAuctionId stores the last auction id.
+func (k Keeper) SetRewardsLastAuctionId(ctx sdk.Context, id uint64) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&gogotypes.UInt64Value{Value: id})
-	store.Set(types.LastAuctionIdKey, bz)
+	store.Set(types.LastRewardsAuctionIdKey, bz)
 }
 
 // GetDepositRequest returns the particular deposit request.
@@ -92,6 +92,16 @@ func (k Keeper) SetLiquidFarm(ctx sdk.Context, liquidfarm types.LiquidFarm) {
 	store.Set(types.GetLiquidFarmKey(liquidfarm.Id), bz)
 }
 
+// GetAllLiquidFarms returns all liquidfarms in the store.
+func (k Keeper) GetAllLiquidFarms(ctx sdk.Context) (liquidfarms []types.LiquidFarm) {
+	liquidfarms = []types.LiquidFarm{}
+	_ = k.IterateAllLiquidFarms(ctx, func(liquidfarm types.LiquidFarm) (stop bool, err error) {
+		liquidfarms = append(liquidfarms, liquidfarm)
+		return false, nil
+	})
+	return liquidfarms
+}
+
 // IterateAllLiquidFarms iterates over all the stored liquid farms and performs a callback function.
 // Stops iteration when callback returns true.
 func (k Keeper) IterateAllLiquidFarms(ctx sdk.Context, cb func(liquidfarm types.LiquidFarm) (stop bool, err error)) error {
@@ -109,4 +119,47 @@ func (k Keeper) IterateAllLiquidFarms(ctx sdk.Context, cb func(liquidfarm types.
 		}
 	}
 	return nil
+}
+
+func (k Keeper) GetRewardsAuction(ctx sdk.Context, liquidfarmId, auctionId uint64) (auction types.RewardsAuction, found bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetRewardsAuctionKey(liquidfarmId, auctionId))
+	if bz == nil {
+		return auction, false
+	}
+
+	auction = types.MustUnmarshalRewardsAuction(k.cdc, bz)
+
+	return auction, true
+}
+
+func (k Keeper) SetRewardsAuction(ctx sdk.Context, auction types.RewardsAuction) {
+	store := ctx.KVStore(k.storeKey)
+	bz := types.MustMarshalRewardsAuction(k.cdc, auction)
+	store.Set(types.GetRewardsAuctionKey(auction.LiquidFarmId, auction.Id), bz)
+}
+
+// GetRewardsAuctions returns all auctions in the store.
+func (k Keeper) GetRewardsAuctions(ctx sdk.Context) (auctions []types.RewardsAuction) {
+	k.IterateRewardsAuctions(ctx, func(auction types.RewardsAuction) (stop bool) {
+		auctions = append(auctions, auction)
+		return false
+	})
+	return auctions
+}
+
+// IterateRewardsAuctions iterates over all the stored auctions and performs a callback function.
+// Stops iteration when callback returns true.
+func (k Keeper) IterateRewardsAuctions(ctx sdk.Context, cb func(auction types.RewardsAuction) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.AuctionKeyPrefix)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		auction := types.MustUnmarshalRewardsAuction(k.cdc, iterator.Value())
+
+		if cb(auction) {
+			break
+		}
+	}
 }
