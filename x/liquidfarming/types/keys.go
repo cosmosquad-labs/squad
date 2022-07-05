@@ -23,7 +23,7 @@ const (
 )
 
 var (
-	LastLiquidFarmIdKey = []byte{0xe0} // key to retrieve the latest liquidfarm id
+	LastLiquidfarmIdKey = []byte{0xe0} // key to retrieve the latest liquidfarm id
 	LastAuctionIdKey    = []byte{0xe1} // key to retrieve the latest auction id
 
 	LiquidFarmKeyPrefix = []byte{0xe4}
