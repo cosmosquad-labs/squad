@@ -52,6 +52,8 @@ message RewardsAuction {
       [(gogoproto.stdtime) = true, (gogoproto.nullable) = true, (gogoproto.moretags) = "yaml:\"end_time\""];
 
   AuctionStatus status = 9;
+
+  uint64 winner_bid_id = 10;
 }
 
 // Bid defines ...

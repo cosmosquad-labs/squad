@@ -6,8 +6,7 @@ import (
 	"github.com/cosmosquad-labs/squad/x/liquidfarming/types"
 )
 
-// InitGenesis initializes the capability module's state from a provided genesis
-// state.
+// InitGenesis initializes the capability module's state from a provided genesis state.
 func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {
 	k.SetParams(ctx, genState.Params)
 
