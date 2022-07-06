@@ -9,12 +9,13 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// NewLiquidFarm creates a new LiquidFarm.
 func NewLiquidFarm(id uint64, poolId uint64, poolCoinDenom string, lfCoinDenom string, reserveAddr string) LiquidFarm {
 	return LiquidFarm{
 		Id:             id,
 		PoolId:         poolId,
 		PoolCoinDenom:  poolCoinDenom,
-		LfCoinDenom:    lfCoinDenom,
+		LFCoinDenom:    lfCoinDenom,
 		ReserveAddress: reserveAddr,
 	}
 }
@@ -35,32 +36,32 @@ func (l LiquidFarm) Validate() error {
 	if err := sdk.ValidateDenom(l.PoolCoinDenom); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid pool coin denom: %v", err)
 	}
-	if err := sdk.ValidateDenom(l.LfCoinDenom); err != nil {
+	if err := sdk.ValidateDenom(l.LFCoinDenom); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid liquid farming coin denom: %v", err)
 	}
 	if !strings.HasPrefix(l.PoolCoinDenom, "pool") {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid pool coin denom")
 	}
-	if !strings.HasPrefix(l.LfCoinDenom, "lf") {
+	if !strings.HasPrefix(l.LFCoinDenom, "lf") {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid liquid farming coin denom")
 	}
 	return nil
 }
 
-func UnmarshalLiquidFarm(cdc codec.BinaryCodec, value []byte) (liquidfarm LiquidFarm, err error) {
-	err = cdc.Unmarshal(value, &liquidfarm)
-	return liquidfarm, err
+func UnmarshalLiquidFarm(cdc codec.BinaryCodec, value []byte) (liquidFarm LiquidFarm, err error) {
+	err = cdc.Unmarshal(value, &liquidFarm)
+	return liquidFarm, err
 }
 
-func MustMarshalLiquidFarm(cdc codec.BinaryCodec, liquidfarm LiquidFarm) []byte {
-	return cdc.MustMarshal(&liquidfarm)
+func MustMarshalLiquidFarm(cdc codec.BinaryCodec, liquidFarm LiquidFarm) []byte {
+	return cdc.MustMarshal(&liquidFarm)
 }
 
 func MustUnmarshalLiquidFarm(cdc codec.BinaryCodec, value []byte) LiquidFarm {
-	liquidfarm, err := UnmarshalLiquidFarm(cdc, value)
+	liquidFarm, err := UnmarshalLiquidFarm(cdc, value)
 	if err != nil {
 		panic(err)
 	}
 
-	return liquidfarm
+	return liquidFarm
 }

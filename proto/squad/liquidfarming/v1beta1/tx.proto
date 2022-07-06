@@ -25,7 +25,7 @@ service Msg {
 message MsgDeposit {
   option (gogoproto.goproto_getters) = false;
 
-  uint64 liquidfarm_id = 1;
+  uint64 liquid_farm_id = 1;
 
   string depositor = 2;
 

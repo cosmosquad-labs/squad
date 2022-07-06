@@ -20,9 +20,9 @@ const (
 	TypeMsgPlaceBid = "place_bid"
 )
 
-func NewMsgDeposit(liquidfarmId uint64, depositor string, depositCoin sdk.Coin) *MsgDeposit {
+func NewMsgDeposit(liquidFarmId uint64, depositor string, depositCoin sdk.Coin) *MsgDeposit {
 	return &MsgDeposit{
-		LiquidfarmId: liquidfarmId,
+		LiquidFarmId: liquidFarmId,
 		Depositor:    depositor,
 		DepositCoin:  depositCoin,
 	}

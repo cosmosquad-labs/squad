@@ -17,11 +17,12 @@ func init() {
 	govtypes.RegisterProposalTypeCodec(&LiquidFarmProposal{}, "squad/LiquidFarmProposal")
 }
 
-func NewLiquidFarmProposal(title string, description string, liquidfarms []LiquidFarm) *LiquidFarmProposal {
+// NewLiquidFarmProposal creates a new LiquidFarmProposal
+func NewLiquidFarmProposal(title string, description string, liquidFarms []LiquidFarm) *LiquidFarmProposal {
 	return &LiquidFarmProposal{
 		Title:       title,
 		Description: description,
-		Liquidfarms: liquidfarms,
+		LiquidFarms: liquidFarms,
 	}
 }
 
@@ -38,11 +39,11 @@ func (p *LiquidFarmProposal) ValidateBasic() error {
 		return err
 	}
 
-	if len(p.Liquidfarms) == 0 {
+	if len(p.LiquidFarms) == 0 {
 		return ErrEmptyLiquidFarms
 	}
 
-	for _, l := range p.Liquidfarms {
+	for _, l := range p.LiquidFarms {
 		if err := l.Validate(); err != nil {
 			return err
 		}
@@ -55,5 +56,5 @@ func (p *LiquidFarmProposal) String() string {
   Title:              %s
   Description:        %s
   LiquidFarms:    %v
-`, p.Title, p.Description, p.Liquidfarms)
+`, p.Title, p.Description, p.LiquidFarms)
 }

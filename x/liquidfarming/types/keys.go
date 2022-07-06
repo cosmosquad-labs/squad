@@ -23,7 +23,7 @@ const (
 )
 
 var (
-	LastLiquidfarmIdKey     = []byte{0xe0} // key to retrieve the latest liquidfarm id
+	LastLiquidfarmIdKey     = []byte{0xe0} // key to retrieve the latest liquid farm id
 	LastRewardsAuctionIdKey = []byte{0xe1} // key to retrieve the latest auction id
 
 	LiquidFarmKeyPrefix = []byte{0xe4}
@@ -34,19 +34,19 @@ var (
 	AuctionKeyPrefix = []byte{0xea}
 )
 
-func GetLiquidFarmKey(liquidfarmId uint64) []byte {
-	return append(LiquidFarmKeyPrefix, sdk.Uint64ToBigEndian(liquidfarmId)...)
+func GetLiquidFarmKey(liquidFarmId uint64) []byte {
+	return append(LiquidFarmKeyPrefix, sdk.Uint64ToBigEndian(liquidFarmId)...)
 }
 
-func GetDepositRequestKey(liquidfarmId, reqId uint64) []byte {
-	return append(append(DepositRequestKeyPrefix, sdk.Uint64ToBigEndian(liquidfarmId)...), sdk.Uint64ToBigEndian(reqId)...)
+func GetDepositRequestKey(liquidFarmId, reqId uint64) []byte {
+	return append(append(DepositRequestKeyPrefix, sdk.Uint64ToBigEndian(liquidFarmId)...), sdk.Uint64ToBigEndian(reqId)...)
 }
 
-func GetDepositRequestIndexKey(depositor sdk.AccAddress, liquidfarmId, reqId uint64) []byte {
+func GetDepositRequestIndexKey(depositor sdk.AccAddress, liquidFarmId, reqId uint64) []byte {
 	return append(append(append(DepositRequestIndexKeyPrefix, address.MustLengthPrefix(depositor)...),
-		sdk.Uint64ToBigEndian(liquidfarmId)...), sdk.Uint64ToBigEndian(reqId)...)
+		sdk.Uint64ToBigEndian(liquidFarmId)...), sdk.Uint64ToBigEndian(reqId)...)
 }
 
-func GetRewardsAuctionKey(liquidfarmId, auctionId uint64) []byte {
-	return append(append(AuctionKeyPrefix, sdk.Uint64ToBigEndian(liquidfarmId)...), sdk.Uint64ToBigEndian(auctionId)...)
+func GetRewardsAuctionKey(liquidFarmId, auctionId uint64) []byte {
+	return append(append(AuctionKeyPrefix, sdk.Uint64ToBigEndian(liquidFarmId)...), sdk.Uint64ToBigEndian(auctionId)...)
 }

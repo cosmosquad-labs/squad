@@ -20,7 +20,7 @@ type (
 		Deposit     string             `json:"deposit" yaml:"deposit"`
 	}
 
-	// LiquidFarmProposalReq defines a liquidfarm proposal request body.
+	// LiquidFarmProposalReq defines a liquid farm proposal request body.
 	LiquidFarmProposalReq struct {
 		BaseReq rest.BaseReq `json:"base_req" yaml:"base_req"`
 
@@ -29,6 +29,11 @@ type (
 		LiquidFarms []types.LiquidFarm `json:"liquidfarms" yaml:"liquidfarms"`
 		Proposer    sdk.AccAddress     `json:"proposer" yaml:"proposer"`
 		Deposit     sdk.Coins          `json:"deposit" yaml:"deposit"`
+	}
+
+	// LiquidFarmReq defines a liquid farm request body.
+	LiquidFarmReq struct {
+		PoolId uint64
 	}
 )
 

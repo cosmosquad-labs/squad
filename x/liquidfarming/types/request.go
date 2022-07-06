@@ -16,6 +16,7 @@ func NewDepositRequest(id uint64, liquidfarmId uint64, depositor string, deposit
 	}
 }
 
+// GetDepositor returns depositor int the form of sdk.AccAddress.
 func (req DepositRequest) GetDepositor() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(req.Depositor)
 	if err != nil {

@@ -14,7 +14,7 @@ message LiquidFarmProposal {
 
   string description = 2;
 
-  repeated LiquidFarm liquidfarms = 3 [(gogoproto.nullable) = false];
+  repeated LiquidFarm liquidfarms = 3 [(gogoproto.nullable) = false, (gogoproto.customname) = "LiquidFarms"];
 }
 
 // LiquidFarm defines ...
@@ -27,7 +27,7 @@ message LiquidFarm {
 
   string pool_coin_denom = 3;
 
-  string lf_coin_denom = 4;
+  string lf_coin_denom = 4 [(gogoproto.customname) = "LFCoinDenom"];
 
   string reserve_address = 5;
 }

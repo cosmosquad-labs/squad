@@ -41,6 +41,7 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 	}
 }
 
+// NewLiquidFarmProposalHandler creates a governance proposal handler to manage LiquidFarm creation handler.
 func NewLiquidFarmProposalHandler(k keeper.Keeper) govtypes.Handler {
 	return func(ctx sdk.Context, content govtypes.Content) error {
 		switch c := content.(type) {

@@ -8,6 +8,8 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
+// RegisterLegacyAminoCodec registers the necessary x/liquidfarming interfaces and concrete types
+// on the provided LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgDeposit{}, "liquidfarming/MsgDeposit", nil)
 	cdc.RegisterConcrete(&MsgCancel{}, "liquidfarming/MsgCancel", nil)
@@ -15,6 +17,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgPlaceBid{}, "liquidfarming/MsgPlaceBid", nil)
 }
 
+// RegisterInterfaces registers the x/liquidfarming interfaces types with the interface registry
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
