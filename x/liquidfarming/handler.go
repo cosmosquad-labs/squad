@@ -5,7 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmosquad-labs/squad/x/liquidfarming/keeper"
 	"github.com/cosmosquad-labs/squad/x/liquidfarming/types"
@@ -37,19 +36,6 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg))
-		}
-	}
-}
-
-// NewLiquidFarmProposalHandler creates a governance proposal handler to manage LiquidFarm creation handler.
-func NewLiquidFarmProposalHandler(k keeper.Keeper) govtypes.Handler {
-	return func(ctx sdk.Context, content govtypes.Content) error {
-		switch c := content.(type) {
-		case *types.LiquidFarmProposal:
-			return keeper.CreateLiquidFarmProposal(ctx, k, c)
-
-		default:
-			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized liquid farm proposal content type: %T", c)
 		}
 	}
 }

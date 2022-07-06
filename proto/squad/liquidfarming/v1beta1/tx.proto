@@ -8,24 +8,24 @@ option go_package = "github.com/cosmosquad-labs/squad/x/liquidfarming/types";
 
 // Msg defines the Msg service.
 service Msg {
-  // Deposit defines a method for ...
+  // Deposit defines a method for depositing pool coin for a liquid farm
   rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
 
-  // Cancel defines a method for ...
+  // Cancel defines a method for canceling the deposit request
   rpc Cancel(MsgCancel) returns (MsgCancelResponse);
   
-  // Withdraw defines a method for ...
+  // Withdraw defines a method for withdrawing amount of LFCoin
   rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
 
-  // PlaceBid defines a method for ...
+  // PlaceBid defines a method for placing a bid for a rewards auction
   rpc PlaceBid(MsgPlaceBid) returns (MsgPlaceBidResponse);
 }
 
-// MsgDeposit defines a SDK message for ...
+// MsgDeposit defines a SDK message for depositing pool coin.
 message MsgDeposit {
   option (gogoproto.goproto_getters) = false;
 
-  uint64 liquid_farm_id = 1;
+  uint64 pool_id = 1;
 
   string depositor = 2;
 
@@ -39,7 +39,7 @@ message MsgDeposit {
 message MsgDepositResponse {}
 
 
-// MsgCancel defines a SDK message for ...
+// MsgCancel defines a SDK message for canceling the deposit request.
 message MsgCancel {
   option (gogoproto.goproto_getters) = false;
 
@@ -51,7 +51,7 @@ message MsgCancel {
 // MsgCancelResponse defines the MsgCancelResponse response type.
 message MsgCancelResponse {}
 
-// MsgWithdraw defines a SDK message for ...
+// MsgWithdraw defines a SDK message for withdrawing LFCoin.
 message MsgWithdraw {
   option (gogoproto.goproto_getters) = false;
 
@@ -61,14 +61,15 @@ message MsgWithdraw {
 
   cosmos.base.v1beta1.Coin lf_coin = 3 [
     (gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.customname) = "LFCoin"
   ];
 }
 
 // MsgWithdrawResponse defines the MsgWithdrawResponse response type.
 message MsgWithdrawResponse {}
 
-// MsgPlaceBid defines a SDK message for ...
+// MsgPlaceBid defines a SDK message for placing a bid for a rewards auction.
 message MsgPlaceBid {
   option (gogoproto.goproto_getters) = false;
 

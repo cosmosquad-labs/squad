@@ -20,11 +20,12 @@ const (
 	TypeMsgPlaceBid = "place_bid"
 )
 
-func NewMsgDeposit(liquidFarmId uint64, depositor string, depositCoin sdk.Coin) *MsgDeposit {
+// NewMsgDeposit returns a new MsgDeposit.
+func NewMsgDeposit(poolId uint64, depositor string, depositCoin sdk.Coin) *MsgDeposit {
 	return &MsgDeposit{
-		LiquidFarmId: liquidFarmId,
-		Depositor:    depositor,
-		DepositCoin:  depositCoin,
+		PoolId:      poolId,
+		Depositor:   depositor,
+		DepositCoin: depositCoin,
 	}
 }
 
@@ -65,6 +66,7 @@ func (msg MsgDeposit) GetDepositor() sdk.AccAddress {
 	return addr
 }
 
+// NewMsgCancel returns a new MsgCancel.
 func NewMsgCancel(depositId uint64) *MsgCancel {
 	return &MsgCancel{
 		DepositId: depositId,
@@ -97,7 +99,7 @@ func (msg MsgCancel) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
-func (msg MsgCancel) GetDeositor() sdk.AccAddress {
+func (msg MsgCancel) GetDepositor() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.Depositor)
 	if err != nil {
 		panic(err)
@@ -105,11 +107,12 @@ func (msg MsgCancel) GetDeositor() sdk.AccAddress {
 	return addr
 }
 
+// NewMsgWithdraw returns a new MsgWithdraw.
 func NewMsgWithdraw(depositId uint64, withdrawer string, lfCoin sdk.Coin) *MsgWithdraw {
 	return &MsgWithdraw{
 		DepositId:  depositId,
 		Withdrawer: withdrawer,
-		LfCoin:     lfCoin,
+		LFCoin:     lfCoin,
 	}
 }
 
@@ -124,10 +127,10 @@ func (msg MsgWithdraw) ValidateBasic() error {
 	if msg.DepositId == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid deposit id")
 	}
-	if !msg.LfCoin.IsPositive() {
+	if !msg.LFCoin.IsPositive() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "withdrawing coin must be positive")
 	}
-	if err := msg.LfCoin.Validate(); err != nil {
+	if err := msg.LFCoin.Validate(); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid LFCoin: %v", err)
 	}
 	return nil
@@ -153,6 +156,7 @@ func (msg MsgWithdraw) GetWithdrawer() sdk.AccAddress {
 	return addr
 }
 
+// NewMsgPlaceBid returns a new MsgPlaceBid.
 func NewMsgPlaceBid(auctionId uint64, bidder string, amount sdk.Coin) *MsgPlaceBid {
 	return &MsgPlaceBid{
 		AuctionId: auctionId,

@@ -9,13 +9,13 @@ import "google/protobuf/timestamp.proto";
 option go_package                      = "github.com/cosmosquad-labs/squad/x/liquidfarming/types";
 option (gogoproto.goproto_getters_all) = false;
 
-// DepositRequest defines ...
+// DepositRequest defines a deposit request.
 message DepositRequest {
   // id specifies the id for the request
   uint64 id = 1;
 
-  // liquid_farm_id specifies the liquidfarm id
-  uint64 liquid_farm_id = 2;
+  // pool_id specifies the pool id
+  uint64 pool_id = 2;
 
   // depositor specifies the bech32-encoded address that makes a deposit to the pool
   string depositor = 3;
@@ -25,15 +25,16 @@ message DepositRequest {
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"
   ];
-
-  RequestStatus status = 5;
 }
 
-// RewardsAuction defines ...
+// RewardsAuction defines rewards auction that is created by the module account
+// at an end block for every epoch.
 message RewardsAuction {
+  // id specifies the id for the auction
   uint64 id = 1;
 
-  uint64 liquid_farm_id = 2;
+  // pool_id specifies the pool id
+  uint64 pool_id = 2;
   
   repeated cosmos.base.v1beta1.Coin selling_rewards = 3
     [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
@@ -57,11 +58,11 @@ message RewardsAuction {
 message Bid {
   option (gogoproto.goproto_getters) = false;
 
-  uint64 auction_id = 1;
+  uint64 id = 1;
 
-  string bidder = 2;
+  uint64 auction_id = 2;
 
-  uint64 id = 3;
+  string bidder = 3;
 
   cosmos.base.v1beta1.Coin amount = 4 [
     (gogoproto.nullable) = false,
@@ -69,23 +70,6 @@ message Bid {
   ];
 
   bool is_matched = 5;
-}
-
-// RequestStatus enumerates request statuses.
-enum RequestStatus {
-  option (gogoproto.goproto_enum_prefix) = false;
-
-  // REQUEST_STATUS_UNSPECIFIED specifies unknown request status
-  REQUEST_STATUS_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "RequestStatusUnspecified"];
-
-  // REQUEST_STATUS_NOT_EXECUTED indicates the request is not executed yet
-  REQUEST_STATUS_NOT_EXECUTED = 1 [(gogoproto.enumvalue_customname) = "RequestStatusNotExecuted"];
-
-  // REQUEST_STATUS_SUCCEEDED indicates the request has been succeeded
-  REQUEST_STATUS_SUCCEEDED = 2 [(gogoproto.enumvalue_customname) = "RequestStatusSucceeded"];
-
-  // REQUEST_STATUS_CANCELED indicates the request is failed
-  REQUEST_STATUS_CANCELED = 3 [(gogoproto.enumvalue_customname) = "RequestStatusCanceled"];
 }
 
 // AuctionStatus enumerates the valid status of an auction.

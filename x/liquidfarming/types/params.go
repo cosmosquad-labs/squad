@@ -9,8 +9,10 @@ import (
 
 // Parameter store keys
 var (
+	KeyLiquidFarms           = []byte("LiquidFarms")
 	KeyLiquidFarmCreationFee = []byte("LiquidFarmCreationFee")
 
+	DefaultLiquidFarms           = []LiquidFarm{}
 	DefaultLiquidFarmCreationFee = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100_000_000)))
 )
 
@@ -24,6 +26,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 // DefaultParams returns a default set of parameters.
 func DefaultParams() Params {
 	return Params{
+		LiquidFarms:           DefaultLiquidFarms,
 		LiquidFarmCreationFee: DefaultLiquidFarmCreationFee,
 	}
 }
@@ -31,6 +34,7 @@ func DefaultParams() Params {
 // ParamSetPairs get the params.ParamSet.
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
+		paramtypes.NewParamSetPair(KeyLiquidFarms, &p.LiquidFarms, validateLiquidFarms),
 		paramtypes.NewParamSetPair(KeyLiquidFarmCreationFee, &p.LiquidFarmCreationFee, validateLiquidFarmCreationFee),
 	}
 }
@@ -41,12 +45,28 @@ func (p Params) Validate() error {
 		value     interface{}
 		validator func(interface{}) error
 	}{
+		{p.LiquidFarms, validateLiquidFarms},
 		{p.LiquidFarmCreationFee, validateLiquidFarmCreationFee},
 	} {
 		if err := v.validator(v.value); err != nil {
 			return err
 		}
 	}
+	return nil
+}
+
+func validateLiquidFarms(i interface{}) error {
+	liquidFarms, ok := i.([]LiquidFarm)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	// TODO: not implemented yet
+	// Do we allow 0 for minimum params?
+	for _, lf := range liquidFarms {
+		fmt.Println(lf)
+	}
+
 	return nil
 }
 

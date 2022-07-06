@@ -20,6 +20,7 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
+// Deposit defines a method for depositing pool coin to mint LFCoin.
 func (m msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types.MsgDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -30,6 +31,7 @@ func (m msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 	return &types.MsgDepositResponse{}, nil
 }
 
+// Cancel defines a method for canceling the deposit request.
 func (m msgServer) Cancel(goCtx context.Context, msg *types.MsgCancel) (*types.MsgCancelResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -40,6 +42,7 @@ func (m msgServer) Cancel(goCtx context.Context, msg *types.MsgCancel) (*types.M
 	return &types.MsgCancelResponse{}, nil
 }
 
+// Withdraw defines a method for withdrawing LFCoin.
 func (m msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*types.MsgWithdrawResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -50,6 +53,7 @@ func (m msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	return &types.MsgWithdrawResponse{}, nil
 }
 
+// PlaceBid defines a method for placing a bid for a rewards auction.
 func (m msgServer) PlaceBid(goCtx context.Context, msg *types.MsgPlaceBid) (*types.MsgPlaceBidResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 

@@ -5,7 +5,6 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
 // RegisterLegacyAminoCodec registers the necessary x/liquidfarming interfaces and concrete types
@@ -25,11 +24,6 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgCancel{},
 		&MsgWithdraw{},
 		&MsgPlaceBid{},
-	)
-
-	registry.RegisterImplementations(
-		(*govtypes.Content)(nil),
-		&LiquidFarmProposal{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

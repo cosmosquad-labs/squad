@@ -1,67 +1,49 @@
 package types
 
 import (
-	"strings"
+	fmt "fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"gopkg.in/yaml.v2"
+
+	farmingtypes "github.com/cosmosquad-labs/squad/x/farming/types"
 )
 
-// NewLiquidFarm creates a new LiquidFarm.
-func NewLiquidFarm(id uint64, poolId uint64, poolCoinDenom string, lfCoinDenom string, reserveAddr string) LiquidFarm {
+const (
+	LiquidFarmReserveAccPrefix string = "LiquidFarmReserveAcc"
+)
+
+// NewLiquidFarm returns a new LiquidFarm.
+func NewLiquidFarm(poolId uint64, minDepositAmt, minBidAmount sdk.Int) LiquidFarm {
 	return LiquidFarm{
-		Id:             id,
-		PoolId:         poolId,
-		PoolCoinDenom:  poolCoinDenom,
-		LFCoinDenom:    lfCoinDenom,
-		ReserveAddress: reserveAddr,
+		PoolId:               poolId,
+		MinimumDepositAmount: minDepositAmt,
+		MinimumBidAmount:     minBidAmount,
 	}
 }
 
+// String returns a human-readable string representation of the LiquidFarm.
 func (l LiquidFarm) String() string {
-	out, _ := yaml.Marshal(l)
-	return string(out)
+	out, _ := l.MarshalYAML()
+	return out.(string)
 }
 
-// TODO: double check with these validity checks
-func (l LiquidFarm) Validate() error {
-	if l.Id == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid id")
-	}
-	if l.PoolId == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid pool id")
-	}
-	if err := sdk.ValidateDenom(l.PoolCoinDenom); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid pool coin denom: %v", err)
-	}
-	if err := sdk.ValidateDenom(l.LFCoinDenom); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid liquid farming coin denom: %v", err)
-	}
-	if !strings.HasPrefix(l.PoolCoinDenom, "pool") {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid pool coin denom")
-	}
-	if !strings.HasPrefix(l.LFCoinDenom, "lf") {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid liquid farming coin denom")
-	}
-	return nil
-}
-
-func UnmarshalLiquidFarm(cdc codec.BinaryCodec, value []byte) (liquidFarm LiquidFarm, err error) {
-	err = cdc.Unmarshal(value, &liquidFarm)
-	return liquidFarm, err
-}
-
-func MustMarshalLiquidFarm(cdc codec.BinaryCodec, liquidFarm LiquidFarm) []byte {
-	return cdc.MustMarshal(&liquidFarm)
-}
-
-func MustUnmarshalLiquidFarm(cdc codec.BinaryCodec, value []byte) LiquidFarm {
-	liquidFarm, err := UnmarshalLiquidFarm(cdc, value)
+// MarshalYAML returns the YAML representation of a LiquidFarm.
+func (l LiquidFarm) MarshalYAML() (interface{}, error) {
+	bz, err := codec.MarshalYAML(codec.NewProtoCodec(codectypes.NewInterfaceRegistry()), &l)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
+	return string(bz), err
+}
 
-	return liquidFarm
+// LFCoinDenom returns a unique liquid farming coin denom for a LiquidFarm.
+func LFCoinDenom(poolId uint64) string {
+	return fmt.Sprintf("lf%d", poolId)
+}
+
+// LiquidFarmReserveAddress returns the reserve address for a liquid farm with the given pool id.
+func LiquidFarmReserveAddress(poolId uint64) sdk.AccAddress {
+	return farmingtypes.DeriveAddress(ReserveAddressType, ModuleName, LiquidFarmReserveAccPrefix+ModuleAddressNameSplitter+fmt.Sprint(poolId))
 }

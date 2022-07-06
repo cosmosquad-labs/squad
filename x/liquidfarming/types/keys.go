@@ -17,36 +17,30 @@ const (
 
 	// QuerierRoute defines the module's query routing key
 	QuerierRoute = ModuleName
-
-	// MemStoreKey defines the in-memory store key
-	MemStoreKey = "mem_liquidfarming"
 )
 
+// keys for the store prefixes
 var (
-	LastLiquidfarmIdKey     = []byte{0xe0} // key to retrieve the latest liquid farm id
 	LastRewardsAuctionIdKey = []byte{0xe1} // key to retrieve the latest auction id
 
-	LiquidFarmKeyPrefix = []byte{0xe4}
+	DepositRequestKeyPrefix      = []byte{0xe4}
+	DepositRequestIndexKeyPrefix = []byte{0xe5}
 
-	DepositRequestKeyPrefix      = []byte{0xe6}
-	DepositRequestIndexKeyPrefix = []byte{0xe7}
-
-	AuctionKeyPrefix = []byte{0xea}
+	AuctionKeyPrefix = []byte{0xe8}
 )
 
-func GetLiquidFarmKey(liquidFarmId uint64) []byte {
-	return append(LiquidFarmKeyPrefix, sdk.Uint64ToBigEndian(liquidFarmId)...)
+// GetDepositRequestKey returns the store key to retrieve deposit request object.
+func GetDepositRequestKey(reqId, poolId uint64) []byte {
+	return append(append(DepositRequestKeyPrefix, sdk.Uint64ToBigEndian(reqId)...), sdk.Uint64ToBigEndian(poolId)...)
 }
 
-func GetDepositRequestKey(liquidFarmId, reqId uint64) []byte {
-	return append(append(DepositRequestKeyPrefix, sdk.Uint64ToBigEndian(liquidFarmId)...), sdk.Uint64ToBigEndian(reqId)...)
-}
-
-func GetDepositRequestIndexKey(depositor sdk.AccAddress, liquidFarmId, reqId uint64) []byte {
+// GetDepositRequestIndexKey returns the index key to map deposit requests.
+func GetDepositRequestIndexKey(depositor sdk.AccAddress, poolId, reqId uint64) []byte {
 	return append(append(append(DepositRequestIndexKeyPrefix, address.MustLengthPrefix(depositor)...),
-		sdk.Uint64ToBigEndian(liquidFarmId)...), sdk.Uint64ToBigEndian(reqId)...)
+		sdk.Uint64ToBigEndian(poolId)...), sdk.Uint64ToBigEndian(reqId)...)
 }
 
-func GetRewardsAuctionKey(liquidFarmId, auctionId uint64) []byte {
-	return append(append(AuctionKeyPrefix, sdk.Uint64ToBigEndian(liquidFarmId)...), sdk.Uint64ToBigEndian(auctionId)...)
+// GetRewardsAuctionKey returns the store key to retrieve rewards auction object.
+func GetRewardsAuctionKey(poolId, auctionId uint64) []byte {
+	return append(append(AuctionKeyPrefix, sdk.Uint64ToBigEndian(poolId)...), sdk.Uint64ToBigEndian(auctionId)...)
 }
