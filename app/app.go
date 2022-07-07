@@ -475,6 +475,7 @@ func NewApp(
 		app.GetSubspace(liquidfarmingtypes.ModuleName),
 		app.AccountKeeper,
 		app.BankKeeper,
+		app.LiquidityKeeper,
 	)
 
 	app.GovKeeper = *app.GovKeeper.SetHooks(
