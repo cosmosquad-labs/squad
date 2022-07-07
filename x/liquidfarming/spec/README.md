@@ -1,10 +1,10 @@
-<!-- order: 0 title: Liquidity Overview parent: title: "farming" -->
+<!-- order: 0 title: Liquidity Overview parent: title: "liquidfarming" -->
 
-# `fundraising`
+# `liquidfarming`
 
 ## Abstract
 
-This document specifies the `fundraising` module that provides an oppotunity for a new project to onboard the ecosystem. It helps them to increase their brand awareness before launching a project. 
+This document specifies the `liquidfarming` module that provides a functionality for farmers to have another option to use with their liquidity pool coins in Crescent Network. 
 
 ## Contents
 
@@ -15,4 +15,3 @@ This document specifies the `fundraising` module that provides an oppotunity for
 5. **[End-Block](05_end_block.md)**
 6. **[Events](06_events.md)**
 7. **[Parameters](07_params.md)**
-8. **[Hooks](08_hooks.md)**
