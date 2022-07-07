@@ -11,11 +11,11 @@ option (gogoproto.goproto_getters_all) = false;
 
 // DepositRequest defines a deposit request.
 message DepositRequest {
-  // id specifies the id for the request
-  uint64 id = 1;
-
   // pool_id specifies the pool id
-  uint64 pool_id = 2;
+  uint64 pool_id = 1;
+
+  // id specifies the id for the request
+  uint64 id = 2;
 
   // depositor specifies the bech32-encoded address that makes a deposit to the pool
   string depositor = 3;

@@ -67,9 +67,11 @@ func (msg MsgDeposit) GetDepositor() sdk.AccAddress {
 }
 
 // NewMsgCancel returns a new MsgCancel.
-func NewMsgCancel(depositId uint64) *MsgCancel {
+func NewMsgCancel(depositor string, poolId, depositReqId uint64) *MsgCancel {
 	return &MsgCancel{
-		DepositId: depositId,
+		Depositor:        depositor,
+		PoolId:           poolId,
+		DepositRequestId: depositReqId,
 	}
 }
 
@@ -81,7 +83,10 @@ func (msg MsgCancel) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Depositor); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid depositor address: %v", err)
 	}
-	if msg.DepositId == 0 {
+	if msg.PoolId == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid pool id")
+	}
+	if msg.DepositRequestId == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid deposit id")
 	}
 	return nil

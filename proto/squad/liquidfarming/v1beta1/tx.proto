@@ -45,7 +45,9 @@ message MsgCancel {
 
   string depositor = 1;
 
-  uint64 deposit_id = 2;
+  uint64 pool_id = 2;
+
+  uint64 deposit_request_id = 3;
 }
 
 // MsgCancelResponse defines the MsgCancelResponse response type.
