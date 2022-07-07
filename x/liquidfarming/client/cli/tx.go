@@ -2,12 +2,15 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/tx"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
 	"github.com/cosmosquad-labs/squad/x/liquidfarming/types"
@@ -27,7 +30,7 @@ func GetTxCmd() *cobra.Command {
 		NewDepositCmd(),
 		NewCancelCmd(),
 		NewWithdrawCmd(),
-		// TODO: add NewPlaceBidCmd()
+		NewPlaceBidCmd(),
 	)
 
 	return cmd
@@ -36,26 +39,41 @@ func GetTxCmd() *cobra.Command {
 // NewDepositCmd implements the deposit command handler.
 func NewDepositCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "deposit [amount]",
-		Args:  cobra.ExactArgs(1),
-		Short: "deposit coins",
+		Use:   "deposit [pool-id] [amount]",
+		Args:  cobra.ExactArgs(2),
+		Short: "Deposit pool coin",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Deposit ... 
+			fmt.Sprintf(`Deposit pool coin for liquid farming. 
 			
 Example:
-$ %s tx %s deposit 1000000poolxxxxxx --from mykey
+$ %s tx %s deposit 1 10000000pool1 --from mykey
 `,
 				version.AppName, types.ModuleName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// clientCtx, err := client.GetClientTxContext(cmd)
-			// if err != nil {
-			// 	return err
-			// }
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
 
-			// return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-			return nil
+			poolId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("failed to parse pool id: %w", err)
+			}
+
+			depositCoin, err := sdk.ParseCoinNormalized(args[1])
+			if err != nil {
+				return fmt.Errorf("invalid deposit coin: %w", err)
+			}
+
+			msg := types.NewMsgDeposit(
+				poolId,
+				clientCtx.GetFromAddress().String(),
+				depositCoin,
+			)
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
@@ -67,26 +85,42 @@ $ %s tx %s deposit 1000000poolxxxxxx --from mykey
 // NewCancelCmd implements the cancel command handler.
 func NewCancelCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "cancel [id]",
-		Args:  cobra.ExactArgs(1),
-		Short: "cancel deposit request",
+		Use:   "cancel [pool-id] [deposit-request-id]",
+		Args:  cobra.ExactArgs(2),
+		Short: "Cancel deposit request",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Deposit ... 
+			fmt.Sprintf(`Cancel deposit request with the given pool id and deposit request id.
+The deposit request that is already executed to mint LFCoin can't be accomplished.
 			
 Example:
-$ %s tx %s cancel 1 --from mykey
+$ %s tx %s cancel 1 1 --from mykey
 `,
 				version.AppName, types.ModuleName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// clientCtx, err := client.GetClientTxContext(cmd)
-			// if err != nil {
-			// 	return err
-			// }
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
 
-			// return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-			return nil
+			poolId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("failed to parse pool id: %w", err)
+			}
+
+			reqId, err := strconv.ParseUint(args[1], 10, 64)
+			if err != nil {
+				return fmt.Errorf("failed to parse deposit request id: %w", err)
+			}
+
+			msg := types.NewMsgCancel(
+				clientCtx.GetFromAddress().String(),
+				poolId,
+				reqId,
+			)
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
@@ -98,26 +132,87 @@ $ %s tx %s cancel 1 --from mykey
 // NewWithdrawCmd implements the withdraw command handler.
 func NewWithdrawCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "withdraw [amount]",
-		Args:  cobra.ExactArgs(1),
-		Short: "withdraw liquid farming coin",
+		Use:   "withdraw [pool-id] [amount]",
+		Args:  cobra.ExactArgs(2),
+		Short: "Withdraw liquid farming coin",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Withdraw ... 
+			fmt.Sprintf(`Withdraw liquid farming coin to receive the corresponding pool coin from the module.
 			
 Example:
-$ %s tx %s deposit --from mykey
+$ %s tx %s withdraw 1 100000lf1 --from mykey
 `,
 				version.AppName, types.ModuleName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// clientCtx, err := client.GetClientTxContext(cmd)
-			// if err != nil {
-			// 	return err
-			// }
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
 
-			// return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-			return nil
+			poolId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("failed to parse pool id: %w", err)
+			}
+
+			withdrawingCoin, err := sdk.ParseCoinNormalized(args[1])
+			if err != nil {
+				return fmt.Errorf("invalid deposit coin: %w", err)
+			}
+
+			msg := types.NewMsgWithdraw(
+				poolId,
+				clientCtx.GetFromAddress().String(),
+				withdrawingCoin,
+			)
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// NewPlaceBidCmd implements the place bid command handler.
+func NewPlaceBidCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "place-bid [auction-id] [amount]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Place a bid for a rewards auction",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Place a bid for a rewards auction.
+			
+Example:
+$ %s tx %s place-bid 1 100000lf1 --from mykey
+`,
+				version.AppName, types.ModuleName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			auctionId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("failed to parse pool id: %w", err)
+			}
+
+			amount, err := sdk.ParseCoinNormalized(args[1])
+			if err != nil {
+				return fmt.Errorf("invalid deposit coin: %w", err)
+			}
+
+			msg := types.NewMsgPlaceBid(
+				auctionId,
+				clientCtx.GetFromAddress().String(),
+				amount,
+			)
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
