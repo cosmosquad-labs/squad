@@ -469,12 +469,13 @@ func NewApp(
 		app.SlashingKeeper,
 	)
 
-	app.LiquidFarmingKeeper = *liquidfarmingkeeper.NewKeeper(
+	app.LiquidFarmingKeeper = liquidfarmingkeeper.NewKeeper(
 		appCodec,
 		keys[liquidfarmingtypes.StoreKey],
 		app.GetSubspace(liquidfarmingtypes.ModuleName),
 		app.AccountKeeper,
 		app.BankKeeper,
+		app.FarmingKeeper,
 		app.LiquidityKeeper,
 	)
 
@@ -888,6 +889,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(farmingtypes.ModuleName)
 	paramsKeeper.Subspace(liquiditytypes.ModuleName)
 	paramsKeeper.Subspace(liquidstakingtypes.ModuleName)
+	paramsKeeper.Subspace(liquidfarmingtypes.ModuleName)
 
 	return paramsKeeper
 }

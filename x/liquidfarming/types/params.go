@@ -64,7 +64,7 @@ func validateLiquidFarms(i interface{}) error {
 	// TODO: not implemented yet
 	// Do we allow 0 for minimum params?
 	for _, lf := range liquidFarms {
-		fmt.Println(lf)
+		fmt.Println("validate: ", lf)
 	}
 
 	return nil

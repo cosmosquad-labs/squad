@@ -24,6 +24,13 @@ type BankKeeper interface {
 	BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error
 }
 
+// FarmingKeeper defines the expected interface needed for the liquidfarming module to use.
+type FarmingKeeper interface {
+	Stake(ctx sdk.Context, farmerAcc sdk.AccAddress, amount sdk.Coins) error
+	Unstake(ctx sdk.Context, farmerAcc sdk.AccAddress, amount sdk.Coins) error
+	Harvest(ctx sdk.Context, farmerAcc sdk.AccAddress, stakingCoinDenoms []string) error
+}
+
 // LiquidityKeeper defines the expected interface needed to retrieve liquidity pools.
 type LiquidityKeeper interface {
 	GetPool(ctx sdk.Context, id uint64) (pool liquiditytypes.Pool, found bool)

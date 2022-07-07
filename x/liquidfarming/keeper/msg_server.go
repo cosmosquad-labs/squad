@@ -24,7 +24,7 @@ var _ types.MsgServer = msgServer{}
 func (m msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types.MsgDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := m.Keeper.Deposit(ctx, msg); err != nil {
+	if _, err := m.Keeper.Deposit(ctx, msg); err != nil {
 		return nil, err
 	}
 

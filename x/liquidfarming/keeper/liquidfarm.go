@@ -9,15 +9,15 @@ import (
 	"github.com/cosmosquad-labs/squad/x/liquidfarming/types"
 )
 
-// getNextDepositRequestIdWithUpdate increments the last deposit request id and returns it.
-func (k Keeper) getNextDepositRequestIdWithUpdate(ctx sdk.Context, poolId uint64) uint64 {
+// GetNextDepositRequestIdWithUpdate increments the last deposit request id and returns it.
+func (k Keeper) GetNextDepositRequestIdWithUpdate(ctx sdk.Context, poolId uint64) uint64 {
 	nextId := k.GetLastDepositRequestId(ctx, poolId) + 1
 	k.SetDepositRequestId(ctx, poolId, nextId)
 	return nextId
 }
 
 // Deposit handles types.MsgDeposit and makes a deposit.
-func (k Keeper) Deposit(ctx sdk.Context, msg *types.MsgDeposit) error {
+func (k Keeper) Deposit(ctx sdk.Context, msg *types.MsgDeposit) (types.DepositRequest, error) {
 	// Liquid farm that corresponds to the pool id must be registered in params
 	params := k.GetParams(ctx)
 	poolId := uint64(0)
@@ -28,29 +28,29 @@ func (k Keeper) Deposit(ctx sdk.Context, msg *types.MsgDeposit) error {
 		}
 	}
 	if poolId == 0 {
-		return types.ErrLiquidFarmNotFound
+		return types.DepositRequest{}, types.ErrLiquidFarmNotFound
 	}
 
 	// Pool with the given pool id must exist in order to proceed
 	pool, found := k.liquidityKeeper.GetPool(ctx, poolId)
 	if !found {
-		return types.ErrPoolNotFound
+		return types.DepositRequest{}, types.ErrPoolNotFound
 	}
 
 	// Check if the depositor has sufficient balance of deposit coin
 	spendable := k.bankKeeper.SpendableCoins(ctx, msg.GetDepositor())
 	poolCoinBalance := spendable.AmountOf(pool.PoolCoinDenom)
-	if !poolCoinBalance.LT(msg.DepositCoin.Amount) {
-		return sdkerrors.ErrInsufficientFunds
+	if poolCoinBalance.LT(msg.DepositCoin.Amount) {
+		return types.DepositRequest{}, sdkerrors.ErrInsufficientFunds
 	}
 
 	// Reserve the deposit coin to the liquid farm reserve account
 	if err := k.bankKeeper.SendCoins(ctx, msg.GetDepositor(), types.LiquidFarmReserveAddress(poolId), sdk.NewCoins(msg.DepositCoin)); err != nil {
-		return sdkerrors.Wrap(err, "failed to reserve deposit coin")
+		return types.DepositRequest{}, sdkerrors.Wrap(err, "failed to reserve deposit coin")
 	}
 
 	// Store deposit request
-	nextId := k.getNextDepositRequestIdWithUpdate(ctx, msg.PoolId)
+	nextId := k.GetNextDepositRequestIdWithUpdate(ctx, msg.PoolId)
 	req := types.NewDepositRequest(nextId, msg.PoolId, msg.Depositor, msg.DepositCoin)
 	k.SetDepositRequest(ctx, req)
 	k.SetDepositRequestIndex(ctx, req)
@@ -64,7 +64,7 @@ func (k Keeper) Deposit(ctx sdk.Context, msg *types.MsgDeposit) error {
 		),
 	})
 
-	return nil
+	return req, nil
 }
 
 // Cancel handles types.MsgCancel to cancel the deposit request.

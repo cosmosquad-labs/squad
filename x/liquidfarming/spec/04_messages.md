@@ -12,9 +12,9 @@ Creating new `LiquidFarm` is not possible by transaction message. It is expected
 
 ```go
 type MsgDeposit struct {
-    PoolId       uint64
-	Depositor    string
-	DepositCoin  sdk.Coin
+	PoolId      uint64
+	Depositor   string
+	DepositCoin sdk.Coin
 }
 ```
 

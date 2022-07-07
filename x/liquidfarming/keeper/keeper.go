@@ -17,6 +17,7 @@ type Keeper struct {
 	paramSpace      paramtypes.Subspace
 	accountKeeper   types.AccountKeeper
 	bankKeeper      types.BankKeeper
+	farmingKeeper   types.FarmingKeeper
 	liquidityKeeper types.LiquidityKeeper
 }
 
@@ -26,8 +27,9 @@ func NewKeeper(
 	paramSpace paramtypes.Subspace,
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
+	farmingKeeper types.FarmingKeeper,
 	liquidityKeeper types.LiquidityKeeper,
-) *Keeper {
+) Keeper {
 	// Ensure the module account is set
 	if addr := accountKeeper.GetModuleAddress(types.ModuleName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
@@ -38,12 +40,13 @@ func NewKeeper(
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
 
-	return &Keeper{
+	return Keeper{
 		cdc:             cdc,
 		storeKey:        storeKey,
 		paramSpace:      paramSpace,
 		accountKeeper:   accountKeeper,
 		bankKeeper:      bankKeeper,
+		farmingKeeper:   farmingKeeper,
 		liquidityKeeper: liquidityKeeper,
 	}
 }
