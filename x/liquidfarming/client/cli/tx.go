@@ -13,24 +13,24 @@ import (
 	"github.com/cosmosquad-labs/squad/x/liquidfarming/types"
 )
 
-// GetTxCmd returns a root CLI command handler for all x/farming transaction commands.
+// GetTxCmd returns the cli transaction commands for the module
 func GetTxCmd() *cobra.Command {
-	farmingTxCmd := &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      "Farming transaction subcommands",
+		Short:                      fmt.Sprintf("Transaction commands for the %s module", types.ModuleName),
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
 
-	farmingTxCmd.AddCommand(
+	cmd.AddCommand(
 		NewDepositCmd(),
 		NewCancelCmd(),
 		NewWithdrawCmd(),
 		// TODO: add NewPlaceBidCmd()
 	)
 
-	return farmingTxCmd
+	return cmd
 }
 
 // NewDepositCmd implements the deposit command handler.

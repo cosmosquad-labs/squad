@@ -14,7 +14,7 @@ import (
 	"github.com/cosmosquad-labs/squad/x/liquidfarming/types"
 )
 
-// GetQueryCmd returns the cli query commands for this module
+// GetQueryCmd returns the cli query commands for the module
 func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        types.ModuleName,

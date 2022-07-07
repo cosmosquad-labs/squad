@@ -1,7 +1,8 @@
 package types
 
 import (
-	fmt "fmt"
+	"strconv"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -36,10 +37,18 @@ func UnmarshalRewardsAuction(cdc codec.BinaryCodec, value []byte) (auction Rewar
 
 // SellingReserveAddress returns the selling reserve address with the given pool id.
 func SellingReserveAddress(poolId uint64) sdk.AccAddress {
-	return farmingtypes.DeriveAddress(ReserveAddressType, ModuleName, SellingReserveAddressPrefix+ModuleAddressNameSplitter+fmt.Sprint(poolId))
+	return farmingtypes.DeriveAddress(
+		ReserveAddressType,
+		ModuleName,
+		strings.Join([]string{SellingReserveAddressPrefix, strconv.FormatUint(poolId, 10)}, ModuleAddressNameSplitter),
+	)
 }
 
 // PayingReserveAddress returns the paying reserve address with the given pool id.
 func PayingReserveAddress(poolId uint64) sdk.AccAddress {
-	return farmingtypes.DeriveAddress(ReserveAddressType, ModuleName, PayingReserveAddressPrefix+ModuleAddressNameSplitter+fmt.Sprint(poolId))
+	return farmingtypes.DeriveAddress(
+		ReserveAddressType,
+		ModuleName,
+		strings.Join([]string{PayingReserveAddressPrefix, strconv.FormatUint(poolId, 10)}, ModuleAddressNameSplitter),
+	)
 }

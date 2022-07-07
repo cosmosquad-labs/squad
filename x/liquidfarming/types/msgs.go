@@ -113,9 +113,9 @@ func (msg MsgCancel) GetDepositor() sdk.AccAddress {
 }
 
 // NewMsgWithdraw returns a new MsgWithdraw.
-func NewMsgWithdraw(depositId uint64, withdrawer string, lfCoin sdk.Coin) *MsgWithdraw {
+func NewMsgWithdraw(poolId uint64, withdrawer string, lfCoin sdk.Coin) *MsgWithdraw {
 	return &MsgWithdraw{
-		DepositId:  depositId,
+		PoolId:     poolId,
 		Withdrawer: withdrawer,
 		LFCoin:     lfCoin,
 	}
@@ -129,8 +129,8 @@ func (msg MsgWithdraw) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Withdrawer); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid withdrawer address: %v", err)
 	}
-	if msg.DepositId == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid deposit id")
+	if msg.PoolId == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid pool id")
 	}
 	if !msg.LFCoin.IsPositive() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "withdrawing coin must be positive")

@@ -6,10 +6,10 @@ import (
 )
 
 // NewDepositRequest returns a new DepositRequest.
-func NewDepositRequest(id uint64, poolId uint64, depositor string, depositCoin sdk.Coin) DepositRequest {
+func NewDepositRequest(poolId uint64, depositReqId uint64, depositor string, depositCoin sdk.Coin) DepositRequest {
 	return DepositRequest{
-		Id:          id,
 		PoolId:      poolId,
+		Id:          depositReqId,
 		Depositor:   depositor,
 		DepositCoin: depositCoin,
 	}

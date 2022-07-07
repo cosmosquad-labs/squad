@@ -8,5 +8,7 @@ import (
 
 // x/liquidfarming module sentinel errors
 var (
-	ErrEmptyLiquidFarmRequests = sdkerrors.Register(ModuleName, 4, "submitted parameter liquid farm requests are empty")
+	ErrLiquidFarmNotFound     = sdkerrors.Register(ModuleName, 1, "liquid farm not found")
+	ErrPoolNotFound           = sdkerrors.Register(ModuleName, 2, "pool not found")
+	ErrDepositRequestNotFound = sdkerrors.Register(ModuleName, 3, "deposit request not found")
 )

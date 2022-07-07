@@ -21,7 +21,8 @@ const (
 
 // keys for the store prefixes
 var (
-	LastRewardsAuctionIdKey = []byte{0xe1} // key to retrieve the latest auction id
+	LastDepositRequestIdKeyPrefix = []byte{0xe1}
+	LastRewardsAuctionIdKey       = []byte{0xe2} // key to retrieve the latest auction id
 
 	DepositRequestKeyPrefix      = []byte{0xe4}
 	DepositRequestIndexKeyPrefix = []byte{0xe5}
@@ -29,9 +30,14 @@ var (
 	AuctionKeyPrefix = []byte{0xe8}
 )
 
+// GetLastDepositRequestIdKey returns the store key to retrieve the latest deposit request id.
+func GetLastDepositRequestIdKey(poolId uint64) []byte {
+	return append(LastDepositRequestIdKeyPrefix, sdk.Uint64ToBigEndian(poolId)...)
+}
+
 // GetDepositRequestKey returns the store key to retrieve deposit request object.
-func GetDepositRequestKey(reqId, poolId uint64) []byte {
-	return append(append(DepositRequestKeyPrefix, sdk.Uint64ToBigEndian(reqId)...), sdk.Uint64ToBigEndian(poolId)...)
+func GetDepositRequestKey(poolId, reqId uint64) []byte {
+	return append(append(DepositRequestKeyPrefix, sdk.Uint64ToBigEndian(poolId)...), sdk.Uint64ToBigEndian(reqId)...)
 }
 
 // GetDepositRequestIndexKey returns the index key to map deposit requests.

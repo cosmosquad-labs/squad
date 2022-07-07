@@ -2,6 +2,8 @@ package types
 
 import (
 	fmt "fmt"
+	"strconv"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -45,5 +47,9 @@ func LFCoinDenom(poolId uint64) string {
 
 // LiquidFarmReserveAddress returns the reserve address for a liquid farm with the given pool id.
 func LiquidFarmReserveAddress(poolId uint64) sdk.AccAddress {
-	return farmingtypes.DeriveAddress(ReserveAddressType, ModuleName, LiquidFarmReserveAccPrefix+ModuleAddressNameSplitter+fmt.Sprint(poolId))
+	return farmingtypes.DeriveAddress(
+		ReserveAddressType,
+		ModuleName,
+		strings.Join([]string{LiquidFarmReserveAccPrefix, strconv.FormatUint(poolId, 10)}, ModuleAddressNameSplitter),
+	)
 }

@@ -12,11 +12,12 @@ import (
 )
 
 type Keeper struct {
-	cdc           codec.BinaryCodec
-	storeKey      sdk.StoreKey
-	paramSpace    paramtypes.Subspace
-	accountKeeper types.AccountKeeper
-	bankKeeper    types.BankKeeper
+	cdc             codec.BinaryCodec
+	storeKey        sdk.StoreKey
+	paramSpace      paramtypes.Subspace
+	accountKeeper   types.AccountKeeper
+	bankKeeper      types.BankKeeper
+	liquidityKeeper types.LiquidityKeeper
 }
 
 func NewKeeper(
@@ -25,6 +26,7 @@ func NewKeeper(
 	paramSpace paramtypes.Subspace,
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
+	liquidityKeeper types.LiquidityKeeper,
 ) *Keeper {
 	// Ensure the module account is set
 	if addr := accountKeeper.GetModuleAddress(types.ModuleName); addr == nil {
@@ -37,11 +39,12 @@ func NewKeeper(
 	}
 
 	return &Keeper{
-		cdc:           cdc,
-		storeKey:      storeKey,
-		paramSpace:    paramSpace,
-		accountKeeper: accountKeeper,
-		bankKeeper:    bankKeeper,
+		cdc:             cdc,
+		storeKey:        storeKey,
+		paramSpace:      paramSpace,
+		accountKeeper:   accountKeeper,
+		bankKeeper:      bankKeeper,
+		liquidityKeeper: liquidityKeeper,
 	}
 }
 

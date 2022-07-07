@@ -57,7 +57,7 @@ message MsgCancelResponse {}
 message MsgWithdraw {
   option (gogoproto.goproto_getters) = false;
 
-  uint64 deposit_id = 1;
+  uint64 pool_id = 1;
 
   string withdrawer = 2;
 
