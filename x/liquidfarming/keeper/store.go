@@ -85,6 +85,15 @@ func (k Keeper) GetDepositRequest(ctx sdk.Context, poolId, reqId uint64) (req ty
 	return req, true
 }
 
+// GetDepositRequestsByDepositor returns deposit requests by the depositor.
+func (k Keeper) GetDepositRequestsByDepositor(ctx sdk.Context, depositor sdk.AccAddress) (reqs []types.DepositRequest) {
+	_ = k.IterateDepositRequestsByDepositor(ctx, depositor, func(req types.DepositRequest) (stop bool, err error) {
+		reqs = append(reqs, req)
+		return false, nil
+	})
+	return
+}
+
 // SetDepositRequest stores deposit request for the batch execution.
 func (k Keeper) SetDepositRequest(ctx sdk.Context, req types.DepositRequest) {
 	store := ctx.KVStore(k.storeKey)
@@ -136,6 +145,26 @@ func (k Keeper) GetRewardsAuctions(ctx sdk.Context) (auctions []types.RewardsAuc
 		return false
 	})
 	return auctions
+}
+
+// IterateDepositRequestsByDepositor iterates through deposit requests in the
+// store by a depositor and call cb on each order.
+func (k Keeper) IterateDepositRequestsByDepositor(ctx sdk.Context, depositor sdk.AccAddress, cb func(req types.DepositRequest) (stop bool, err error)) error {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, types.GetDepositRequestIndexKeyPrefix(depositor))
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		_, poolId, reqId := types.ParseDepositRequestIndexKey(iter.Key())
+		req, _ := k.GetDepositRequest(ctx, poolId, reqId)
+		stop, err := cb(req)
+		if err != nil {
+			return err
+		}
+		if stop {
+			break
+		}
+	}
+	return nil
 }
 
 // IterateRewardsAuctions iterates over all the stored auctions and performs a callback function.

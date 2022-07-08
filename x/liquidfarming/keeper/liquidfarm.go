@@ -21,19 +21,25 @@ func (k Keeper) Deposit(ctx sdk.Context, msg *types.MsgDeposit) (types.DepositRe
 	// Liquid farm that corresponds to the pool id must be registered in params
 	params := k.GetParams(ctx)
 	poolId := uint64(0)
+	minDepositAmt := sdk.ZeroInt()
 	for _, liquidFarm := range params.LiquidFarms {
 		if liquidFarm.PoolId == msg.PoolId {
 			poolId = liquidFarm.PoolId
+			minDepositAmt = liquidFarm.MinimumDepositAmount
 			break
 		}
 	}
 	if poolId == 0 {
 		return types.DepositRequest{}, types.ErrLiquidFarmNotFound
 	}
+	if msg.DepositCoin.Amount.LT(minDepositAmt) {
+		return types.DepositRequest{}, sdkerrors.Wrapf(types.ErrInsufficientDepositAmount, "%s is smaller than %s", msg.DepositCoin.Amount, minDepositAmt)
+	}
 
-	// TODO:
-	// 1. check validation for minimum deposit amount
-	// 2. impose delayed deposit gas fee
+	// TODO: impose deposit gas fee if the depositor has already deposit requests
+	// for _, req := range k.GetDepositRequestsByDepositor(ctx, msg.GetDepositor()) {
+
+	// }
 
 	// Pool with the given pool id must exist in order to proceed
 	pool, found := k.liquidityKeeper.GetPool(ctx, poolId)

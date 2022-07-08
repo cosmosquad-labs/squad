@@ -1,6 +1,8 @@
 package types
 
 import (
+	"bytes"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 )
@@ -52,7 +54,26 @@ func GetDepositRequestIndexKey(depositor sdk.AccAddress, poolId, reqId uint64) [
 		sdk.Uint64ToBigEndian(poolId)...), sdk.Uint64ToBigEndian(reqId)...)
 }
 
+// GetDepositRequestIndexKeyPrefix returns the index key prefix to iterate
+// deposit requests by a depositor.
+func GetDepositRequestIndexKeyPrefix(depositor sdk.AccAddress) []byte {
+	return append(DepositRequestIndexKeyPrefix, address.MustLengthPrefix(depositor)...)
+}
+
 // GetRewardsAuctionKey returns the store key to retrieve rewards auction object.
 func GetRewardsAuctionKey(poolId, auctionId uint64) []byte {
 	return append(append(AuctionKeyPrefix, sdk.Uint64ToBigEndian(poolId)...), sdk.Uint64ToBigEndian(auctionId)...)
+}
+
+// ParseDepositRequestIndexKey parses a deposit request index key.
+func ParseDepositRequestIndexKey(key []byte) (depositor sdk.AccAddress, poolId, reqId uint64) {
+	if !bytes.HasPrefix(key, DepositRequestIndexKeyPrefix) {
+		panic("key does not have proper prefix")
+	}
+
+	addrLen := key[1]
+	depositor = key[2 : 2+addrLen]
+	poolId = sdk.BigEndianToUint64(key[2+addrLen : 2+addrLen+8])
+	reqId = sdk.BigEndianToUint64(key[2+addrLen+8:])
+	return
 }

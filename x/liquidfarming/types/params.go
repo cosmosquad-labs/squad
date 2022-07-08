@@ -66,10 +66,13 @@ func validateLiquidFarms(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	// TODO: not implemented yet
-	// Do we allow 0 for minimum params?
-	for _, lf := range liquidFarms {
-		fmt.Println("validate: ", lf)
+	for _, liquidFarm := range liquidFarms {
+		if liquidFarm.MinimumBidAmount.IsNegative() {
+			return fmt.Errorf("minimum bid amount can't be negative value: %s", liquidFarm.MinimumBidAmount)
+		}
+		if liquidFarm.MinimumDepositAmount.IsNegative() {
+			return fmt.Errorf("minimum deposit amount can't be negative value: %s", liquidFarm.MinimumBidAmount)
+		}
 	}
 
 	return nil
