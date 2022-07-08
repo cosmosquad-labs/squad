@@ -30,6 +30,28 @@ func (k Keeper) Params(c context.Context, req *types.QueryParamsRequest) (*types
 	return &types.QueryParamsResponse{Params: k.GetParams(ctx)}, nil
 }
 
+// LiquidFarms queries all deposit requests.
+func (k Keeper) LiquidFarms(c context.Context, req *types.QueryLiquidFarmsRequest) (*types.QueryLiquidFarmsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	// TODO: not implemented yet
+
+	return &types.QueryLiquidFarmsResponse{}, nil
+}
+
+// LiquidFarm queries the specific liquidfarm.
+func (k Keeper) LiquidFarm(c context.Context, req *types.QueryLiquidFarmRequest) (*types.QueryLiquidFarmResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	// TODO: not implemented yet
+
+	return &types.QueryLiquidFarmResponse{}, nil
+}
+
 // DepositRequests queries all deposit requests.
 func (k Keeper) DepositRequests(c context.Context, req *types.QueryDepositRequestsRequest) (*types.QueryDepositRequestsResponse, error) {
 	if req == nil {

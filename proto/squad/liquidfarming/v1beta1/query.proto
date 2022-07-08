@@ -17,6 +17,14 @@ service Query {
     option (google.api.http).get = "/squad/liquidfarming/v1beta1/params";
   }
 
+  rpc LiquidFarms(QueryLiquidFarmsRequest) returns (QueryLiquidFarmsResponse) {
+    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/liquidfarms";
+  }
+
+  rpc LiquidFarm(QueryLiquidFarmRequest) returns (QueryLiquidFarmResponse) {
+    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/pools/liquidfarms/{pool_id}";
+  }
+
   rpc DepositRequests(QueryDepositRequestsRequest) returns (QueryDepositRequestsResponse) {
     option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/pools/{pool_id}/deposit_requests";
   }
@@ -40,6 +48,26 @@ service Query {
   rpc RewardsAuction(QueryRewardsAuctionRequest) returns (QueryRewardsAuctionResponse) {
     option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/auctions/{auction_id}";
   }
+}
+
+// QueryLiquidFarmsRequest is the request type for the Query/LiquidFarms RPC method.
+message QueryLiquidFarmsRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+// QueryLiquidFarmsResponse is response type for the Query/LiquidFarms RPC method.
+message QueryLiquidFarmsResponse {
+  repeated LiquidFarmResponse liquid_farms = 1 [ (gogoproto.nullable) = false ];
+}
+
+// QueryLiquidFarmRequest is the request type for the Query/LiquidFarm RPC method.
+message QueryLiquidFarmRequest {
+  uint64 pool_id = 1;
+}
+
+// QueryLiquidFarmResponse is response type for the Query/LiquidFarm RPC method.
+message QueryLiquidFarmResponse {
+  LiquidFarmResponse liquid_farm = 1 [ (gogoproto.nullable) = false ];
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -117,4 +145,27 @@ message QueryRewardsAuctionRequest {
 // QueryRewardsAuctionResponse is response type for the Query/RewardsAuction RPC method.
 message QueryRewardsAuctionResponse {
   RewardsAuction reward_auction = 1 [ (gogoproto.nullable) = false ];
+}
+
+//
+// Custom response messages
+//
+
+// LiquidFarmResponse is response type for the Query/LiquidFarm RPC method.
+message LiquidFarmResponse {
+	uint64 pool_id = 1;
+	
+  string liquid_farm_reserve_address = 2;
+
+  string LFCoinDenom = 3 [(gogoproto.customname) = "LFCoinDenom"];
+  
+  cosmos.base.v1beta1.Coin staked_coin = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"
+  ];
+	
+  cosmos.base.v1beta1.Coin queued_coin = 5 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"
+  ];
 }
