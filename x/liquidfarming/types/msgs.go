@@ -14,10 +14,11 @@ var (
 
 // Message types for the farming module
 const (
-	TypeMsgDeposit  = "deposit"
-	TypeMsgCancel   = "cancel"
-	TypeMsgWithdraw = "withdraw"
-	TypeMsgPlaceBid = "place_bid"
+	TypeMsgDeposit   = "deposit"
+	TypeMsgCancel    = "cancel"
+	TypeMsgWithdraw  = "withdraw"
+	TypeMsgPlaceBid  = "place_bid"
+	TypeMsgRefundBid = "refund_bid"
 )
 
 // NewMsgDeposit returns a new MsgDeposit.
@@ -203,6 +204,51 @@ func (msg MsgPlaceBid) GetSigners() []sdk.AccAddress {
 }
 
 func (msg MsgPlaceBid) GetBidder() sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(msg.Bidder)
+	if err != nil {
+		panic(err)
+	}
+	return addr
+}
+
+func NewMsgRefundBid(auctionId, bidId uint64, bidder string) *MsgRefundBid {
+	return &MsgRefundBid{
+		AuctionId: auctionId,
+		BidId:     bidId,
+		Bidder:    bidder,
+	}
+}
+
+func (msg MsgRefundBid) Route() string { return RouterKey }
+
+func (msg MsgRefundBid) Type() string { return TypeMsgRefundBid }
+
+func (msg MsgRefundBid) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Bidder); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid bidder address: %v", err)
+	}
+	if msg.AuctionId == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid auction id")
+	}
+	if msg.BidId == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid bid id")
+	}
+	return nil
+}
+
+func (msg MsgRefundBid) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&msg))
+}
+
+func (msg MsgRefundBid) GetSigners() []sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(msg.Bidder)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr}
+}
+
+func (msg MsgRefundBid) GetBidder() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.Bidder)
 	if err != nil {
 		panic(err)

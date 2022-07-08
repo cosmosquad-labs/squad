@@ -3,6 +3,7 @@ package squad.liquidfarming.v1beta1;
 
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
 
 option go_package = "github.com/cosmosquad-labs/squad/x/liquidfarming/types";
 
@@ -19,6 +20,9 @@ service Msg {
 
   // PlaceBid defines a method for placing a bid for a rewards auction
   rpc PlaceBid(MsgPlaceBid) returns (MsgPlaceBidResponse);
+
+  // RefundBid defines a method for refunding the bid that is not winning for the auction
+  rpc RefundBid(MsgRefundBid) returns (MsgRefundBidResponse);
 }
 
 // MsgDeposit defines a SDK message for depositing pool coin.
@@ -87,3 +91,17 @@ message MsgPlaceBid {
 
 // MsgPlaceBidResponse defines the MsgPlaceBidResponse response type.
 message MsgPlaceBidResponse {}
+
+// MsgRefundBid defines a SDK message for refunding the bid that is not winning for the auction.
+message MsgRefundBid {
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 auction_id = 1;
+
+  uint64 bid_id = 2;
+
+  string bidder = 3;
+}
+
+// MsgRefundBidResponse defines the MsgRefundBidResponse response type.
+message MsgRefundBidResponse {}

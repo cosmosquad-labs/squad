@@ -63,3 +63,14 @@ func (m msgServer) PlaceBid(goCtx context.Context, msg *types.MsgPlaceBid) (*typ
 
 	return &types.MsgPlaceBidResponse{}, nil
 }
+
+// RefundBid defines a method for refunding the bid that is not winning for the auction.
+func (m msgServer) RefundBid(goCtx context.Context, msg *types.MsgRefundBid) (*types.MsgRefundBidResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if err := m.Keeper.RefundBid(ctx, msg); err != nil {
+		return nil, err
+	}
+
+	return &types.MsgRefundBidResponse{}, nil
+}

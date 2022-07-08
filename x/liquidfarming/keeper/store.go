@@ -30,6 +30,28 @@ func (k Keeper) SetDepositRequestId(ctx sdk.Context, poolId uint64, reqId uint64
 	store.Set(types.GetLastDepositRequestIdKey(poolId), bz)
 }
 
+// GetLastBidId returns the last bid id for the bid.
+func (k Keeper) GetLastBidId(ctx sdk.Context, auctionId uint64) uint64 {
+	var id uint64
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetLastBidIdKey(auctionId))
+	if bz == nil {
+		id = 0 // initialize the bid id
+	} else {
+		val := gogotypes.UInt64Value{}
+		k.cdc.MustUnmarshal(bz, &val)
+		id = val.GetValue()
+	}
+	return id
+}
+
+// SetBidId sets the bid id for the auction.
+func (k Keeper) SetBidId(ctx sdk.Context, auctionId uint64, bidId uint64) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&gogotypes.UInt64Value{Value: bidId})
+	store.Set(types.GetLastBidIdKey(auctionId), bz)
+}
+
 // GetRewardsAuctionId returns the last auction id.
 func (k Keeper) GetRewardsAuctionId(ctx sdk.Context) uint64 {
 	var id uint64

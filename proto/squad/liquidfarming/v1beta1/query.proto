@@ -1,8 +1,11 @@
 syntax = "proto3";
 package squad.liquidfarming.v1beta1;
 
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos/base/v1beta1/coin.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
+import "squad/liquidfarming/v1beta1/liquidfarming.proto";
 import "squad/liquidfarming/v1beta1/params.proto";
 
 option go_package = "github.com/cosmosquad-labs/squad/x/liquidfarming/types";
@@ -13,6 +16,30 @@ service Query {
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/squad/liquidfarming/v1beta1/params";
   }
+
+  rpc DepositRequests(QueryDepositRequestsRequest) returns (QueryDepositRequestsResponse) {
+    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/pools/{pool_id}/deposit_requests";
+  }
+
+  rpc DepositRequest(QueryDepositRequestRequest) returns (QueryDepositRequestResponse) {
+    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/pools/{pool_id}/deposit_requests/{request_id}";
+  }
+  
+  rpc Bids(QueryBidsRequest) returns (QueryBidsResponse) {
+    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/auctions/{auction_id}/bids";
+  }
+  
+  rpc Bid(QueryBidRequest) returns (QueryBidResponse) {
+    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/auctions/{auction_id}/bids/{bid_id}";
+  }
+  
+  rpc RewardsAuctions(QueryRewardsAuctionsRequest) returns (QueryRewardsAuctionsResponse) {
+    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/auctions";
+  }
+  
+  rpc RewardsAuction(QueryRewardsAuctionRequest) returns (QueryRewardsAuctionResponse) {
+    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/auctions/{auction_id}";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -21,4 +48,73 @@ message QueryParamsRequest {}
 // QueryParamsResponse is response type for the Query/Params RPC method.
 message QueryParamsResponse {
   Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryDepositRequestsRequest is request type for the Query/DepositRequests RPC method.
+message QueryDepositRequestsRequest {
+  uint64 pool_id = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryDepositRequestsResponse is response type for the Query/DepositRequests RPC method.
+message QueryDepositRequestsResponse {
+  repeated DepositRequest deposit_requests = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryDepositRequestRequest is request type for the Query/DepositRequest RPC method.
+message QueryDepositRequestRequest {
+  uint64 pool_id = 1;
+  uint64 request_id = 2;
+}
+
+// QueryDepositRequestResponse is response type for the Query/DepositRequest RPC method.
+message QueryDepositRequestResponse {
+  DepositRequest deposit_request = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryBidsRequest is request type for the Query/Bids RPC method.
+message QueryBidsRequest {
+  uint64 auction_id = 1;
+  string bidder = 2;
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
+}
+
+// QueryBidsResponse is response type for the Query/Bids RPC method.
+message QueryBidsResponse {
+  repeated Bid bids = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryBidRequest is the request type for the Query/Sequence RPC method.
+message QueryBidRequest {
+  uint64 auction_id = 1;
+  uint64 bid_id = 2;
+}
+
+// QueryBidResponse is response type for the Query/Sequence RPC method.
+message QueryBidResponse {
+  Bid bid = 1 [ (gogoproto.nullable) = false ];
+}
+
+// QueryRewardsAuctionsRequest is request type for the Query/RewardsAuctions RPC method.
+message QueryRewardsAuctionsRequest {
+  uint64 auction_id = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryRewardsAuctionsResponse is response type for the Query/RewardsAuctions RPC method.
+message QueryRewardsAuctionsResponse {
+  repeated RewardsAuction reward_auctions = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryRewardsAuctionRequest is the request type for the Query/RewardsAuction RPC method.
+message QueryRewardsAuctionRequest {
+  uint64 auction_id = 1;
+}
+
+// QueryRewardsAuctionResponse is response type for the Query/RewardsAuction RPC method.
+message QueryRewardsAuctionResponse {
+  RewardsAuction reward_auction = 1 [ (gogoproto.nullable) = false ];
 }

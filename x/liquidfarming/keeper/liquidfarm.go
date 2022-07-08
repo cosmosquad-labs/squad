@@ -31,6 +31,10 @@ func (k Keeper) Deposit(ctx sdk.Context, msg *types.MsgDeposit) (types.DepositRe
 		return types.DepositRequest{}, types.ErrLiquidFarmNotFound
 	}
 
+	// TODO:
+	// 1. check validation for minimum deposit amount
+	// 2. impose delayed deposit gas fee
+
 	// Pool with the given pool id must exist in order to proceed
 	pool, found := k.liquidityKeeper.GetPool(ctx, poolId)
 	if !found {
@@ -107,6 +111,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, msg *types.MsgWithdraw) error {
 		lfCoinBalance := k.bankKeeper.GetSupply(ctx, types.LFCoinDenom(poolId))
 
 		// WithdrawnCoin = LPCoinTotalStaked / LFCoinTotalSupply * WithdrawingAmount * (1 - WithdrawFee)
+		// Reference liquidstaking calculation logic
 		withdrawFee := sdk.NewInt(0) // TODO: TBD
 		withdrawnAmt := poolCoinBalance.Quo(lfCoinBalance.Amount).Mul(msg.LFCoin.Amount).Mul(sdk.OneInt().Sub(withdrawFee))
 		withdrawnCoin = sdk.NewCoin(pool.PoolCoinDenom, withdrawnAmt)
