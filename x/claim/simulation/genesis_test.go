@@ -13,9 +13,9 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	banksimulation "github.com/cosmos/cosmos-sdk/x/bank/simulation"
 
-	utils "github.com/cosmosquad-labs/squad/types"
-	"github.com/cosmosquad-labs/squad/x/claim/simulation"
-	"github.com/cosmosquad-labs/squad/x/claim/types"
+	utils "github.com/cosmosquad-labs/squad/v2/types"
+	"github.com/cosmosquad-labs/squad/v2/x/claim/simulation"
+	"github.com/cosmosquad-labs/squad/v2/x/claim/types"
 )
 
 // TestRandomizedGenState tests the normal scenario of applying RandomizedGenState.

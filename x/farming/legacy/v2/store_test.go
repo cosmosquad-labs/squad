@@ -8,11 +8,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
 
-	chain "github.com/cosmosquad-labs/squad/app"
-	utils "github.com/cosmosquad-labs/squad/types"
-	v1farming "github.com/cosmosquad-labs/squad/x/farming/legacy/v1"
-	v2farming "github.com/cosmosquad-labs/squad/x/farming/legacy/v2"
-	"github.com/cosmosquad-labs/squad/x/farming/types"
+	chain "github.com/cosmosquad-labs/squad/v2/app"
+	utils "github.com/cosmosquad-labs/squad/v2/types"
+	v1farming "github.com/cosmosquad-labs/squad/v2/x/farming/legacy/v1"
+	v2farming "github.com/cosmosquad-labs/squad/v2/x/farming/legacy/v2"
+	"github.com/cosmosquad-labs/squad/v2/x/farming/types"
 )
 
 func TestMigrateQueuedStaking(t *testing.T) {

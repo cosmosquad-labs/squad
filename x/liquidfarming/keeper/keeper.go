@@ -8,7 +8,7 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/cosmosquad-labs/squad/x/liquidfarming/types"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidfarming/types"
 )
 
 type Keeper struct {

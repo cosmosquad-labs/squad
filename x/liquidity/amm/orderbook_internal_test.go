@@ -8,7 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	utils "github.com/cosmosquad-labs/squad/types"
+	utils "github.com/cosmosquad-labs/squad/v2/types"
 )
 
 func newOrder(dir OrderDirection, price sdk.Dec, amt sdk.Int) *BaseOrder {

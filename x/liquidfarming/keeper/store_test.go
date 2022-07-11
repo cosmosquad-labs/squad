@@ -2,7 +2,7 @@ package keeper_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmosquad-labs/squad/x/liquidfarming/types"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidfarming/types"
 
 	_ "github.com/stretchr/testify/suite"
 )

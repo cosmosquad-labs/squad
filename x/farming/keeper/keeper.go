@@ -10,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	"github.com/cosmosquad-labs/squad/x/farming/types"
+	"github.com/cosmosquad-labs/squad/v2/x/farming/types"
 )
 
 var (
@@ -47,6 +47,7 @@ type Keeper struct {
 
 	bankKeeper    types.BankKeeper
 	accountKeeper types.AccountKeeper
+	hooks         types.FarmingHooks
 }
 
 // NewKeeper returns a farming keeper. It handles:
@@ -73,6 +74,17 @@ func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Su
 		accountKeeper: accountKeeper,
 		bankKeeper:    bankKeeper,
 	}
+}
+
+// SetHooks sets the farming hooks.
+func (k *Keeper) SetHooks(fh types.FarmingHooks) *Keeper {
+	if k.hooks != nil {
+		panic("cannot set farming hooks twice")
+	}
+
+	k.hooks = fh
+
+	return k
 }
 
 // Logger returns a module-specific logger.

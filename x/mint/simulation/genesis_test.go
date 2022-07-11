@@ -14,9 +14,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	chain "github.com/cosmosquad-labs/squad/app"
-	"github.com/cosmosquad-labs/squad/x/mint/simulation"
-	"github.com/cosmosquad-labs/squad/x/mint/types"
+	chain "github.com/cosmosquad-labs/squad/v2/app"
+	"github.com/cosmosquad-labs/squad/v2/x/mint/simulation"
+	"github.com/cosmosquad-labs/squad/v2/x/mint/types"
 )
 
 // TestRandomizedGenState tests the normal scenario of applying RandomizedGenState.

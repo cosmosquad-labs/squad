@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cosmosquad-labs/squad/x/farming"
-	"github.com/cosmosquad-labs/squad/x/farming/types"
+	"github.com/cosmosquad-labs/squad/v2/x/farming"
+	"github.com/cosmosquad-labs/squad/v2/x/farming/types"
 
 	_ "github.com/stretchr/testify/suite"
 )

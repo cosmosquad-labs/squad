@@ -10,10 +10,10 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	appparams "github.com/cosmosquad-labs/squad/app/params"
-	utils "github.com/cosmosquad-labs/squad/types"
-	"github.com/cosmosquad-labs/squad/x/liquidstaking/keeper"
-	"github.com/cosmosquad-labs/squad/x/liquidstaking/types"
+	appparams "github.com/cosmosquad-labs/squad/v2/app/params"
+	utils "github.com/cosmosquad-labs/squad/v2/types"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidstaking/keeper"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidstaking/types"
 )
 
 // Simulation operation weights constants.

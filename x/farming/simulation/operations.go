@@ -12,11 +12,11 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	appparams "github.com/cosmosquad-labs/squad/app/params"
-	utils "github.com/cosmosquad-labs/squad/types"
-	farmingkeeper "github.com/cosmosquad-labs/squad/x/farming/keeper"
-	farmingtypes "github.com/cosmosquad-labs/squad/x/farming/types"
-	minttypes "github.com/cosmosquad-labs/squad/x/mint/types"
+	appparams "github.com/cosmosquad-labs/squad/v2/app/params"
+	utils "github.com/cosmosquad-labs/squad/v2/types"
+	farmingkeeper "github.com/cosmosquad-labs/squad/v2/x/farming/keeper"
+	farmingtypes "github.com/cosmosquad-labs/squad/v2/x/farming/types"
+	minttypes "github.com/cosmosquad-labs/squad/v2/x/mint/types"
 )
 
 // Simulation operation weights constants.

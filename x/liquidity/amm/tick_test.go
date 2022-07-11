@@ -8,8 +8,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	utils "github.com/cosmosquad-labs/squad/types"
-	"github.com/cosmosquad-labs/squad/x/liquidity/amm"
+	utils "github.com/cosmosquad-labs/squad/v2/types"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidity/amm"
 )
 
 const defTickPrec = amm.TickPrecision(3)

@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	liquiditytypes "github.com/cosmosquad-labs/squad/x/liquidity/types"
+	liquiditytypes "github.com/cosmosquad-labs/squad/v2/x/liquidity/types"
 )
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)

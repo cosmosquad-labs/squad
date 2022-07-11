@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	gogotypes "github.com/gogo/protobuf/types"
 
-	"github.com/cosmosquad-labs/squad/x/farming/types"
+	"github.com/cosmosquad-labs/squad/v2/x/farming/types"
 )
 
 // GetHistoricalRewards returns historical rewards for a given
@@ -606,6 +606,9 @@ func (k Keeper) AllocateRewards(ctx sdk.Context) error {
 		})
 		k.SetCurrentEpoch(ctx, stakingCoinDenom, currentEpoch+1)
 	}
+
+	// Call hook after successfully allocating rewards
+	k.AfterAllocateRewards(ctx)
 
 	return nil
 }

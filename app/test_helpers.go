@@ -38,8 +38,8 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	simappparams "github.com/cosmosquad-labs/squad/app/params"
-	minttypes "github.com/cosmosquad-labs/squad/x/mint/types"
+	simappparams "github.com/cosmosquad-labs/squad/v2/app/params"
+	minttypes "github.com/cosmosquad-labs/squad/v2/x/mint/types"
 )
 
 // DefaultConsensusParams defines the default Tendermint consensus params used in

@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
 
-	"github.com/cosmosquad-labs/squad/x/liquidfarming/types"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidfarming/types"
 )
 
 // GetQueryCmd returns the cli query commands for the module

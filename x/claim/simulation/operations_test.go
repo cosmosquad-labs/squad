@@ -11,9 +11,9 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	chain "github.com/cosmosquad-labs/squad/app"
-	"github.com/cosmosquad-labs/squad/x/claim/simulation"
-	"github.com/cosmosquad-labs/squad/x/claim/types"
+	chain "github.com/cosmosquad-labs/squad/v2/app"
+	"github.com/cosmosquad-labs/squad/v2/x/claim/simulation"
+	"github.com/cosmosquad-labs/squad/v2/x/claim/types"
 )
 
 func TestSimulateMsgClaim(t *testing.T) {

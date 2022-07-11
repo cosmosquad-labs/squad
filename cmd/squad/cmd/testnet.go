@@ -17,7 +17,7 @@ import (
 	"github.com/tendermint/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
-	chain "github.com/cosmosquad-labs/squad/app"
+	chain "github.com/cosmosquad-labs/squad/v2/app"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"

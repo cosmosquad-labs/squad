@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	v2 "github.com/cosmosquad-labs/squad/x/farming/legacy/v2"
+	v2 "github.com/cosmosquad-labs/squad/v2/x/farming/legacy/v2"
 )
 
 type Migrator struct {

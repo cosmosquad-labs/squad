@@ -1,8 +1,8 @@
 package keeper_test
 
 import (
-	utils "github.com/cosmosquad-labs/squad/types"
-	"github.com/cosmosquad-labs/squad/x/claim/types"
+	utils "github.com/cosmosquad-labs/squad/v2/types"
+	"github.com/cosmosquad-labs/squad/v2/x/claim/types"
 
 	_ "github.com/stretchr/testify/suite"
 )

@@ -16,9 +16,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmosquad-labs/squad/x/liquidfarming/client/cli"
-	"github.com/cosmosquad-labs/squad/x/liquidfarming/keeper"
-	"github.com/cosmosquad-labs/squad/x/liquidfarming/types"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidfarming/client/cli"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidfarming/keeper"
+	"github.com/cosmosquad-labs/squad/v2/x/liquidfarming/types"
 )
 
 var (

@@ -6,7 +6,7 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/cosmosquad-labs/squad/x/mint/types"
+	"github.com/cosmosquad-labs/squad/v2/x/mint/types"
 )
 
 // Keeper of the mint store

@@ -8,7 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	farmingtypes "github.com/cosmosquad-labs/squad/x/farming/types"
+	farmingtypes "github.com/cosmosquad-labs/squad/v2/x/farming/types"
 )
 
 func (pair Pair) GetEscrowAddress() sdk.AccAddress {

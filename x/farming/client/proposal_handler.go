@@ -3,8 +3,8 @@ package client
 import (
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 
-	"github.com/cosmosquad-labs/squad/x/farming/client/cli"
-	"github.com/cosmosquad-labs/squad/x/farming/client/rest"
+	"github.com/cosmosquad-labs/squad/v2/x/farming/client/cli"
+	"github.com/cosmosquad-labs/squad/v2/x/farming/client/rest"
 )
 
 // ProposalHandler is the public plan command handler.
