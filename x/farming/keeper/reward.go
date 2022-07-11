@@ -607,6 +607,9 @@ func (k Keeper) AllocateRewards(ctx sdk.Context) error {
 		k.SetCurrentEpoch(ctx, stakingCoinDenom, currentEpoch+1)
 	}
 
+	// Call hook after successfully allocating rewards
+	k.AfterAllocateRewards(ctx)
+
 	return nil
 }
 
