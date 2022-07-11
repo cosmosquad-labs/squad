@@ -77,12 +77,12 @@ func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Su
 }
 
 // SetHooks sets the farming hooks.
-func (k *Keeper) SetHooks(fk types.FarmingHooks) *Keeper {
+func (k *Keeper) SetHooks(fh types.FarmingHooks) *Keeper {
 	if k.hooks != nil {
 		panic("cannot set farming hooks twice")
 	}
 
-	k.hooks = fk
+	k.hooks = fh
 
 	return k
 }

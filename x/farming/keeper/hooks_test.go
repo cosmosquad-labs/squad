@@ -8,7 +8,7 @@ import (
 	_ "github.com/stretchr/testify/suite"
 )
 
-var _ types.FarmingHooks = &MockFarmingHooksReceiver{}
+var _ types.FarmingHooks = (*MockFarmingHooksReceiver)(nil)
 
 // MockFarmingHooksReceiver event hooks for farming object (noalias)
 type MockFarmingHooksReceiver struct {
