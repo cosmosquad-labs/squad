@@ -9,14 +9,14 @@ option go_package = "github.com/cosmosquad-labs/squad/x/liquidfarming/types";
 
 // Msg defines the Msg service.
 service Msg {
-  // Deposit defines a method for depositing pool coin for a liquid farm
-  rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
+  // Farm defines a method for farming pool coin for a liquid farm
+  rpc Farm(MsgFarm) returns (MsgFarmResponse);
 
-  // Cancel defines a method for canceling the deposit request
-  rpc Cancel(MsgCancel) returns (MsgCancelResponse);
+  // CancelQueuedFarming defines a method for canceling the queueud farming
+  rpc CancelQueuedFarming(MsgCancelQueuedFarming) returns (MsgCancelQueuedFarmingResponse);
   
-  // Withdraw defines a method for withdrawing amount of LFCoin
-  rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
+  // Unfarm defines a method for unfarming amount of LFCoin
+  rpc Unfarm(MsgUnfarm) returns (MsgUnfarmResponse);
 
   // PlaceBid defines a method for placing a bid for a rewards auction
   rpc PlaceBid(MsgPlaceBid) returns (MsgPlaceBidResponse);
@@ -25,8 +25,8 @@ service Msg {
   rpc RefundBid(MsgRefundBid) returns (MsgRefundBidResponse);
 }
 
-// MsgDeposit defines a SDK message for depositing pool coin.
-message MsgDeposit {
+// MsgFarm defines a SDK message for farming pool coin for a liquid farm.
+message MsgFarm {
   option (gogoproto.goproto_getters) = false;
 
   uint64 pool_id = 1;
@@ -39,12 +39,12 @@ message MsgDeposit {
   ];
 }
 
-// MsgDepositResponse defines the MsgDepositResponse response type.
-message MsgDepositResponse {}
+// MsgFarmResponse defines the MsgFarmResponse response type.
+message MsgFarmResponse {}
 
 
-// MsgCancel defines a SDK message for canceling the deposit request.
-message MsgCancel {
+// MsgCancelQueuedFarming defines a SDK message for canceling the queued farming.
+message MsgCancelQueuedFarming {
   option (gogoproto.goproto_getters) = false;
 
   string depositor = 1;
@@ -54,11 +54,11 @@ message MsgCancel {
   uint64 deposit_request_id = 3;
 }
 
-// MsgCancelResponse defines the MsgCancelResponse response type.
-message MsgCancelResponse {}
+// MsgCancelQueuedFarmingResponse defines the MsgCancelQueuedFarmingResponse response type.
+message MsgCancelQueuedFarmingResponse {}
 
-// MsgWithdraw defines a SDK message for withdrawing LFCoin.
-message MsgWithdraw {
+// MsgUnfarm defines a SDK message for unfarming LFCoin.
+message MsgUnfarm {
   option (gogoproto.goproto_getters) = false;
 
   uint64 pool_id = 1;
@@ -72,8 +72,8 @@ message MsgWithdraw {
   ];
 }
 
-// MsgWithdrawResponse defines the MsgWithdrawResponse response type.
-message MsgWithdrawResponse {}
+// MsgUnfarmResponse defines the MsgUnfarmResponse response type.
+message MsgUnfarmResponse {}
 
 // MsgPlaceBid defines a SDK message for placing a bid for a rewards auction.
 message MsgPlaceBid {

@@ -5,9 +5,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// NewDepositRequest returns a new DepositRequest.
-func NewDepositRequest(poolId uint64, depositReqId uint64, depositor string, depositCoin sdk.Coin) DepositRequest {
-	return DepositRequest{
+// NewQueuedFarming returns a new QueuedFarming.
+func NewQueuedFarming(poolId uint64, depositReqId uint64, depositor string, depositCoin sdk.Coin) QueuedFarming {
+	return QueuedFarming{
 		PoolId:      poolId,
 		Id:          depositReqId,
 		Depositor:   depositor,
@@ -16,7 +16,7 @@ func NewDepositRequest(poolId uint64, depositReqId uint64, depositor string, dep
 }
 
 // GetDepositor returns depositor int the form of sdk.AccAddress.
-func (req DepositRequest) GetDepositor() sdk.AccAddress {
+func (req QueuedFarming) GetDepositor() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(req.Depositor)
 	if err != nil {
 		panic(err)
@@ -24,36 +24,36 @@ func (req DepositRequest) GetDepositor() sdk.AccAddress {
 	return addr
 }
 
-// Validate validates DepositRequest for genesis.
-func (req DepositRequest) Validate() error {
+// Validate validates QueuedFarming for genesis.
+func (req QueuedFarming) Validate() error {
 	// TODO: not implemented yet
 	return nil
 }
 
-// MarshalDepositRequest returns the DepositRequest bytes. Panics if fails.
-func MarshalDepositRequest(cdc codec.BinaryCodec, msg DepositRequest) ([]byte, error) {
+// MarshalQueuedFarming returns the QueuedFarming bytes. Panics if fails.
+func MarshalQueuedFarming(cdc codec.BinaryCodec, msg QueuedFarming) ([]byte, error) {
 	return cdc.Marshal(&msg)
 }
 
-// UnmarshalDepositRequest returns the DepositRequest from bytes.
-func UnmarshalDepositRequest(cdc codec.BinaryCodec, value []byte) (msg DepositRequest, err error) {
+// UnmarshalQueuedFarming returns the QueuedFarming from bytes.
+func UnmarshalQueuedFarming(cdc codec.BinaryCodec, value []byte) (msg QueuedFarming, err error) {
 	err = cdc.Unmarshal(value, &msg)
 	return msg, err
 }
 
-// MustMarshalDepositRequest returns the DepositRequest bytes. Panics if fails.
-func MustMarshalDepositRequest(cdc codec.BinaryCodec, msg DepositRequest) []byte {
-	bz, err := MarshalDepositRequest(cdc, msg)
+// MustMarshalQueuedFarming returns the QueuedFarming bytes. Panics if fails.
+func MustMarshalQueuedFarming(cdc codec.BinaryCodec, msg QueuedFarming) []byte {
+	bz, err := MarshalQueuedFarming(cdc, msg)
 	if err != nil {
 		panic(err)
 	}
 	return bz
 }
 
-// MustUnmarshalDepositRequest returns the DepositRequest from bytes.
+// MustUnmarshalQueuedFarming returns the QueuedFarming from bytes.
 // It throws panic if it fails.
-func MustUnmarshalDepositRequest(cdc codec.BinaryCodec, value []byte) DepositRequest {
-	msg, err := UnmarshalDepositRequest(cdc, value)
+func MustUnmarshalQueuedFarming(cdc codec.BinaryCodec, value []byte) QueuedFarming {
+	msg, err := UnmarshalQueuedFarming(cdc, value)
 	if err != nil {
 		panic(err)
 	}

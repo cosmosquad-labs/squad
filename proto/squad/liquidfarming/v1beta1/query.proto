@@ -25,12 +25,12 @@ service Query {
     option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/pools/liquidfarms/{pool_id}";
   }
 
-  rpc DepositRequests(QueryDepositRequestsRequest) returns (QueryDepositRequestsResponse) {
-    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/pools/{pool_id}/deposit_requests";
+  rpc QueuedFarmings(QueryQueuedFarmingsRequest) returns (QueryQueuedFarmingsResponse) {
+    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/pools/{pool_id}/queued_farmings";
   }
 
-  rpc DepositRequest(QueryDepositRequestRequest) returns (QueryDepositRequestResponse) {
-    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/pools/{pool_id}/deposit_requests/{request_id}";
+  rpc QueuedFarming(QueryQueuedFarmingRequest) returns (QueryQueuedFarmingResponse) {
+    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/pools/{pool_id}/queued_farmings/{request_id}";
   }
   
   rpc Bids(QueryBidsRequest) returns (QueryBidsResponse) {
@@ -78,27 +78,27 @@ message QueryParamsResponse {
   Params params = 1 [(gogoproto.nullable) = false];
 }
 
-// QueryDepositRequestsRequest is request type for the Query/DepositRequests RPC method.
-message QueryDepositRequestsRequest {
+// QueryQueuedFarmingsRequest is request type for the Query/QueuedFarmings RPC method.
+message QueryQueuedFarmingsRequest {
   uint64 pool_id = 1;
   cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
-// QueryDepositRequestsResponse is response type for the Query/DepositRequests RPC method.
-message QueryDepositRequestsResponse {
-  repeated DepositRequest deposit_requests = 1 [(gogoproto.nullable) = false];
+// QueryQueuedFarmingsResponse is response type for the Query/QueuedFarmings RPC method.
+message QueryQueuedFarmingsResponse {
+  repeated QueuedFarming deposit_requests = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-// QueryDepositRequestRequest is request type for the Query/DepositRequest RPC method.
-message QueryDepositRequestRequest {
+// QueryQueuedFarmingRequest is request type for the Query/QueuedFarming RPC method.
+message QueryQueuedFarmingRequest {
   uint64 pool_id = 1;
   uint64 request_id = 2;
 }
 
-// QueryDepositRequestResponse is response type for the Query/DepositRequest RPC method.
-message QueryDepositRequestResponse {
-  DepositRequest deposit_request = 1 [(gogoproto.nullable) = false];
+// QueryQueuedFarmingResponse is response type for the Query/QueuedFarming RPC method.
+message QueryQueuedFarmingResponse {
+  QueuedFarming deposit_request = 1 [(gogoproto.nullable) = false];
 }
 
 // QueryBidsRequest is request type for the Query/Bids RPC method.

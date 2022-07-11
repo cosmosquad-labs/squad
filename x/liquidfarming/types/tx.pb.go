@@ -30,25 +30,25 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// MsgDeposit defines a SDK message for depositing pool coin.
-type MsgDeposit struct {
+// MsgFarm defines a SDK message for farming pool coin for a liquid farm.
+type MsgFarm struct {
 	PoolId      uint64     `protobuf:"varint,1,opt,name=pool_id,json=poolId,proto3" json:"pool_id,omitempty"`
 	Depositor   string     `protobuf:"bytes,2,opt,name=depositor,proto3" json:"depositor,omitempty"`
 	DepositCoin types.Coin `protobuf:"bytes,3,opt,name=deposit_coin,json=depositCoin,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coin" json:"deposit_coin"`
 }
 
-func (m *MsgDeposit) Reset()         { *m = MsgDeposit{} }
-func (m *MsgDeposit) String() string { return proto.CompactTextString(m) }
-func (*MsgDeposit) ProtoMessage()    {}
-func (*MsgDeposit) Descriptor() ([]byte, []int) {
+func (m *MsgFarm) Reset()         { *m = MsgFarm{} }
+func (m *MsgFarm) String() string { return proto.CompactTextString(m) }
+func (*MsgFarm) ProtoMessage()    {}
+func (*MsgFarm) Descriptor() ([]byte, []int) {
 	return fileDescriptor_db3f4cd082b3b711, []int{0}
 }
-func (m *MsgDeposit) XXX_Unmarshal(b []byte) error {
+func (m *MsgFarm) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgDeposit) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgFarm) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgDeposit.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgFarm.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -58,34 +58,34 @@ func (m *MsgDeposit) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (m *MsgDeposit) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgDeposit.Merge(m, src)
+func (m *MsgFarm) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgFarm.Merge(m, src)
 }
-func (m *MsgDeposit) XXX_Size() int {
+func (m *MsgFarm) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgDeposit) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgDeposit.DiscardUnknown(m)
+func (m *MsgFarm) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgFarm.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgDeposit proto.InternalMessageInfo
+var xxx_messageInfo_MsgFarm proto.InternalMessageInfo
 
-// MsgDepositResponse defines the MsgDepositResponse response type.
-type MsgDepositResponse struct {
+// MsgFarmResponse defines the MsgFarmResponse response type.
+type MsgFarmResponse struct {
 }
 
-func (m *MsgDepositResponse) Reset()         { *m = MsgDepositResponse{} }
-func (m *MsgDepositResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgDepositResponse) ProtoMessage()    {}
-func (*MsgDepositResponse) Descriptor() ([]byte, []int) {
+func (m *MsgFarmResponse) Reset()         { *m = MsgFarmResponse{} }
+func (m *MsgFarmResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgFarmResponse) ProtoMessage()    {}
+func (*MsgFarmResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_db3f4cd082b3b711, []int{1}
 }
-func (m *MsgDepositResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgFarmResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgDepositResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgFarmResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgDepositResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgFarmResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -95,37 +95,37 @@ func (m *MsgDepositResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-func (m *MsgDepositResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgDepositResponse.Merge(m, src)
+func (m *MsgFarmResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgFarmResponse.Merge(m, src)
 }
-func (m *MsgDepositResponse) XXX_Size() int {
+func (m *MsgFarmResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgDepositResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgDepositResponse.DiscardUnknown(m)
+func (m *MsgFarmResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgFarmResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgDepositResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgFarmResponse proto.InternalMessageInfo
 
-// MsgCancel defines a SDK message for canceling the deposit request.
-type MsgCancel struct {
+// MsgCancelQueuedFarming defines a SDK message for canceling the queued farming.
+type MsgCancelQueuedFarming struct {
 	Depositor        string `protobuf:"bytes,1,opt,name=depositor,proto3" json:"depositor,omitempty"`
 	PoolId           uint64 `protobuf:"varint,2,opt,name=pool_id,json=poolId,proto3" json:"pool_id,omitempty"`
 	DepositRequestId uint64 `protobuf:"varint,3,opt,name=deposit_request_id,json=depositRequestId,proto3" json:"deposit_request_id,omitempty"`
 }
 
-func (m *MsgCancel) Reset()         { *m = MsgCancel{} }
-func (m *MsgCancel) String() string { return proto.CompactTextString(m) }
-func (*MsgCancel) ProtoMessage()    {}
-func (*MsgCancel) Descriptor() ([]byte, []int) {
+func (m *MsgCancelQueuedFarming) Reset()         { *m = MsgCancelQueuedFarming{} }
+func (m *MsgCancelQueuedFarming) String() string { return proto.CompactTextString(m) }
+func (*MsgCancelQueuedFarming) ProtoMessage()    {}
+func (*MsgCancelQueuedFarming) Descriptor() ([]byte, []int) {
 	return fileDescriptor_db3f4cd082b3b711, []int{2}
 }
-func (m *MsgCancel) XXX_Unmarshal(b []byte) error {
+func (m *MsgCancelQueuedFarming) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgCancel) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgCancelQueuedFarming) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgCancel.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgCancelQueuedFarming.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -135,34 +135,34 @@ func (m *MsgCancel) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (m *MsgCancel) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgCancel.Merge(m, src)
+func (m *MsgCancelQueuedFarming) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCancelQueuedFarming.Merge(m, src)
 }
-func (m *MsgCancel) XXX_Size() int {
+func (m *MsgCancelQueuedFarming) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgCancel) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgCancel.DiscardUnknown(m)
+func (m *MsgCancelQueuedFarming) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCancelQueuedFarming.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgCancel proto.InternalMessageInfo
+var xxx_messageInfo_MsgCancelQueuedFarming proto.InternalMessageInfo
 
-// MsgCancelResponse defines the MsgCancelResponse response type.
-type MsgCancelResponse struct {
+// MsgCancelQueuedFarmingResponse defines the MsgCancelQueuedFarmingResponse response type.
+type MsgCancelQueuedFarmingResponse struct {
 }
 
-func (m *MsgCancelResponse) Reset()         { *m = MsgCancelResponse{} }
-func (m *MsgCancelResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgCancelResponse) ProtoMessage()    {}
-func (*MsgCancelResponse) Descriptor() ([]byte, []int) {
+func (m *MsgCancelQueuedFarmingResponse) Reset()         { *m = MsgCancelQueuedFarmingResponse{} }
+func (m *MsgCancelQueuedFarmingResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgCancelQueuedFarmingResponse) ProtoMessage()    {}
+func (*MsgCancelQueuedFarmingResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_db3f4cd082b3b711, []int{3}
 }
-func (m *MsgCancelResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgCancelQueuedFarmingResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgCancelResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgCancelQueuedFarmingResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgCancelResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgCancelQueuedFarmingResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -172,37 +172,37 @@ func (m *MsgCancelResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, e
 		return b[:n], nil
 	}
 }
-func (m *MsgCancelResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgCancelResponse.Merge(m, src)
+func (m *MsgCancelQueuedFarmingResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCancelQueuedFarmingResponse.Merge(m, src)
 }
-func (m *MsgCancelResponse) XXX_Size() int {
+func (m *MsgCancelQueuedFarmingResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgCancelResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgCancelResponse.DiscardUnknown(m)
+func (m *MsgCancelQueuedFarmingResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCancelQueuedFarmingResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgCancelResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgCancelQueuedFarmingResponse proto.InternalMessageInfo
 
-// MsgWithdraw defines a SDK message for withdrawing LFCoin.
-type MsgWithdraw struct {
+// MsgUnfarm defines a SDK message for unfarming LFCoin.
+type MsgUnfarm struct {
 	PoolId     uint64     `protobuf:"varint,1,opt,name=pool_id,json=poolId,proto3" json:"pool_id,omitempty"`
 	Withdrawer string     `protobuf:"bytes,2,opt,name=withdrawer,proto3" json:"withdrawer,omitempty"`
 	LFCoin     types.Coin `protobuf:"bytes,3,opt,name=lf_coin,json=lfCoin,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coin" json:"lf_coin"`
 }
 
-func (m *MsgWithdraw) Reset()         { *m = MsgWithdraw{} }
-func (m *MsgWithdraw) String() string { return proto.CompactTextString(m) }
-func (*MsgWithdraw) ProtoMessage()    {}
-func (*MsgWithdraw) Descriptor() ([]byte, []int) {
+func (m *MsgUnfarm) Reset()         { *m = MsgUnfarm{} }
+func (m *MsgUnfarm) String() string { return proto.CompactTextString(m) }
+func (*MsgUnfarm) ProtoMessage()    {}
+func (*MsgUnfarm) Descriptor() ([]byte, []int) {
 	return fileDescriptor_db3f4cd082b3b711, []int{4}
 }
-func (m *MsgWithdraw) XXX_Unmarshal(b []byte) error {
+func (m *MsgUnfarm) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgWithdraw) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgUnfarm) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgWithdraw.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgUnfarm.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -212,34 +212,34 @@ func (m *MsgWithdraw) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) 
 		return b[:n], nil
 	}
 }
-func (m *MsgWithdraw) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgWithdraw.Merge(m, src)
+func (m *MsgUnfarm) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUnfarm.Merge(m, src)
 }
-func (m *MsgWithdraw) XXX_Size() int {
+func (m *MsgUnfarm) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgWithdraw) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgWithdraw.DiscardUnknown(m)
+func (m *MsgUnfarm) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUnfarm.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgWithdraw proto.InternalMessageInfo
+var xxx_messageInfo_MsgUnfarm proto.InternalMessageInfo
 
-// MsgWithdrawResponse defines the MsgWithdrawResponse response type.
-type MsgWithdrawResponse struct {
+// MsgUnfarmResponse defines the MsgUnfarmResponse response type.
+type MsgUnfarmResponse struct {
 }
 
-func (m *MsgWithdrawResponse) Reset()         { *m = MsgWithdrawResponse{} }
-func (m *MsgWithdrawResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgWithdrawResponse) ProtoMessage()    {}
-func (*MsgWithdrawResponse) Descriptor() ([]byte, []int) {
+func (m *MsgUnfarmResponse) Reset()         { *m = MsgUnfarmResponse{} }
+func (m *MsgUnfarmResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUnfarmResponse) ProtoMessage()    {}
+func (*MsgUnfarmResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_db3f4cd082b3b711, []int{5}
 }
-func (m *MsgWithdrawResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgUnfarmResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgWithdrawResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgUnfarmResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgWithdrawResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgUnfarmResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -249,17 +249,17 @@ func (m *MsgWithdrawResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte,
 		return b[:n], nil
 	}
 }
-func (m *MsgWithdrawResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgWithdrawResponse.Merge(m, src)
+func (m *MsgUnfarmResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUnfarmResponse.Merge(m, src)
 }
-func (m *MsgWithdrawResponse) XXX_Size() int {
+func (m *MsgUnfarmResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgWithdrawResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgWithdrawResponse.DiscardUnknown(m)
+func (m *MsgUnfarmResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUnfarmResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgWithdrawResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgUnfarmResponse proto.InternalMessageInfo
 
 // MsgPlaceBid defines a SDK message for placing a bid for a rewards auction.
 type MsgPlaceBid struct {
@@ -416,12 +416,12 @@ func (m *MsgRefundBidResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgRefundBidResponse proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterType((*MsgDeposit)(nil), "squad.liquidfarming.v1beta1.MsgDeposit")
-	proto.RegisterType((*MsgDepositResponse)(nil), "squad.liquidfarming.v1beta1.MsgDepositResponse")
-	proto.RegisterType((*MsgCancel)(nil), "squad.liquidfarming.v1beta1.MsgCancel")
-	proto.RegisterType((*MsgCancelResponse)(nil), "squad.liquidfarming.v1beta1.MsgCancelResponse")
-	proto.RegisterType((*MsgWithdraw)(nil), "squad.liquidfarming.v1beta1.MsgWithdraw")
-	proto.RegisterType((*MsgWithdrawResponse)(nil), "squad.liquidfarming.v1beta1.MsgWithdrawResponse")
+	proto.RegisterType((*MsgFarm)(nil), "squad.liquidfarming.v1beta1.MsgFarm")
+	proto.RegisterType((*MsgFarmResponse)(nil), "squad.liquidfarming.v1beta1.MsgFarmResponse")
+	proto.RegisterType((*MsgCancelQueuedFarming)(nil), "squad.liquidfarming.v1beta1.MsgCancelQueuedFarming")
+	proto.RegisterType((*MsgCancelQueuedFarmingResponse)(nil), "squad.liquidfarming.v1beta1.MsgCancelQueuedFarmingResponse")
+	proto.RegisterType((*MsgUnfarm)(nil), "squad.liquidfarming.v1beta1.MsgUnfarm")
+	proto.RegisterType((*MsgUnfarmResponse)(nil), "squad.liquidfarming.v1beta1.MsgUnfarmResponse")
 	proto.RegisterType((*MsgPlaceBid)(nil), "squad.liquidfarming.v1beta1.MsgPlaceBid")
 	proto.RegisterType((*MsgPlaceBidResponse)(nil), "squad.liquidfarming.v1beta1.MsgPlaceBidResponse")
 	proto.RegisterType((*MsgRefundBid)(nil), "squad.liquidfarming.v1beta1.MsgRefundBid")
@@ -433,46 +433,48 @@ func init() {
 }
 
 var fileDescriptor_db3f4cd082b3b711 = []byte{
-	// 622 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x55, 0xcd, 0x6e, 0xd3, 0x4c,
-	0x14, 0x8d, 0x9b, 0x7e, 0xee, 0x97, 0xdb, 0x2e, 0x60, 0xfa, 0x43, 0x31, 0xe0, 0x54, 0x15, 0xa2,
-	0x01, 0x51, 0x9b, 0x16, 0x09, 0x09, 0x96, 0x29, 0x42, 0x8a, 0x44, 0xa4, 0x2a, 0x1b, 0x24, 0x36,
-	0x65, 0xec, 0x99, 0xb8, 0x23, 0x6c, 0x8f, 0xe3, 0xb1, 0xfb, 0xf3, 0x04, 0xb0, 0xe4, 0x11, 0x58,
-	0xb3, 0x60, 0x8d, 0xc4, 0x0b, 0x74, 0xd9, 0x25, 0xab, 0x82, 0x92, 0x17, 0x41, 0xb6, 0xc7, 0x3f,
-	0x09, 0x82, 0x98, 0x05, 0xab, 0xe4, 0xce, 0x9c, 0x3b, 0xe7, 0x9c, 0xab, 0x33, 0x1e, 0xb8, 0x2b,
-	0x46, 0x31, 0x26, 0xa6, 0xcb, 0x46, 0x31, 0x23, 0x43, 0x1c, 0x7a, 0xcc, 0x77, 0xcc, 0x93, 0x3d,
-	0x8b, 0x46, 0x78, 0xcf, 0x8c, 0xce, 0x8c, 0x20, 0xe4, 0x11, 0x47, 0xb7, 0x52, 0x94, 0x31, 0x85,
-	0x32, 0x24, 0x4a, 0x5b, 0x73, 0xb8, 0xc3, 0x53, 0x9c, 0x99, 0xfc, 0xcb, 0x5a, 0x34, 0xdd, 0xe6,
-	0xc2, 0xe3, 0xc2, 0xb4, 0xb0, 0xa0, 0xc5, 0x81, 0x36, 0x67, 0xbe, 0xdc, 0x7f, 0x50, 0xdd, 0x1f,
-	0xc5, 0x34, 0x3c, 0x2f, 0x50, 0x01, 0x76, 0x98, 0x8f, 0x23, 0xc6, 0x25, 0x76, 0xfb, 0x8b, 0x02,
-	0xd0, 0x17, 0xce, 0x73, 0x1a, 0x70, 0xc1, 0x22, 0x74, 0x03, 0x96, 0x02, 0xce, 0xdd, 0x23, 0x46,
-	0x36, 0x95, 0x2d, 0xa5, 0xb3, 0x38, 0x50, 0x93, 0xb2, 0x47, 0xd0, 0x6d, 0x68, 0x91, 0x0c, 0xc3,
-	0xc3, 0xcd, 0x85, 0x2d, 0xa5, 0xd3, 0x1a, 0x94, 0x0b, 0xc8, 0x83, 0x15, 0x59, 0x1c, 0x25, 0x3a,
-	0x36, 0x9b, 0x5b, 0x4a, 0x67, 0x79, 0xff, 0xa6, 0x91, 0x09, 0x31, 0x12, 0x21, 0xb9, 0x27, 0xe3,
-	0x80, 0x33, 0xbf, 0x6b, 0x5e, 0x5c, 0xb5, 0x1b, 0x9f, 0xbe, 0xb7, 0x77, 0x1c, 0x16, 0x1d, 0xc7,
-	0x96, 0x61, 0x73, 0xcf, 0x94, 0xaa, 0xb3, 0x9f, 0x5d, 0x41, 0xde, 0x9a, 0xd1, 0x79, 0x40, 0x45,
-	0xda, 0x30, 0x58, 0x96, 0xe7, 0x27, 0xc5, 0xb3, 0xc5, 0xf7, 0x1f, 0xdb, 0x8d, 0xed, 0x35, 0x40,
-	0xa5, 0xf2, 0x01, 0x15, 0x01, 0xf7, 0x05, 0xdd, 0x3e, 0x81, 0x56, 0x5f, 0x38, 0x07, 0xd8, 0xb7,
-	0xa9, 0x3b, 0xad, 0x5a, 0x99, 0x55, 0x5d, 0x31, 0xbb, 0x30, 0x65, 0xf6, 0x21, 0xa0, 0xdc, 0x4e,
-	0x48, 0x47, 0x31, 0x15, 0x51, 0x82, 0x69, 0xa6, 0x98, 0x6b, 0x24, 0x27, 0x4c, 0x37, 0x7a, 0x44,
-	0xaa, 0x59, 0x85, 0xeb, 0x05, 0x6f, 0x21, 0xe6, 0xab, 0x02, 0xcb, 0x7d, 0xe1, 0xbc, 0x62, 0xd1,
-	0x31, 0x09, 0xf1, 0xe9, 0xef, 0xc7, 0xab, 0x03, 0x9c, 0x4a, 0x10, 0xcd, 0xe7, 0x5b, 0x59, 0x41,
-	0x1e, 0x2c, 0xb9, 0xc3, 0x9a, 0xb3, 0x7d, 0x9a, 0xcc, 0x76, 0x7c, 0xd5, 0x56, 0x5f, 0xbe, 0x48,
-	0xea, 0xbf, 0x99, 0xb2, 0xea, 0x0e, 0x2b, 0x03, 0x5e, 0x87, 0xd5, 0x8a, 0xf8, 0xc2, 0xd4, 0xe7,
-	0xcc, 0xd4, 0xa1, 0x8b, 0x6d, 0xda, 0x65, 0x04, 0xdd, 0x01, 0xc0, 0xb1, 0x9d, 0x64, 0xaa, 0xf4,
-	0xd5, 0x92, 0x2b, 0x3d, 0x82, 0x36, 0x40, 0xb5, 0x18, 0x21, 0x85, 0x2d, 0x59, 0x21, 0x0b, 0x54,
-	0xec, 0xf1, 0xd8, 0x8f, 0xfe, 0x41, 0x5a, 0xe4, 0xc9, 0x53, 0x3e, 0x72, 0xbd, 0x85, 0x0f, 0x0b,
-	0x56, 0xfa, 0xc2, 0x19, 0xd0, 0x61, 0xec, 0x93, 0x1a, 0x3e, 0xd6, 0x53, 0x1f, 0x65, 0x58, 0xfe,
-	0xb3, 0x18, 0x99, 0xb2, 0xd7, 0xac, 0xda, 0x93, 0xd4, 0x1b, 0xb0, 0x56, 0xe5, 0xc8, 0xb9, 0xf7,
-	0xdf, 0x2d, 0x42, 0xb3, 0x2f, 0x1c, 0x64, 0xc3, 0x52, 0x7e, 0xf5, 0x76, 0x8c, 0x3f, 0x7c, 0x09,
-	0x8c, 0x32, 0xe9, 0x9a, 0x59, 0x13, 0x98, 0x93, 0xa1, 0x37, 0xa0, 0xca, 0xfb, 0x70, 0x6f, 0x5e,
-	0x6b, 0x86, 0xd3, 0x8c, 0x7a, 0xb8, 0x82, 0x61, 0x08, 0xff, 0x17, 0x19, 0xef, 0xcc, 0xeb, 0xcd,
-	0x91, 0xda, 0xa3, 0xba, 0xc8, 0x2a, 0x4f, 0x11, 0xbb, 0xb9, 0x3c, 0x39, 0x72, 0x3e, 0xcf, 0x6c,
-	0x34, 0x10, 0x83, 0x56, 0x99, 0x8b, 0xfb, 0xf3, 0xda, 0x0b, 0xa8, 0xb6, 0x57, 0x1b, 0x9a, 0x53,
-	0x75, 0x0f, 0x2f, 0xc6, 0xba, 0x72, 0x39, 0xd6, 0x95, 0x1f, 0x63, 0x5d, 0xf9, 0x30, 0xd1, 0x1b,
-	0x97, 0x13, 0xbd, 0xf1, 0x6d, 0xa2, 0x37, 0x5e, 0x3f, 0xf9, 0x25, 0xed, 0xc9, 0xd9, 0xbb, 0x2e,
-	0xb6, 0x84, 0x99, 0x3d, 0x2d, 0x67, 0x33, 0x8f, 0x4b, 0x7a, 0x03, 0x2c, 0x35, 0xfd, 0xb2, 0x3f,
-	0xfe, 0x19, 0x00, 0x00, 0xff, 0xff, 0x9c, 0x1e, 0xd2, 0x48, 0x80, 0x06, 0x00, 0x00,
+	// 646 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x55, 0x4d, 0x6f, 0xd3, 0x40,
+	0x10, 0xcd, 0x36, 0xc1, 0x25, 0xd3, 0x4a, 0x50, 0xf7, 0x83, 0x62, 0xc0, 0x89, 0xaa, 0x0a, 0x02,
+	0x6a, 0x6d, 0xda, 0x4a, 0x48, 0xc0, 0xad, 0x95, 0x2a, 0x55, 0x22, 0x52, 0x89, 0xc4, 0xa5, 0x97,
+	0xb2, 0xce, 0x6e, 0xdc, 0x15, 0xb6, 0x37, 0xf1, 0xda, 0xb4, 0x3d, 0x73, 0x80, 0x23, 0x3f, 0xa1,
+	0x67, 0x0e, 0xdc, 0x38, 0xf0, 0x0f, 0x7a, 0xec, 0x91, 0x53, 0x41, 0xe9, 0x1f, 0x41, 0xb6, 0xd7,
+	0x1b, 0xa7, 0x54, 0x4d, 0x40, 0xe2, 0x94, 0xcc, 0xee, 0x9b, 0x99, 0xf7, 0x46, 0x6f, 0xbc, 0xb0,
+	0x2c, 0x7a, 0x31, 0x26, 0xb6, 0xc7, 0x7a, 0x31, 0x23, 0x1d, 0x1c, 0xfa, 0x2c, 0x70, 0xed, 0xf7,
+	0x6b, 0x0e, 0x8d, 0xf0, 0x9a, 0x1d, 0x1d, 0x59, 0xdd, 0x90, 0x47, 0x5c, 0xbf, 0x97, 0xa2, 0xac,
+	0x21, 0x94, 0x25, 0x51, 0xc6, 0x9c, 0xcb, 0x5d, 0x9e, 0xe2, 0xec, 0xe4, 0x5f, 0x96, 0x62, 0x98,
+	0x6d, 0x2e, 0x7c, 0x2e, 0x6c, 0x07, 0x0b, 0xaa, 0x0a, 0xb6, 0x39, 0x0b, 0xe4, 0xfd, 0x93, 0xe2,
+	0x7d, 0x2f, 0xa6, 0xe1, 0xb1, 0x42, 0x75, 0xb1, 0xcb, 0x02, 0x1c, 0x31, 0x2e, 0xb1, 0x4b, 0xdf,
+	0x10, 0x4c, 0x36, 0x85, 0xbb, 0x8d, 0x43, 0x5f, 0xbf, 0x03, 0x93, 0x5d, 0xce, 0xbd, 0x7d, 0x46,
+	0x16, 0x51, 0x1d, 0x35, 0x2a, 0x2d, 0x2d, 0x09, 0x77, 0x88, 0x7e, 0x1f, 0xaa, 0x84, 0x76, 0xb9,
+	0x60, 0x11, 0x0f, 0x17, 0x27, 0xea, 0xa8, 0x51, 0x6d, 0x0d, 0x0e, 0x74, 0x1f, 0xa6, 0x65, 0xb0,
+	0x9f, 0x90, 0x58, 0x2c, 0xd7, 0x51, 0x63, 0x6a, 0xfd, 0xae, 0x95, 0xb1, 0xb0, 0x12, 0x16, 0xb9,
+	0x20, 0x6b, 0x8b, 0xb3, 0x60, 0xd3, 0x3e, 0x3d, 0xaf, 0x95, 0xbe, 0xfc, 0xac, 0x3d, 0x72, 0x59,
+	0x74, 0x10, 0x3b, 0x56, 0x9b, 0xfb, 0xb6, 0xa4, 0x9c, 0xfd, 0xac, 0x0a, 0xf2, 0xce, 0x8e, 0x8e,
+	0xbb, 0x54, 0xa4, 0x09, 0xad, 0x29, 0x59, 0x3f, 0x09, 0x5e, 0x54, 0x3e, 0x9d, 0xd4, 0x4a, 0x4b,
+	0x33, 0x70, 0x4b, 0xd2, 0x6e, 0x51, 0xd1, 0xe5, 0x81, 0xa0, 0x4b, 0x1f, 0x10, 0x2c, 0x34, 0x85,
+	0xbb, 0x85, 0x83, 0x36, 0xf5, 0x5e, 0xc7, 0x34, 0xa6, 0x64, 0x3b, 0x9b, 0xe7, 0xb0, 0x00, 0x74,
+	0x59, 0x40, 0x41, 0xf7, 0xc4, 0x90, 0xee, 0x15, 0xd0, 0x73, 0x65, 0x21, 0xed, 0xc5, 0x54, 0x44,
+	0x09, 0xa6, 0x9c, 0x62, 0x6e, 0xcb, 0x9b, 0x56, 0x76, 0xb1, 0x43, 0x24, 0xb1, 0x3a, 0x98, 0x57,
+	0x93, 0x50, 0x3c, 0xbf, 0x23, 0xa8, 0x36, 0x85, 0xfb, 0x26, 0xe8, 0x5c, 0x3b, 0x74, 0x13, 0xe0,
+	0x90, 0x45, 0x07, 0x24, 0xc4, 0x87, 0x34, 0x9f, 0x7a, 0xe1, 0x44, 0xf7, 0x61, 0xd2, 0xeb, 0x8c,
+	0x39, 0xf1, 0xe7, 0xc9, 0xc4, 0xfb, 0xe7, 0x35, 0xed, 0xd5, 0x76, 0x12, 0xff, 0xcd, 0xec, 0x35,
+	0xaf, 0x53, 0x18, 0xfb, 0x2c, 0xcc, 0x28, 0xea, 0x4a, 0xd0, 0x57, 0x04, 0x53, 0x4d, 0xe1, 0xee,
+	0x7a, 0xb8, 0x4d, 0x37, 0x19, 0xd1, 0x1f, 0x00, 0xe0, 0xb8, 0x9d, 0x98, 0x6c, 0xa0, 0xaa, 0x2a,
+	0x4f, 0x76, 0x88, 0xbe, 0x00, 0x9a, 0xc3, 0x08, 0x51, 0xa2, 0x64, 0xa4, 0x3b, 0xa0, 0x61, 0x9f,
+	0xc7, 0x41, 0xf4, 0x1f, 0x1c, 0x24, 0x2b, 0x4b, 0x15, 0xf3, 0x30, 0x5b, 0xe0, 0xab, 0x74, 0x38,
+	0x30, 0xdd, 0x14, 0x6e, 0x8b, 0x76, 0xe2, 0x80, 0x8c, 0xa1, 0x63, 0x3e, 0xd5, 0x31, 0x70, 0xcd,
+	0x0d, 0x87, 0x91, 0x21, 0x79, 0xe5, 0xa2, 0x3c, 0xd9, 0x7a, 0x01, 0xe6, 0x8a, 0x3d, 0xf2, 0xde,
+	0xeb, 0x27, 0x15, 0x28, 0x37, 0x85, 0xab, 0xef, 0x41, 0x25, 0xdd, 0xc5, 0x65, 0xeb, 0x9a, 0xef,
+	0x82, 0x25, 0xad, 0x6f, 0xac, 0x8c, 0x83, 0xca, 0x7b, 0xe8, 0x1f, 0x11, 0xcc, 0x5e, 0xb5, 0x1d,
+	0x1b, 0xa3, 0xaa, 0x5c, 0x91, 0x64, 0xbc, 0xfc, 0x87, 0x24, 0xc5, 0xe4, 0x2d, 0x68, 0xd2, 0xfe,
+	0x0f, 0x47, 0x95, 0xc9, 0x70, 0x86, 0x35, 0x1e, 0x4e, 0x75, 0xe8, 0xc0, 0x4d, 0xe5, 0xc7, 0xc6,
+	0xa8, 0xdc, 0x1c, 0x69, 0x3c, 0x1d, 0x17, 0xa9, 0xfa, 0x30, 0xa8, 0x0e, 0x0c, 0xf3, 0x78, 0x54,
+	0xba, 0x82, 0x1a, 0x6b, 0x63, 0x43, 0xf3, 0x56, 0x9b, 0xbb, 0xa7, 0x7d, 0x13, 0x9d, 0xf5, 0x4d,
+	0xf4, 0xab, 0x6f, 0xa2, 0xcf, 0x17, 0x66, 0xe9, 0xec, 0xc2, 0x2c, 0xfd, 0xb8, 0x30, 0x4b, 0x7b,
+	0xcf, 0xfe, 0x58, 0x83, 0xa4, 0xf6, 0xaa, 0x87, 0x1d, 0x61, 0x67, 0x8f, 0xd0, 0xd1, 0xa5, 0x67,
+	0x28, 0x5d, 0x0d, 0x47, 0x4b, 0xdf, 0x80, 0x8d, 0xdf, 0x01, 0x00, 0x00, 0xff, 0xff, 0x3d, 0x39,
+	0xb8, 0x0a, 0xaa, 0x06, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -487,12 +489,12 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
-	// Deposit defines a method for depositing pool coin for a liquid farm
-	Deposit(ctx context.Context, in *MsgDeposit, opts ...grpc.CallOption) (*MsgDepositResponse, error)
-	// Cancel defines a method for canceling the deposit request
-	Cancel(ctx context.Context, in *MsgCancel, opts ...grpc.CallOption) (*MsgCancelResponse, error)
-	// Withdraw defines a method for withdrawing amount of LFCoin
-	Withdraw(ctx context.Context, in *MsgWithdraw, opts ...grpc.CallOption) (*MsgWithdrawResponse, error)
+	// Farm defines a method for farming pool coin for a liquid farm
+	Farm(ctx context.Context, in *MsgFarm, opts ...grpc.CallOption) (*MsgFarmResponse, error)
+	// CancelQueuedFarming defines a method for canceling the queueud farming
+	CancelQueuedFarming(ctx context.Context, in *MsgCancelQueuedFarming, opts ...grpc.CallOption) (*MsgCancelQueuedFarmingResponse, error)
+	// Unfarm defines a method for unfarming amount of LFCoin
+	Unfarm(ctx context.Context, in *MsgUnfarm, opts ...grpc.CallOption) (*MsgUnfarmResponse, error)
 	// PlaceBid defines a method for placing a bid for a rewards auction
 	PlaceBid(ctx context.Context, in *MsgPlaceBid, opts ...grpc.CallOption) (*MsgPlaceBidResponse, error)
 	// RefundBid defines a method for refunding the bid that is not winning for the auction
@@ -507,27 +509,27 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 	return &msgClient{cc}
 }
 
-func (c *msgClient) Deposit(ctx context.Context, in *MsgDeposit, opts ...grpc.CallOption) (*MsgDepositResponse, error) {
-	out := new(MsgDepositResponse)
-	err := c.cc.Invoke(ctx, "/squad.liquidfarming.v1beta1.Msg/Deposit", in, out, opts...)
+func (c *msgClient) Farm(ctx context.Context, in *MsgFarm, opts ...grpc.CallOption) (*MsgFarmResponse, error) {
+	out := new(MsgFarmResponse)
+	err := c.cc.Invoke(ctx, "/squad.liquidfarming.v1beta1.Msg/Farm", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *msgClient) Cancel(ctx context.Context, in *MsgCancel, opts ...grpc.CallOption) (*MsgCancelResponse, error) {
-	out := new(MsgCancelResponse)
-	err := c.cc.Invoke(ctx, "/squad.liquidfarming.v1beta1.Msg/Cancel", in, out, opts...)
+func (c *msgClient) CancelQueuedFarming(ctx context.Context, in *MsgCancelQueuedFarming, opts ...grpc.CallOption) (*MsgCancelQueuedFarmingResponse, error) {
+	out := new(MsgCancelQueuedFarmingResponse)
+	err := c.cc.Invoke(ctx, "/squad.liquidfarming.v1beta1.Msg/CancelQueuedFarming", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *msgClient) Withdraw(ctx context.Context, in *MsgWithdraw, opts ...grpc.CallOption) (*MsgWithdrawResponse, error) {
-	out := new(MsgWithdrawResponse)
-	err := c.cc.Invoke(ctx, "/squad.liquidfarming.v1beta1.Msg/Withdraw", in, out, opts...)
+func (c *msgClient) Unfarm(ctx context.Context, in *MsgUnfarm, opts ...grpc.CallOption) (*MsgUnfarmResponse, error) {
+	out := new(MsgUnfarmResponse)
+	err := c.cc.Invoke(ctx, "/squad.liquidfarming.v1beta1.Msg/Unfarm", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -554,12 +556,12 @@ func (c *msgClient) RefundBid(ctx context.Context, in *MsgRefundBid, opts ...grp
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
-	// Deposit defines a method for depositing pool coin for a liquid farm
-	Deposit(context.Context, *MsgDeposit) (*MsgDepositResponse, error)
-	// Cancel defines a method for canceling the deposit request
-	Cancel(context.Context, *MsgCancel) (*MsgCancelResponse, error)
-	// Withdraw defines a method for withdrawing amount of LFCoin
-	Withdraw(context.Context, *MsgWithdraw) (*MsgWithdrawResponse, error)
+	// Farm defines a method for farming pool coin for a liquid farm
+	Farm(context.Context, *MsgFarm) (*MsgFarmResponse, error)
+	// CancelQueuedFarming defines a method for canceling the queueud farming
+	CancelQueuedFarming(context.Context, *MsgCancelQueuedFarming) (*MsgCancelQueuedFarmingResponse, error)
+	// Unfarm defines a method for unfarming amount of LFCoin
+	Unfarm(context.Context, *MsgUnfarm) (*MsgUnfarmResponse, error)
 	// PlaceBid defines a method for placing a bid for a rewards auction
 	PlaceBid(context.Context, *MsgPlaceBid) (*MsgPlaceBidResponse, error)
 	// RefundBid defines a method for refunding the bid that is not winning for the auction
@@ -570,14 +572,14 @@ type MsgServer interface {
 type UnimplementedMsgServer struct {
 }
 
-func (*UnimplementedMsgServer) Deposit(ctx context.Context, req *MsgDeposit) (*MsgDepositResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Deposit not implemented")
+func (*UnimplementedMsgServer) Farm(ctx context.Context, req *MsgFarm) (*MsgFarmResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Farm not implemented")
 }
-func (*UnimplementedMsgServer) Cancel(ctx context.Context, req *MsgCancel) (*MsgCancelResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Cancel not implemented")
+func (*UnimplementedMsgServer) CancelQueuedFarming(ctx context.Context, req *MsgCancelQueuedFarming) (*MsgCancelQueuedFarmingResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CancelQueuedFarming not implemented")
 }
-func (*UnimplementedMsgServer) Withdraw(ctx context.Context, req *MsgWithdraw) (*MsgWithdrawResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Withdraw not implemented")
+func (*UnimplementedMsgServer) Unfarm(ctx context.Context, req *MsgUnfarm) (*MsgUnfarmResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Unfarm not implemented")
 }
 func (*UnimplementedMsgServer) PlaceBid(ctx context.Context, req *MsgPlaceBid) (*MsgPlaceBidResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PlaceBid not implemented")
@@ -590,56 +592,56 @@ func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
 	s.RegisterService(&_Msg_serviceDesc, srv)
 }
 
-func _Msg_Deposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgDeposit)
+func _Msg_Farm_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgFarm)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).Deposit(ctx, in)
+		return srv.(MsgServer).Farm(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/squad.liquidfarming.v1beta1.Msg/Deposit",
+		FullMethod: "/squad.liquidfarming.v1beta1.Msg/Farm",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).Deposit(ctx, req.(*MsgDeposit))
+		return srv.(MsgServer).Farm(ctx, req.(*MsgFarm))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_Cancel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgCancel)
+func _Msg_CancelQueuedFarming_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgCancelQueuedFarming)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).Cancel(ctx, in)
+		return srv.(MsgServer).CancelQueuedFarming(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/squad.liquidfarming.v1beta1.Msg/Cancel",
+		FullMethod: "/squad.liquidfarming.v1beta1.Msg/CancelQueuedFarming",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).Cancel(ctx, req.(*MsgCancel))
+		return srv.(MsgServer).CancelQueuedFarming(ctx, req.(*MsgCancelQueuedFarming))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_Withdraw_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgWithdraw)
+func _Msg_Unfarm_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUnfarm)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).Withdraw(ctx, in)
+		return srv.(MsgServer).Unfarm(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/squad.liquidfarming.v1beta1.Msg/Withdraw",
+		FullMethod: "/squad.liquidfarming.v1beta1.Msg/Unfarm",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).Withdraw(ctx, req.(*MsgWithdraw))
+		return srv.(MsgServer).Unfarm(ctx, req.(*MsgUnfarm))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -685,16 +687,16 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Deposit",
-			Handler:    _Msg_Deposit_Handler,
+			MethodName: "Farm",
+			Handler:    _Msg_Farm_Handler,
 		},
 		{
-			MethodName: "Cancel",
-			Handler:    _Msg_Cancel_Handler,
+			MethodName: "CancelQueuedFarming",
+			Handler:    _Msg_CancelQueuedFarming_Handler,
 		},
 		{
-			MethodName: "Withdraw",
-			Handler:    _Msg_Withdraw_Handler,
+			MethodName: "Unfarm",
+			Handler:    _Msg_Unfarm_Handler,
 		},
 		{
 			MethodName: "PlaceBid",
@@ -709,7 +711,7 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 	Metadata: "squad/liquidfarming/v1beta1/tx.proto",
 }
 
-func (m *MsgDeposit) Marshal() (dAtA []byte, err error) {
+func (m *MsgFarm) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -719,12 +721,12 @@ func (m *MsgDeposit) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgDeposit) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgFarm) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgDeposit) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgFarm) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -754,7 +756,7 @@ func (m *MsgDeposit) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgDepositResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgFarmResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -764,12 +766,12 @@ func (m *MsgDepositResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgDepositResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgFarmResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgDepositResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgFarmResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -777,7 +779,7 @@ func (m *MsgDepositResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgCancel) Marshal() (dAtA []byte, err error) {
+func (m *MsgCancelQueuedFarming) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -787,12 +789,12 @@ func (m *MsgCancel) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgCancel) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgCancelQueuedFarming) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgCancel) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgCancelQueuedFarming) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -817,7 +819,7 @@ func (m *MsgCancel) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgCancelResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgCancelQueuedFarmingResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -827,12 +829,12 @@ func (m *MsgCancelResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgCancelResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgCancelQueuedFarmingResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgCancelResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgCancelQueuedFarmingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -840,7 +842,7 @@ func (m *MsgCancelResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgWithdraw) Marshal() (dAtA []byte, err error) {
+func (m *MsgUnfarm) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -850,12 +852,12 @@ func (m *MsgWithdraw) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgWithdraw) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgUnfarm) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgWithdraw) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgUnfarm) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -885,7 +887,7 @@ func (m *MsgWithdraw) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgWithdrawResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgUnfarmResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -895,12 +897,12 @@ func (m *MsgWithdrawResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgWithdrawResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgUnfarmResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgWithdrawResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgUnfarmResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1050,7 +1052,7 @@ func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *MsgDeposit) Size() (n int) {
+func (m *MsgFarm) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1068,7 +1070,7 @@ func (m *MsgDeposit) Size() (n int) {
 	return n
 }
 
-func (m *MsgDepositResponse) Size() (n int) {
+func (m *MsgFarmResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1077,7 +1079,7 @@ func (m *MsgDepositResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgCancel) Size() (n int) {
+func (m *MsgCancelQueuedFarming) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1096,7 +1098,7 @@ func (m *MsgCancel) Size() (n int) {
 	return n
 }
 
-func (m *MsgCancelResponse) Size() (n int) {
+func (m *MsgCancelQueuedFarmingResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1105,7 +1107,7 @@ func (m *MsgCancelResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgWithdraw) Size() (n int) {
+func (m *MsgUnfarm) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1123,7 +1125,7 @@ func (m *MsgWithdraw) Size() (n int) {
 	return n
 }
 
-func (m *MsgWithdrawResponse) Size() (n int) {
+func (m *MsgUnfarmResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1193,7 +1195,7 @@ func sovTx(x uint64) (n int) {
 func sozTx(x uint64) (n int) {
 	return sovTx(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *MsgDeposit) Unmarshal(dAtA []byte) error {
+func (m *MsgFarm) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1216,10 +1218,10 @@ func (m *MsgDeposit) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgDeposit: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgFarm: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgDeposit: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgFarm: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1327,7 +1329,7 @@ func (m *MsgDeposit) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgDepositResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgFarmResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1350,10 +1352,10 @@ func (m *MsgDepositResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgDepositResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgFarmResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgDepositResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgFarmResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -1377,7 +1379,7 @@ func (m *MsgDepositResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgCancel) Unmarshal(dAtA []byte) error {
+func (m *MsgCancelQueuedFarming) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1400,10 +1402,10 @@ func (m *MsgCancel) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgCancel: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgCancelQueuedFarming: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgCancel: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgCancelQueuedFarming: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1497,7 +1499,7 @@ func (m *MsgCancel) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgCancelResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgCancelQueuedFarmingResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1520,10 +1522,10 @@ func (m *MsgCancelResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgCancelResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgCancelQueuedFarmingResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgCancelResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgCancelQueuedFarmingResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -1547,7 +1549,7 @@ func (m *MsgCancelResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgWithdraw) Unmarshal(dAtA []byte) error {
+func (m *MsgUnfarm) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1570,10 +1572,10 @@ func (m *MsgWithdraw) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgWithdraw: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgUnfarm: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgWithdraw: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgUnfarm: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1681,7 +1683,7 @@ func (m *MsgWithdraw) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgWithdrawResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgUnfarmResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1704,10 +1706,10 @@ func (m *MsgWithdrawResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgWithdrawResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgUnfarmResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgWithdrawResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgUnfarmResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

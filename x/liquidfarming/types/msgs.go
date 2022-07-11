@@ -6,35 +6,35 @@ import (
 )
 
 var (
-	_ sdk.Msg = (*MsgDeposit)(nil)
-	_ sdk.Msg = (*MsgCancel)(nil)
-	_ sdk.Msg = (*MsgWithdraw)(nil)
+	_ sdk.Msg = (*MsgFarm)(nil)
+	_ sdk.Msg = (*MsgCancelQueuedFarming)(nil)
+	_ sdk.Msg = (*MsgUnfarm)(nil)
 	_ sdk.Msg = (*MsgPlaceBid)(nil)
 )
 
 // Message types for the farming module
 const (
-	TypeMsgDeposit   = "deposit"
-	TypeMsgCancel    = "cancel"
-	TypeMsgWithdraw  = "withdraw"
-	TypeMsgPlaceBid  = "place_bid"
-	TypeMsgRefundBid = "refund_bid"
+	TypeMsgFarm                             = "farm"
+	TypeMsgCancelQueuedFarmingQueuedFarming = "cancel_queued_farming"
+	TypeMsgUnfarm                           = "unfarm"
+	TypeMsgPlaceBid                         = "place_bid"
+	TypeMsgRefundBid                        = "refund_bid"
 )
 
-// NewMsgDeposit returns a new MsgDeposit.
-func NewMsgDeposit(poolId uint64, depositor string, depositCoin sdk.Coin) *MsgDeposit {
-	return &MsgDeposit{
+// NewMsgFarm returns a new MsgFarm.
+func NewMsgFarm(poolId uint64, depositor string, depositCoin sdk.Coin) *MsgFarm {
+	return &MsgFarm{
 		PoolId:      poolId,
 		Depositor:   depositor,
 		DepositCoin: depositCoin,
 	}
 }
 
-func (msg MsgDeposit) Route() string { return RouterKey }
+func (msg MsgFarm) Route() string { return RouterKey }
 
-func (msg MsgDeposit) Type() string { return TypeMsgDeposit }
+func (msg MsgFarm) Type() string { return TypeMsgFarm }
 
-func (msg MsgDeposit) ValidateBasic() error {
+func (msg MsgFarm) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Depositor); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid depositor address: %v", err)
 	}
@@ -47,11 +47,11 @@ func (msg MsgDeposit) ValidateBasic() error {
 	return nil
 }
 
-func (msg MsgDeposit) GetSignBytes() []byte {
+func (msg MsgFarm) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&msg))
 }
 
-func (msg MsgDeposit) GetSigners() []sdk.AccAddress {
+func (msg MsgFarm) GetSigners() []sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.Depositor)
 	if err != nil {
 		panic(err)
@@ -59,7 +59,7 @@ func (msg MsgDeposit) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
-func (msg MsgDeposit) GetDepositor() sdk.AccAddress {
+func (msg MsgFarm) GetDepositor() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.Depositor)
 	if err != nil {
 		panic(err)
@@ -67,20 +67,20 @@ func (msg MsgDeposit) GetDepositor() sdk.AccAddress {
 	return addr
 }
 
-// NewMsgCancel returns a new MsgCancel.
-func NewMsgCancel(depositor string, poolId, depositReqId uint64) *MsgCancel {
-	return &MsgCancel{
+// NewMsgCancelQueuedFarming returns a new MsgCancelQueuedFarming.
+func NewMsgCancelQueuedFarming(depositor string, poolId, depositReqId uint64) *MsgCancelQueuedFarming {
+	return &MsgCancelQueuedFarming{
 		Depositor:        depositor,
 		PoolId:           poolId,
 		DepositRequestId: depositReqId,
 	}
 }
 
-func (msg MsgCancel) Route() string { return RouterKey }
+func (msg MsgCancelQueuedFarming) Route() string { return RouterKey }
 
-func (msg MsgCancel) Type() string { return TypeMsgCancel }
+func (msg MsgCancelQueuedFarming) Type() string { return TypeMsgCancelQueuedFarmingQueuedFarming }
 
-func (msg MsgCancel) ValidateBasic() error {
+func (msg MsgCancelQueuedFarming) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Depositor); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid depositor address: %v", err)
 	}
@@ -93,11 +93,11 @@ func (msg MsgCancel) ValidateBasic() error {
 	return nil
 }
 
-func (msg MsgCancel) GetSignBytes() []byte {
+func (msg MsgCancelQueuedFarming) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&msg))
 }
 
-func (msg MsgCancel) GetSigners() []sdk.AccAddress {
+func (msg MsgCancelQueuedFarming) GetSigners() []sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.Depositor)
 	if err != nil {
 		panic(err)
@@ -105,7 +105,7 @@ func (msg MsgCancel) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
-func (msg MsgCancel) GetDepositor() sdk.AccAddress {
+func (msg MsgCancelQueuedFarming) GetDepositor() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.Depositor)
 	if err != nil {
 		panic(err)
@@ -113,20 +113,20 @@ func (msg MsgCancel) GetDepositor() sdk.AccAddress {
 	return addr
 }
 
-// NewMsgWithdraw returns a new MsgWithdraw.
-func NewMsgWithdraw(poolId uint64, withdrawer string, lfCoin sdk.Coin) *MsgWithdraw {
-	return &MsgWithdraw{
+// NewMsgUnfarm returns a new MsgUnfarm.
+func NewMsgUnfarm(poolId uint64, withdrawer string, lfCoin sdk.Coin) *MsgUnfarm {
+	return &MsgUnfarm{
 		PoolId:     poolId,
 		Withdrawer: withdrawer,
 		LFCoin:     lfCoin,
 	}
 }
 
-func (msg MsgWithdraw) Route() string { return RouterKey }
+func (msg MsgUnfarm) Route() string { return RouterKey }
 
-func (msg MsgWithdraw) Type() string { return TypeMsgWithdraw }
+func (msg MsgUnfarm) Type() string { return TypeMsgUnfarm }
 
-func (msg MsgWithdraw) ValidateBasic() error {
+func (msg MsgUnfarm) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Withdrawer); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid withdrawer address: %v", err)
 	}
@@ -142,11 +142,11 @@ func (msg MsgWithdraw) ValidateBasic() error {
 	return nil
 }
 
-func (msg MsgWithdraw) GetSignBytes() []byte {
+func (msg MsgUnfarm) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&msg))
 }
 
-func (msg MsgWithdraw) GetSigners() []sdk.AccAddress {
+func (msg MsgUnfarm) GetSigners() []sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.Withdrawer)
 	if err != nil {
 		panic(err)
@@ -154,7 +154,7 @@ func (msg MsgWithdraw) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
-func (msg MsgWithdraw) GetWithdrawer() sdk.AccAddress {
+func (msg MsgUnfarm) GetWithdrawer() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.Withdrawer)
 	if err != nil {
 		panic(err)

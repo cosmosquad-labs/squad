@@ -10,9 +10,9 @@ import (
 // RegisterLegacyAminoCodec registers the necessary x/liquidfarming interfaces and concrete types
 // on the provided LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgDeposit{}, "liquidfarming/MsgDeposit", nil)
-	cdc.RegisterConcrete(&MsgCancel{}, "liquidfarming/MsgCancel", nil)
-	cdc.RegisterConcrete(&MsgWithdraw{}, "liquidfarming/MsgWithdraw", nil)
+	cdc.RegisterConcrete(&MsgFarm{}, "liquidfarming/MsgFarm", nil)
+	cdc.RegisterConcrete(&MsgCancelQueuedFarming{}, "liquidfarming/MsgCancelQueuedFarming", nil)
+	cdc.RegisterConcrete(&MsgUnfarm{}, "liquidfarming/MsgUnfarm", nil)
 	cdc.RegisterConcrete(&MsgPlaceBid{}, "liquidfarming/MsgPlaceBid", nil)
 }
 
@@ -20,9 +20,9 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
-		&MsgDeposit{},
-		&MsgCancel{},
-		&MsgWithdraw{},
+		&MsgFarm{},
+		&MsgCancelQueuedFarming{},
+		&MsgUnfarm{},
 		&MsgPlaceBid{},
 	)
 

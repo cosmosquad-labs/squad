@@ -9,8 +9,8 @@ import "google/protobuf/timestamp.proto";
 option go_package                      = "github.com/cosmosquad-labs/squad/x/liquidfarming/types";
 option (gogoproto.goproto_getters_all) = false;
 
-// DepositRequest defines a deposit request.
-message DepositRequest {
+// QueuedFarming defines queued farming.
+message QueuedFarming {
   // pool_id specifies the pool id
   uint64 pool_id = 1;
 
