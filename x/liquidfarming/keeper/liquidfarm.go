@@ -18,14 +18,13 @@ func (k Keeper) GetNextDepositRequestIdWithUpdate(ctx sdk.Context, poolId uint64
 
 // Deposit handles types.MsgDeposit and makes a deposit.
 func (k Keeper) Deposit(ctx sdk.Context, msg *types.MsgDeposit) (types.DepositRequest, error) {
-	// Liquid farm that corresponds to the pool id must be registered in params
 	params := k.GetParams(ctx)
 	poolId := uint64(0)
 	minDepositAmt := sdk.ZeroInt()
-	for _, liquidFarm := range params.LiquidFarms {
-		if liquidFarm.PoolId == msg.PoolId {
-			poolId = liquidFarm.PoolId
-			minDepositAmt = liquidFarm.MinimumDepositAmount
+	for _, lf := range params.LiquidFarms {
+		if lf.PoolId == msg.PoolId {
+			poolId = lf.PoolId
+			minDepositAmt = lf.MinimumDepositAmount
 			break
 		}
 	}
@@ -33,15 +32,10 @@ func (k Keeper) Deposit(ctx sdk.Context, msg *types.MsgDeposit) (types.DepositRe
 		return types.DepositRequest{}, types.ErrLiquidFarmNotFound
 	}
 	if msg.DepositCoin.Amount.LT(minDepositAmt) {
-		return types.DepositRequest{}, sdkerrors.Wrapf(types.ErrInsufficientDepositAmount, "%s is smaller than %s", msg.DepositCoin.Amount, minDepositAmt)
+		return types.DepositRequest{}, types.ErrInsufficientDepositAmount
 	}
 
-	// TODO: impose deposit gas fee if the depositor has already deposit requests
-	// for _, req := range k.GetDepositRequestsByDepositor(ctx, msg.GetDepositor()) {
-
-	// }
-
-	// Pool with the given pool id must exist in order to proceed
+	// Check that the corresponding pool must exist
 	pool, found := k.liquidityKeeper.GetPool(ctx, poolId)
 	if !found {
 		return types.DepositRequest{}, types.ErrPoolNotFound
@@ -51,15 +45,24 @@ func (k Keeper) Deposit(ctx sdk.Context, msg *types.MsgDeposit) (types.DepositRe
 	spendable := k.bankKeeper.SpendableCoins(ctx, msg.GetDepositor())
 	poolCoinBalance := spendable.AmountOf(pool.PoolCoinDenom)
 	if poolCoinBalance.LT(msg.DepositCoin.Amount) {
-		return types.DepositRequest{}, sdkerrors.ErrInsufficientFunds
+		return types.DepositRequest{}, types.ErrInsufficientDepositAmount
 	}
 
-	// Reserve the deposit coin to the liquid farm reserve account
 	if err := k.bankKeeper.SendCoins(ctx, msg.GetDepositor(), types.LiquidFarmReserveAddress(poolId), sdk.NewCoins(msg.DepositCoin)); err != nil {
 		return types.DepositRequest{}, sdkerrors.Wrap(err, "failed to reserve deposit coin")
 	}
 
-	// Store deposit request
+	// Impose more gas in relative to a number of deposit requests made by the depositor
+	numDepositRequests := 0
+	for _, req := range k.GetDepositRequestsByDepositor(ctx, msg.GetDepositor()) {
+		if req.DepositCoin.Denom == msg.DepositCoin.Denom {
+			numDepositRequests++
+		}
+	}
+	if numDepositRequests > 0 {
+		ctx.GasMeter().ConsumeGas(sdk.Gas(numDepositRequests)*params.DelayedDepositGasFee, "DelayedDepositGasFee")
+	}
+
 	nextId := k.GetNextDepositRequestIdWithUpdate(ctx, msg.PoolId)
 	req := types.NewDepositRequest(nextId, msg.PoolId, msg.Depositor, msg.DepositCoin)
 	k.SetDepositRequest(ctx, req)
