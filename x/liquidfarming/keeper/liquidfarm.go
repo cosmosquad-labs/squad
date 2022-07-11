@@ -42,8 +42,7 @@ func (k Keeper) Deposit(ctx sdk.Context, msg *types.MsgDeposit) (types.DepositRe
 	}
 
 	// Check if the depositor has sufficient balance of deposit coin
-	spendable := k.bankKeeper.SpendableCoins(ctx, msg.GetDepositor())
-	poolCoinBalance := spendable.AmountOf(pool.PoolCoinDenom)
+	poolCoinBalance := k.bankKeeper.SpendableCoins(ctx, msg.GetDepositor()).AmountOf(pool.PoolCoinDenom)
 	if poolCoinBalance.LT(msg.DepositCoin.Amount) {
 		return types.DepositRequest{}, types.ErrInsufficientDepositAmount
 	}
@@ -82,6 +81,11 @@ func (k Keeper) Deposit(ctx sdk.Context, msg *types.MsgDeposit) (types.DepositRe
 
 // Cancel handles types.MsgCancel to cancel the deposit request.
 func (k Keeper) Cancel(ctx sdk.Context, msg *types.MsgCancel) error {
+	requests := k.GetDepositRequestsByDepositor(ctx, msg.GetDepositor())
+	if len(requests) == 0 {
+		return types.ErrDepositRequestNotFound
+	}
+
 	req, found := k.GetDepositRequest(ctx, msg.PoolId, msg.DepositRequestId)
 	if !found {
 		return types.ErrDepositRequestNotFound
@@ -101,33 +105,41 @@ func (k Keeper) Cancel(ctx sdk.Context, msg *types.MsgCancel) error {
 	return nil
 }
 
-// Withdraw handles types.MsgWithdraw to withdraw LFCoin to receive corresponding deposited pool coin.
+// Withdraw handles types.MsgWithdraw to withdraw LFCoin to receive the corresponding deposited pool coin.
 func (k Keeper) Withdraw(ctx sdk.Context, msg *types.MsgWithdraw) error {
 	params := k.GetParams(ctx)
 
 	var withdrawnCoin sdk.Coin
-	for _, liquidFarm := range params.LiquidFarms {
-		poolId := liquidFarm.PoolId
-		reserveAddr := types.LiquidFarmReserveAddress(poolId)
+	for _, lf := range params.LiquidFarms {
+		if msg.PoolId == lf.PoolId {
+			reserveAddr := types.LiquidFarmReserveAddress(lf.PoolId)
+			lfCoinDenom := types.LFCoinDenom(lf.PoolId)
 
-		pool, found := k.liquidityKeeper.GetPool(ctx, poolId)
-		if !found {
-			return types.ErrPoolNotFound
-		}
+			lfCoinBalance := k.bankKeeper.SpendableCoins(ctx, msg.GetWithdrawer()).AmountOf(lfCoinDenom)
+			if lfCoinBalance.LT(msg.LFCoin.Amount) {
+				return types.ErrInsufficientWithdrawingAmount
+			}
 
-		spendable := k.bankKeeper.SpendableCoins(ctx, reserveAddr)
-		poolCoinBalance := spendable.AmountOf(pool.PoolCoinDenom)
-		lfCoinBalance := k.bankKeeper.GetSupply(ctx, types.LFCoinDenom(poolId))
+			pool, found := k.liquidityKeeper.GetPool(ctx, lf.PoolId)
+			if !found {
+				return types.ErrPoolNotFound
+			}
 
-		// WithdrawnCoin = LPCoinTotalStaked / LFCoinTotalSupply * WithdrawingAmount * (1 - WithdrawFee)
-		// Reference liquidstaking calculation logic
-		withdrawFee := sdk.NewInt(0) // TODO: TBD
-		withdrawnAmt := poolCoinBalance.Quo(lfCoinBalance.Amount).Mul(msg.LFCoin.Amount).Mul(sdk.OneInt().Sub(withdrawFee))
-		withdrawnCoin = sdk.NewCoin(pool.PoolCoinDenom, withdrawnAmt)
+			poolCoinBalance := k.bankKeeper.SpendableCoins(ctx, reserveAddr).AmountOf(pool.PoolCoinDenom)
+			lfCoinTotalSupply := k.bankKeeper.GetSupply(ctx, lfCoinDenom).Amount
+			withdrawingAmt := msg.LFCoin.Amount
+			withdrawFee := sdk.ZeroInt() // TODO: TBD
 
-		// Withdraw corresponding pool coin for the LFCoin
-		if err := k.bankKeeper.SendCoins(ctx, reserveAddr, msg.GetWithdrawer(), sdk.NewCoins(withdrawnCoin)); err != nil {
-			return err
+			// WithdrawnCoin = LPCoinTotalStaked / LFCoinTotalSupply * WithdrawingAmount * (1 - WithdrawFee)
+			withdrawnAmt := poolCoinBalance.Quo(lfCoinTotalSupply).Mul(withdrawingAmt).Mul(sdk.OneInt().Sub(withdrawFee))
+			withdrawnCoin = sdk.NewCoin(pool.PoolCoinDenom, withdrawnAmt)
+
+			// Withdraw corresponding pool coin for the LFCoin
+			if err := k.bankKeeper.SendCoins(ctx, reserveAddr, msg.GetWithdrawer(), sdk.NewCoins(withdrawnCoin)); err != nil {
+				return err
+			}
+
+			break
 		}
 	}
 

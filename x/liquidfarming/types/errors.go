@@ -8,8 +8,9 @@ import (
 
 // x/liquidfarming module sentinel errors
 var (
-	ErrLiquidFarmNotFound        = sdkerrors.Register(ModuleName, 1, "liquid farm not found")
-	ErrPoolNotFound              = sdkerrors.Register(ModuleName, 2, "pool not found")
-	ErrDepositRequestNotFound    = sdkerrors.Register(ModuleName, 3, "deposit request not found")
-	ErrInsufficientDepositAmount = sdkerrors.Register(ModuleName, 4, "insufficient deposit amount")
+	ErrLiquidFarmNotFound            = sdkerrors.Register(ModuleName, 1, "liquid farm not found")
+	ErrPoolNotFound                  = sdkerrors.Register(ModuleName, 2, "pool not found")
+	ErrDepositRequestNotFound        = sdkerrors.Register(ModuleName, 3, "deposit request not found")
+	ErrInsufficientDepositAmount     = sdkerrors.Register(ModuleName, 4, "insufficient deposit amount")
+	ErrInsufficientWithdrawingAmount = sdkerrors.Register(ModuleName, 5, "insufficient withdrawing amount")
 )
