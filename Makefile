@@ -2,7 +2,7 @@
 
 NAME=squad
 APPNAME=squad
-REPO=github.com/cosmosquad-labs/squad
+REPO=github.com/cosmosquad-labs/squad/v2
 
 VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
 COMMIT := $(shell git log -1 --format='%H')
