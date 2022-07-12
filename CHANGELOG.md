@@ -38,6 +38,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## v2.0.0
+
 ### Client Breaking Changes
 
 * (x/liquidity) [\#335](https://github.com/cosmosquad-labs/squad/pull/335) Modify `PoolResponse`:
