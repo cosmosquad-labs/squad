@@ -485,6 +485,12 @@ func NewApp(
 		),
 	)
 
+	app.FarmingKeeper = *app.FarmingKeeper.SetHooks(
+		farmingtypes.NewMultiFarmingHooks(
+			app.LiquidFarmingKeeper.Hooks(),
+		),
+	)
+
 	app.ClaimKeeper = claimkeeper.NewKeeper(
 		appCodec,
 		keys[claimtypes.StoreKey],
