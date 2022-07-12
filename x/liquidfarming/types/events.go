@@ -11,6 +11,7 @@ const (
 	AttributeKeyFarmer          = "farmer"
 	AttributeKeyFarmingCoin     = "farming_coin"
 
+	AttributeKeyCanceledCoin  = "canceled_coin"
 	AttributeKeyUnfarmingCoin = "unfarming_coin"
 	AttributeKeyUnfarmedCoin  = "unfarmed_coin"
 	AttributeKeyAuctionId     = "auction_id"

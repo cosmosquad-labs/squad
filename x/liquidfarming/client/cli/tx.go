@@ -27,26 +27,26 @@ func GetTxCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		NewDepositCmd(),
-		NewCancelCmd(),
-		NewWithdrawCmd(),
+		NewFarmCmd(),
+		NewCancelQueuedFarmingCmd(),
+		NewUnfarmCmd(),
 		NewPlaceBidCmd(),
 	)
 
 	return cmd
 }
 
-// NewDepositCmd implements the deposit command handler.
-func NewDepositCmd() *cobra.Command {
+// NewFarmCmd implements the farm command handler.
+func NewFarmCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "deposit [pool-id] [amount]",
+		Use:   "farm [pool-id] [amount]",
 		Args:  cobra.ExactArgs(2),
-		Short: "Deposit pool coin",
+		Short: "Farm pool coin for liquid farming",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Deposit pool coin for liquid farming. 
+			fmt.Sprintf(`Farm pool coin for liquid farming. 
 			
 Example:
-$ %s tx %s deposit 1 10000000pool1 --from mykey
+$ %s tx %s farm 1 10000000pool1 --from mykey
 `,
 				version.AppName, types.ModuleName,
 			),
@@ -62,15 +62,15 @@ $ %s tx %s deposit 1 10000000pool1 --from mykey
 				return fmt.Errorf("failed to parse pool id: %w", err)
 			}
 
-			depositCoin, err := sdk.ParseCoinNormalized(args[1])
+			farmingCoin, err := sdk.ParseCoinNormalized(args[1])
 			if err != nil {
-				return fmt.Errorf("invalid deposit coin: %w", err)
+				return fmt.Errorf("invalid farming coin: %w", err)
 			}
 
-			msg := types.NewMsgDeposit(
+			msg := types.NewMsgFarm(
 				poolId,
 				clientCtx.GetFromAddress().String(),
-				depositCoin,
+				farmingCoin,
 			)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
@@ -82,18 +82,18 @@ $ %s tx %s deposit 1 10000000pool1 --from mykey
 	return cmd
 }
 
-// NewCancelCmd implements the cancel command handler.
-func NewCancelCmd() *cobra.Command {
+// NewCancelQueuedFarmingCmd implements the cancel queued farming command handler.
+func NewCancelQueuedFarmingCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "cancel [pool-id] [deposit-request-id]",
+		Use:   "cancel-queued-farming [pool-id] [deposit-request-id]",
 		Args:  cobra.ExactArgs(2),
-		Short: "Cancel deposit request",
+		Short: "Cancel queued farming",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Cancel deposit request with the given pool id and deposit request id.
-The deposit request that is already executed to mint LFCoin can't be accomplished.
+			fmt.Sprintf(`Cancel queued farming with the given pool id and deposit request id.
+You can't cancel the queued farming that is already executed to mint LFCoin.
 			
 Example:
-$ %s tx %s cancel 1 1 --from mykey
+$ %s tx %s cancel-queued-farming 1 1 --from mykey
 `,
 				version.AppName, types.ModuleName,
 			),
@@ -114,7 +114,7 @@ $ %s tx %s cancel 1 1 --from mykey
 				return fmt.Errorf("failed to parse deposit request id: %w", err)
 			}
 
-			msg := types.NewMsgCancel(
+			msg := types.NewMsgCancelQueuedFarming(
 				clientCtx.GetFromAddress().String(),
 				poolId,
 				reqId,
@@ -129,8 +129,8 @@ $ %s tx %s cancel 1 1 --from mykey
 	return cmd
 }
 
-// NewWithdrawCmd implements the withdraw command handler.
-func NewWithdrawCmd() *cobra.Command {
+// NewUnfarmCmd implements the withdraw command handler.
+func NewUnfarmCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "withdraw [pool-id] [amount]",
 		Args:  cobra.ExactArgs(2),
@@ -160,7 +160,7 @@ $ %s tx %s withdraw 1 100000lf1 --from mykey
 				return fmt.Errorf("invalid deposit coin: %w", err)
 			}
 
-			msg := types.NewMsgWithdraw(
+			msg := types.NewMsgUnfarm(
 				poolId,
 				clientCtx.GetFromAddress().String(),
 				withdrawingCoin,
