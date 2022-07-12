@@ -31,9 +31,9 @@ message MsgFarm {
 
   uint64 pool_id = 1;
 
-  string depositor = 2;
+  string farmer = 2;
 
-  cosmos.base.v1beta1.Coin deposit_coin = 3 [
+  cosmos.base.v1beta1.Coin farming_coin = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"
   ];
@@ -47,11 +47,11 @@ message MsgFarmResponse {}
 message MsgCancelQueuedFarming {
   option (gogoproto.goproto_getters) = false;
 
-  string depositor = 1;
+  string farmer = 1;
 
   uint64 pool_id = 2;
 
-  uint64 deposit_request_id = 3;
+  uint64 queued_farming_id = 3;
 }
 
 // MsgCancelQueuedFarmingResponse defines the MsgCancelQueuedFarmingResponse response type.
@@ -63,7 +63,7 @@ message MsgUnfarm {
 
   uint64 pool_id = 1;
 
-  string withdrawer = 2;
+  string farmer = 2;
 
   cosmos.base.v1beta1.Coin lf_coin = 3 [
     (gogoproto.nullable) = false,

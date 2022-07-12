@@ -33,5 +33,6 @@ type AccountKeeper interface {
 
 // FarmingHooks event hooks for the farming object (noalias)
 type FarmingHooks interface {
-	AfterAllocateRewards(ctx sdk.Context) // Must be called when farming rewards are allocated
+	AfterStaked(ctx sdk.Context, farmer sdk.AccAddress, stakingCoinDenom string, stakingAmt sdk.Int) // Must be called when transitioning from queued to staked state
+	AfterAllocateRewards(ctx sdk.Context)                                                            // Must be called when farming rewards are allocated
 }

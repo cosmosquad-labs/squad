@@ -6,39 +6,39 @@ The `liquidfarming` module emits the following events:
 
 ## Handlers
 
-### MsgDeposit
+### MsgFarm
 
 | Type       | Attribute Key      | Attribute Value        |
 | ---------- | ------------------ | ---------------------- |
-| deposit    | pool_id            | {poolId}               |
-| deposit    | depositor          | {depositor}            |
-| deposit    | deposit_coin       | {depositCoin}          |
+| farm       | pool_id            | {poolId}               |
+| farm       | farmer             | {farmer}               |
+| farm       | farming_coin       | {farmingCoin}          |
 | message    | module             | liquidfarming          |
-| message    | action             | deposit                |
-| message    | depositor          | {depositorAddress}     |
+| message    | action             | farm                   |
+| message    | farmer             | {farmerAddress}        |
 
-### MsgCancel
+### MsgCancelQueuedFarming
 
-| Type       | Attribute Key        | Attribute Value        |
-| ---------- | -------------------- | ---------------------- |
-| cancel     | pool_id              | {poolId}               |
-| cancel     | deposit_request_id   | {depositRequestId}     |
-| cancel     | depositor            | {depositor}            |
-| message    | module               | liquidfarming          |
-| message    | action               | deposit                |
-| message    | depositor            | {depositorAddress}     |
+| Type                  | Attribute Key        | Attribute Value        |
+| --------------------- | -------------------- | ---------------------- |
+| cancel_queued_farming | pool_id              | {poolId}               |
+| cancel_queued_farming | queued_farming_id    | {queuedFarmingId}      |
+| cancel_queued_farming | farmer               | {farmer}               |
+| message               | module               | liquidfarming          |
+| message               | action               | cancel_queued_farming  |
+| message               | farmer               | {farmerAddress}        |
 
-### MsgWithdraw
+### MsgUnfarm
 
 | Type       | Attribute Key      | Attribute Value        |
 | ---------- | ------------------ | ---------------------- |
-| withdraw   | pool_id            | {poolId}               |
-| withdraw   | withdrawer         | {withdrawer}           |
-| withdraw   | withdrawing_coin   | {withdrawingCoin}      |
-| withdraw   | withdrawn_coin     | {withdrawnCoin}        |
+| unfarm     | pool_id            | {poolId}               |
+| unfarm     | farmer             | {farmer}               |
+| unfarm     | farming_coin       | {farmingCoin}          |
+| unfarm     | farmed_coin        | {farmedCoin}           |
 | message    | module             | liquidfarming          |
-| message    | action             | deposit                |
-| message    | withdrawer         | {withdrawerAddress}    |
+| message    | action             | unfarm                 |
+| message    | farmer             | {farmerAddress}        |
 
 ### MsgPlaceBid
 
@@ -50,3 +50,8 @@ The `liquidfarming` module emits the following events:
 | message    | module             | liquidfarming          |
 | message    | action             | deposit                |
 | message    | bidder             | {bidderAddress}        |
+
+### MsgRefundBid 
+
+| Type       | Attribute Key      | Attribute Value        |
+| ---------- | ------------------ | ---------------------- |

@@ -8,33 +8,33 @@ Messages (Msg) are objects that trigger state transitions. Msgs are wrapped in t
 
 Creating new `LiquidFarm` is not possible by transaction message. It is expected to be created through governance proposal.
 
-## MsgDeposit
+## MsgFarm
 
 ```go
-type MsgDeposit struct {
+type MsgFarm struct {
 	PoolId      uint64
-	Depositor   string
-	DepositCoin sdk.Coin
+	Farmer      string
+	FarmingCoin sdk.Coin
 }
 ```
 
-## MsgCancel
+## MsgCancelQueuedFarming
 
 ```go
-type MsgCancel struct {
-	Depositor        string
-	PoolId           uint64 // target pool id
-	DepositReqeustId uint64 // target deposit request id
+type MsgCancelQueuedFarming struct {
+	Depositor       string
+	PoolId          uint64
+	QueuedFarmingId uint64
 }
 ```
 
-## MsgWithdraw
+## MsgUnfarm
 
 ```go
-type MsgWithdraw struct {
-	PoolId     uint64   // target deposit request id
-	Withdrawer string   // the bech32-encoded address that withdraws liquid farm coin
-	LFCoin     sdk.Coin // withdrawing amount of LF coin
+type MsgUnfarm struct {
+	PoolId uint64
+	Farmer string
+	LFCoin sdk.Coin
 }
 ```
 
@@ -45,5 +45,15 @@ type MsgPlaceBid struct {
 	AuctionId uint64
 	Bidder    string
 	Amount    sdk.Coin
+}
+```
+
+## MsgRefundBid
+
+```go
+type MsgRefundBid struct {
+	AuctionId uint64
+	BidId     string
+	Bidder    sdk.Coin
 }
 ```

@@ -8,11 +8,11 @@ import (
 	"github.com/cosmosquad-labs/squad/v2/x/liquidfarming/types"
 )
 
-// GetLastDepositRequestId returns the last deposit request id for the pool id.
-func (k Keeper) GetLastDepositRequestId(ctx sdk.Context, poolId uint64) uint64 {
+// GetLastQueuedFarmingId returns the last queued farming id for the pool id.
+func (k Keeper) GetLastQueuedFarmingId(ctx sdk.Context, poolId uint64) uint64 {
 	var id uint64
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetLastDepositRequestIdKey(poolId))
+	bz := store.Get(types.GetLastQueuedFarmingIdKey(poolId))
 	if bz == nil {
 		id = 0 // initialize the deposit request id
 	} else {
@@ -23,11 +23,11 @@ func (k Keeper) GetLastDepositRequestId(ctx sdk.Context, poolId uint64) uint64 {
 	return id
 }
 
-// SetDepositRequestId sets the deposit request id with the given pool id.
-func (k Keeper) SetDepositRequestId(ctx sdk.Context, poolId uint64, reqId uint64) {
+// SetQueuedFarmingId sets the deposit request id with the given pool id.
+func (k Keeper) SetQueuedFarmingId(ctx sdk.Context, poolId uint64, reqId uint64) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&gogotypes.UInt64Value{Value: reqId})
-	store.Set(types.GetLastDepositRequestIdKey(poolId), bz)
+	store.Set(types.GetLastQueuedFarmingIdKey(poolId), bz)
 }
 
 // GetLastBidId returns the last bid id for the bid.
@@ -74,50 +74,50 @@ func (k Keeper) SetRewardsAuctionId(ctx sdk.Context, id uint64) {
 	store.Set(types.LastRewardsAuctionIdKey, bz)
 }
 
-// GetDepositRequest returns the particular deposit request.
-func (k Keeper) GetDepositRequest(ctx sdk.Context, poolId, reqId uint64) (req types.DepositRequest, found bool) {
+// GetQueuedFarming returns the particular queued farming.
+func (k Keeper) GetQueuedFarming(ctx sdk.Context, poolId, reqId uint64) (qf types.QueuedFarming, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetDepositRequestKey(poolId, reqId))
+	bz := store.Get(types.GetQueuedFarmingKey(poolId, reqId))
 	if bz == nil {
 		return
 	}
-	req = types.MustUnmarshalDepositRequest(k.cdc, bz)
-	return req, true
+	qf = types.MustUnmarshalQueuedFarming(k.cdc, bz)
+	return qf, true
 }
 
-// GetDepositRequestsByDepositor returns deposit requests by the depositor.
-func (k Keeper) GetDepositRequestsByDepositor(ctx sdk.Context, depositor sdk.AccAddress) (reqs []types.DepositRequest) {
-	_ = k.IterateDepositRequestsByDepositor(ctx, depositor, func(req types.DepositRequest) (stop bool, err error) {
-		reqs = append(reqs, req)
+// GetQueuedFarmingsByDepositor returns queued farmings by the depositor.
+func (k Keeper) GetQueuedFarmingsByDepositor(ctx sdk.Context, depositor sdk.AccAddress) (qfs []types.QueuedFarming) {
+	_ = k.IterateQueuedFarmingsByDepositor(ctx, depositor, func(req types.QueuedFarming) (stop bool, err error) {
+		qfs = append(qfs, req)
 		return false, nil
 	})
 	return
 }
 
-// SetDepositRequest stores deposit request for the batch execution.
-func (k Keeper) SetDepositRequest(ctx sdk.Context, req types.DepositRequest) {
+// SetQueuedFarming stores queued farming for the batch execution.
+func (k Keeper) SetQueuedFarming(ctx sdk.Context, qf types.QueuedFarming) {
 	store := ctx.KVStore(k.storeKey)
-	bz := types.MustMarshalDepositRequest(k.cdc, req)
-	store.Set(types.GetDepositRequestKey(req.PoolId, req.Id), bz)
+	bz := types.MustMarshalQueuedFarming(k.cdc, qf)
+	store.Set(types.GetQueuedFarmingKey(qf.PoolId, qf.Id), bz)
 }
 
-// SetDepositRequestIndex stores the deposit request index.
-func (k Keeper) SetDepositRequestIndex(ctx sdk.Context, req types.DepositRequest) {
+// SetQueuedFarmingIndex stores the queued farming index.
+func (k Keeper) SetQueuedFarmingIndex(ctx sdk.Context, req types.QueuedFarming) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetDepositRequestIndexKey(req.GetDepositor(), req.PoolId, req.Id), []byte{})
+	store.Set(types.GetQueuedFarmingIndexKey(req.GetFarmer(), req.PoolId, req.Id), []byte{})
 }
 
-// DeleteDepositRequest deletes deposit request and its index.
-func (k Keeper) DeleteDepositRequest(ctx sdk.Context, req types.DepositRequest) {
+// DeleteQueuedFarming deletes deposit request and its index.
+func (k Keeper) DeleteQueuedFarming(ctx sdk.Context, req types.QueuedFarming) {
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetDepositRequestKey(req.PoolId, req.Id))
-	k.DeleteDepositRequestIndex(ctx, req)
+	store.Delete(types.GetQueuedFarmingKey(req.PoolId, req.Id))
+	k.DeleteQueuedFarmingIndex(ctx, req)
 }
 
-// DeleteDepositRequestIndex deletes deposit request index.
-func (k Keeper) DeleteDepositRequestIndex(ctx sdk.Context, req types.DepositRequest) {
+// DeleteQueuedFarmingIndex deletes deposit request index.
+func (k Keeper) DeleteQueuedFarmingIndex(ctx sdk.Context, req types.QueuedFarming) {
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetDepositRequestIndexKey(req.GetDepositor(), req.PoolId, req.Id))
+	store.Delete(types.GetQueuedFarmingIndexKey(req.GetFarmer(), req.PoolId, req.Id))
 }
 
 func (k Keeper) GetRewardsAuction(ctx sdk.Context, poolId, auctionId uint64) (auction types.RewardsAuction, found bool) {
@@ -147,15 +147,15 @@ func (k Keeper) GetRewardsAuctions(ctx sdk.Context) (auctions []types.RewardsAuc
 	return auctions
 }
 
-// IterateDepositRequestsByDepositor iterates through deposit requests in the
+// IterateQueuedFarmingsByDepositor iterates through deposit requests in the
 // store by a depositor and call cb on each order.
-func (k Keeper) IterateDepositRequestsByDepositor(ctx sdk.Context, depositor sdk.AccAddress, cb func(req types.DepositRequest) (stop bool, err error)) error {
+func (k Keeper) IterateQueuedFarmingsByDepositor(ctx sdk.Context, depositor sdk.AccAddress, cb func(req types.QueuedFarming) (stop bool, err error)) error {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.GetDepositRequestIndexKeyPrefix(depositor))
+	iter := sdk.KVStorePrefixIterator(store, types.GetQueuedFarmingIndexKeyPrefix(depositor))
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
-		_, poolId, reqId := types.ParseDepositRequestIndexKey(iter.Key())
-		req, _ := k.GetDepositRequest(ctx, poolId, reqId)
+		_, poolId, reqId := types.ParseQueuedFarmingIndexKey(iter.Key())
+		req, _ := k.GetQueuedFarming(ctx, poolId, reqId)
 		stop, err := cb(req)
 		if err != nil {
 			return err
@@ -181,4 +181,10 @@ func (k Keeper) IterateRewardsAuctions(ctx sdk.Context, cb func(auction types.Re
 			break
 		}
 	}
+}
+
+type MsgRefundBid struct {
+	AuctionId uint64
+	BidId     string
+	Bidder    sdk.Coin
 }

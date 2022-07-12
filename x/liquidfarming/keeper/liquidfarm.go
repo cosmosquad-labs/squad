@@ -9,15 +9,15 @@ import (
 	"github.com/cosmosquad-labs/squad/v2/x/liquidfarming/types"
 )
 
-// GetNextDepositRequestIdWithUpdate increments the last deposit request id and returns it.
-func (k Keeper) GetNextDepositRequestIdWithUpdate(ctx sdk.Context, poolId uint64) uint64 {
-	nextId := k.GetLastDepositRequestId(ctx, poolId) + 1
-	k.SetDepositRequestId(ctx, poolId, nextId)
+// GetNextQueuedFarmingIdWithUpdate increments the last deposit request id and returns it.
+func (k Keeper) GetNextQueuedFarmingIdWithUpdate(ctx sdk.Context, poolId uint64) uint64 {
+	nextId := k.GetLastQueuedFarmingId(ctx, poolId) + 1
+	k.SetQueuedFarmingId(ctx, poolId, nextId)
 	return nextId
 }
 
-// Deposit handles types.MsgDeposit and makes a deposit.
-func (k Keeper) Deposit(ctx sdk.Context, msg *types.MsgDeposit) (types.DepositRequest, error) {
+// Farm handles types.MsgFarm
+func (k Keeper) Farm(ctx sdk.Context, msg *types.MsgFarm) (types.QueuedFarming, error) {
 	params := k.GetParams(ctx)
 	poolId := uint64(0)
 	minDepositAmt := sdk.ZeroInt()
@@ -29,93 +29,103 @@ func (k Keeper) Deposit(ctx sdk.Context, msg *types.MsgDeposit) (types.DepositRe
 		}
 	}
 	if poolId == 0 {
-		return types.DepositRequest{}, types.ErrLiquidFarmNotFound
+		return types.QueuedFarming{}, types.ErrLiquidFarmNotFound
 	}
-	if msg.DepositCoin.Amount.LT(minDepositAmt) {
-		return types.DepositRequest{}, types.ErrInsufficientDepositAmount
+	if msg.FarmingCoin.Amount.LT(minDepositAmt) {
+		return types.QueuedFarming{}, types.ErrInsufficientFarmingCoinAmount
 	}
 
 	// Check that the corresponding pool must exist
 	pool, found := k.liquidityKeeper.GetPool(ctx, poolId)
 	if !found {
-		return types.DepositRequest{}, types.ErrPoolNotFound
+		return types.QueuedFarming{}, types.ErrPoolNotFound
 	}
+
+	farmerAcc := msg.GetFarmer()
+	farmingCoin := msg.FarmingCoin
+	reserveAcc := types.LiquidFarmReserveAddress(poolId)
 
 	// Check if the depositor has sufficient balance of deposit coin
-	poolCoinBalance := k.bankKeeper.SpendableCoins(ctx, msg.GetDepositor()).AmountOf(pool.PoolCoinDenom)
-	if poolCoinBalance.LT(msg.DepositCoin.Amount) {
-		return types.DepositRequest{}, types.ErrInsufficientDepositAmount
+	poolCoinBalance := k.bankKeeper.SpendableCoins(ctx, farmerAcc).AmountOf(pool.PoolCoinDenom)
+	if poolCoinBalance.LT(farmingCoin.Amount) {
+		return types.QueuedFarming{}, types.ErrInsufficientFarmingCoinAmount
 	}
 
-	if err := k.bankKeeper.SendCoins(ctx, msg.GetDepositor(), types.LiquidFarmReserveAddress(poolId), sdk.NewCoins(msg.DepositCoin)); err != nil {
-		return types.DepositRequest{}, sdkerrors.Wrap(err, "failed to reserve deposit coin")
+	// Reserve farming coins to reserve account
+	if err := k.bankKeeper.SendCoins(ctx, farmerAcc, reserveAcc, sdk.NewCoins(farmingCoin)); err != nil {
+		return types.QueuedFarming{}, sdkerrors.Wrap(err, "failed to reserve deposit coin")
 	}
 
 	// Impose more gas in relative to a number of deposit requests made by the depositor
-	numDepositRequests := 0
-	for _, req := range k.GetDepositRequestsByDepositor(ctx, msg.GetDepositor()) {
-		if req.DepositCoin.Denom == msg.DepositCoin.Denom {
-			numDepositRequests++
+	numQueuedFarmings := 0
+	for _, req := range k.GetQueuedFarmingsByDepositor(ctx, farmerAcc) {
+		if req.FarmingCoin.Denom == farmingCoin.Denom {
+			numQueuedFarmings++
 		}
 	}
-	if numDepositRequests > 0 {
-		ctx.GasMeter().ConsumeGas(sdk.Gas(numDepositRequests)*params.DelayedDepositGasFee, "DelayedDepositGasFee")
+	if numQueuedFarmings > 0 {
+		ctx.GasMeter().ConsumeGas(sdk.Gas(numQueuedFarmings)*params.DelayedDepositGasFee, "DelayedDepositGasFee")
 	}
 
-	nextId := k.GetNextDepositRequestIdWithUpdate(ctx, msg.PoolId)
-	req := types.NewDepositRequest(nextId, msg.PoolId, msg.Depositor, msg.DepositCoin)
-	k.SetDepositRequest(ctx, req)
-	k.SetDepositRequestIndex(ctx, req)
+	// Stake in the farming module
+	if err := k.farmingKeeper.Stake(ctx, reserveAcc, sdk.NewCoins(farmingCoin)); err != nil {
+		return types.QueuedFarming{}, err
+	}
+
+	nextId := k.GetNextQueuedFarmingIdWithUpdate(ctx, msg.PoolId)
+	queued := types.NewQueuedFarming(nextId, msg.PoolId, farmerAcc.String(), farmingCoin)
+	k.SetQueuedFarming(ctx, queued)
+	k.SetQueuedFarmingIndex(ctx, queued)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeDeposit,
+			types.EventTypeFarm,
 			sdk.NewAttribute(types.AttributeKeyPoolId, strconv.FormatUint(msg.PoolId, 10)),
-			sdk.NewAttribute(types.AttributeKeyDepositor, msg.Depositor),
-			sdk.NewAttribute(types.AttributeKeyDepositCoin, msg.DepositCoin.String()),
+			sdk.NewAttribute(types.AttributeKeyFarmer, farmerAcc.String()),
+			sdk.NewAttribute(types.AttributeKeyFarmingCoin, farmingCoin.String()),
 		),
 	})
 
-	return req, nil
+	return queued, nil
 }
 
-// Cancel handles types.MsgCancel to cancel the deposit request.
-func (k Keeper) Cancel(ctx sdk.Context, msg *types.MsgCancel) error {
-	requests := k.GetDepositRequestsByDepositor(ctx, msg.GetDepositor())
+// CancelQueuedFarming handles types.MsgCancel to cancel the queued farming.
+func (k Keeper) CancelQueuedFarming(ctx sdk.Context, msg *types.MsgCancelQueuedFarming) error {
+	requests := k.GetQueuedFarmingsByDepositor(ctx, msg.GetFarmer())
 	if len(requests) == 0 {
-		return types.ErrDepositRequestNotFound
+		return types.ErrQueuedFarmingNotFound
 	}
 
-	req, found := k.GetDepositRequest(ctx, msg.PoolId, msg.DepositRequestId)
+	req, found := k.GetQueuedFarming(ctx, msg.PoolId, msg.QueuedFarmingId)
 	if !found {
-		return types.ErrDepositRequestNotFound
+		return types.ErrQueuedFarmingNotFound
 	}
 
-	k.DeleteDepositRequest(ctx, req)
+	k.DeleteQueuedFarming(ctx, req)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeCancel,
+			types.EventTypeCancelQueuedFarming,
 			sdk.NewAttribute(types.AttributeKeyPoolId, strconv.FormatUint(msg.PoolId, 10)),
-			sdk.NewAttribute(types.AttributeKeyDepositRequestId, strconv.FormatUint(msg.DepositRequestId, 10)),
-			sdk.NewAttribute(types.AttributeKeyDepositor, msg.Depositor),
+			sdk.NewAttribute(types.AttributeKeyQueuedFarmingId, strconv.FormatUint(msg.QueuedFarmingId, 10)),
+			sdk.NewAttribute(types.AttributeKeyFarmer, msg.Farmer),
 		),
 	})
 
 	return nil
 }
 
-// Withdraw handles types.MsgWithdraw to withdraw LFCoin to receive the corresponding deposited pool coin.
-func (k Keeper) Withdraw(ctx sdk.Context, msg *types.MsgWithdraw) error {
+// Unfarm handles types.MsgUnfarm to unfarm LFCoin to receive the corresponding staked pool coin.
+func (k Keeper) Unfarm(ctx sdk.Context, msg *types.MsgUnfarm) error {
 	params := k.GetParams(ctx)
 
-	var withdrawnCoin sdk.Coin
+	var unfarmedCoin sdk.Coin
 	for _, lf := range params.LiquidFarms {
 		if msg.PoolId == lf.PoolId {
 			reserveAddr := types.LiquidFarmReserveAddress(lf.PoolId)
 			lfCoinDenom := types.LFCoinDenom(lf.PoolId)
 
-			lfCoinBalance := k.bankKeeper.SpendableCoins(ctx, msg.GetWithdrawer()).AmountOf(lfCoinDenom)
+			lfCoinBalance := k.bankKeeper.SpendableCoins(ctx, msg.GetFarmer()).AmountOf(lfCoinDenom)
 			if lfCoinBalance.LT(msg.LFCoin.Amount) {
 				return types.ErrInsufficientWithdrawingAmount
 			}
@@ -127,20 +137,25 @@ func (k Keeper) Withdraw(ctx sdk.Context, msg *types.MsgWithdraw) error {
 
 			poolCoinBalance := k.bankKeeper.SpendableCoins(ctx, reserveAddr).AmountOf(pool.PoolCoinDenom)
 			lfCoinTotalSupply := k.bankKeeper.GetSupply(ctx, lfCoinDenom).Amount
-			withdrawingAmt := msg.LFCoin.Amount
-			withdrawFee := sdk.ZeroInt() // TODO: TBD
+			unfarmingAmt := msg.LFCoin.Amount
+			fee := sdk.ZeroInt() // TODO: TBD
 
-			// WithdrawnCoin = LPCoinTotalStaked / LFCoinTotalSupply * WithdrawingAmount * (1 - WithdrawFee)
-			withdrawnAmt := poolCoinBalance.Quo(lfCoinTotalSupply).Mul(withdrawingAmt).Mul(sdk.OneInt().Sub(withdrawFee))
-			withdrawnCoin = sdk.NewCoin(pool.PoolCoinDenom, withdrawnAmt)
+			// UnfarmedCoin = LPCoinTotalStaked / LFCoinTotalSupply * UnfarmingAmt * (1 - Fee)
+			unfarmedAmt := poolCoinBalance.Quo(lfCoinTotalSupply).Mul(unfarmingAmt).Mul(sdk.OneInt().Sub(fee))
+			unfarmedCoin = sdk.NewCoin(pool.PoolCoinDenom, unfarmedAmt)
 
 			// Withdraw corresponding pool coin for the LFCoin
-			if err := k.bankKeeper.SendCoins(ctx, reserveAddr, msg.GetWithdrawer(), sdk.NewCoins(withdrawnCoin)); err != nil {
+			if err := k.bankKeeper.SendCoins(ctx, reserveAddr, msg.GetFarmer(), sdk.NewCoins(unfarmedCoin)); err != nil {
 				return err
 			}
 
 			break
 		}
+	}
+
+	// Unstake from the farming module
+	if err := k.farmingKeeper.Unstake(ctx, msg.GetFarmer(), sdk.NewCoins(unfarmedCoin)); err != nil {
+		return err
 	}
 
 	// Burn the withdrawn LFCoin
@@ -150,11 +165,11 @@ func (k Keeper) Withdraw(ctx sdk.Context, msg *types.MsgWithdraw) error {
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeWithdraw,
+			types.EventTypeUnfarm,
 			sdk.NewAttribute(types.AttributeKeyPoolId, strconv.FormatUint(msg.PoolId, 10)),
-			sdk.NewAttribute(types.AttributeKeyWithdrawer, msg.Withdrawer),
-			sdk.NewAttribute(types.AttributeKeyWithdrawingCoin, msg.LFCoin.String()),
-			sdk.NewAttribute(types.AttributeKeyWithdrawnCoin, withdrawnCoin.String()),
+			sdk.NewAttribute(types.AttributeKeyFarmer, msg.Farmer),
+			sdk.NewAttribute(types.AttributeKeyUnfarmingCoin, msg.LFCoin.String()),
+			sdk.NewAttribute(types.AttributeKeyUnfarmedCoin, unfarmedCoin.String()),
 		),
 	})
 

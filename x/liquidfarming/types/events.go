@@ -2,16 +2,16 @@ package types
 
 // Event types for the farming module.
 const (
-	EventTypeDeposit  = "deposit"
-	EventTypeCancel   = "cancel"
-	EventTypeWithdraw = "withdraw"
+	EventTypeFarm                = "farm"
+	EventTypeCancelQueuedFarming = "cancel_queued_farming"
+	EventTypeUnfarm              = "unfarm"
 
-	AttributeKeyPoolId           = "pool_id"
-	AttributeKeyDepositRequestId = "deposit_request_id"
-	AttributeKeyDepositor        = "depositor"
-	AttributeKeyDepositCoin      = "deposit_coin"
-	AttributeKeyWithdrawer       = "withdrawer"
-	AttributeKeyWithdrawingCoin  = "withdrawing_coin"
-	AttributeKeyWithdrawnCoin    = "withdraw_coin"
-	AttributeKeyAuctionId        = "auction_id"
+	AttributeKeyPoolId          = "pool_id"
+	AttributeKeyQueuedFarmingId = "queued_farming_id"
+	AttributeKeyFarmer          = "farmer"
+	AttributeKeyFarmingCoin     = "farming_coin"
+
+	AttributeKeyUnfarmingCoin = "unfarming_coin"
+	AttributeKeyUnfarmedCoin  = "unfarmed_coin"
+	AttributeKeyAuctionId     = "auction_id"
 )

@@ -22,11 +22,11 @@ const (
 )
 
 // NewMsgFarm returns a new MsgFarm.
-func NewMsgFarm(poolId uint64, depositor string, depositCoin sdk.Coin) *MsgFarm {
+func NewMsgFarm(poolId uint64, farmer string, farmingCoin sdk.Coin) *MsgFarm {
 	return &MsgFarm{
 		PoolId:      poolId,
-		Depositor:   depositor,
-		DepositCoin: depositCoin,
+		Farmer:      farmer,
+		FarmingCoin: farmingCoin,
 	}
 }
 
@@ -35,14 +35,14 @@ func (msg MsgFarm) Route() string { return RouterKey }
 func (msg MsgFarm) Type() string { return TypeMsgFarm }
 
 func (msg MsgFarm) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Depositor); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid depositor address: %v", err)
+	if _, err := sdk.AccAddressFromBech32(msg.Farmer); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid farmer address: %v", err)
 	}
-	if !msg.DepositCoin.IsPositive() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "deposit coin must be positive")
+	if !msg.FarmingCoin.IsPositive() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "farming coin must be positive")
 	}
-	if err := msg.DepositCoin.Validate(); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid deposit coin: %v", err)
+	if err := msg.FarmingCoin.Validate(); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid farming coin: %v", err)
 	}
 	return nil
 }
@@ -52,15 +52,15 @@ func (msg MsgFarm) GetSignBytes() []byte {
 }
 
 func (msg MsgFarm) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(msg.Depositor)
+	addr, err := sdk.AccAddressFromBech32(msg.Farmer)
 	if err != nil {
 		panic(err)
 	}
 	return []sdk.AccAddress{addr}
 }
 
-func (msg MsgFarm) GetDepositor() sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(msg.Depositor)
+func (msg MsgFarm) GetFarmer() sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(msg.Farmer)
 	if err != nil {
 		panic(err)
 	}
@@ -68,11 +68,11 @@ func (msg MsgFarm) GetDepositor() sdk.AccAddress {
 }
 
 // NewMsgCancelQueuedFarming returns a new MsgCancelQueuedFarming.
-func NewMsgCancelQueuedFarming(depositor string, poolId, depositReqId uint64) *MsgCancelQueuedFarming {
+func NewMsgCancelQueuedFarming(farmer string, poolId, queuedFarmingId uint64) *MsgCancelQueuedFarming {
 	return &MsgCancelQueuedFarming{
-		Depositor:        depositor,
-		PoolId:           poolId,
-		DepositRequestId: depositReqId,
+		Farmer:          farmer,
+		PoolId:          poolId,
+		QueuedFarmingId: queuedFarmingId,
 	}
 }
 
@@ -81,14 +81,14 @@ func (msg MsgCancelQueuedFarming) Route() string { return RouterKey }
 func (msg MsgCancelQueuedFarming) Type() string { return TypeMsgCancelQueuedFarmingQueuedFarming }
 
 func (msg MsgCancelQueuedFarming) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Depositor); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid depositor address: %v", err)
+	if _, err := sdk.AccAddressFromBech32(msg.Farmer); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid farmer address: %v", err)
 	}
 	if msg.PoolId == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid pool id")
 	}
-	if msg.DepositRequestId == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid deposit id")
+	if msg.QueuedFarmingId == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid queued farming id")
 	}
 	return nil
 }
@@ -98,15 +98,15 @@ func (msg MsgCancelQueuedFarming) GetSignBytes() []byte {
 }
 
 func (msg MsgCancelQueuedFarming) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(msg.Depositor)
+	addr, err := sdk.AccAddressFromBech32(msg.Farmer)
 	if err != nil {
 		panic(err)
 	}
 	return []sdk.AccAddress{addr}
 }
 
-func (msg MsgCancelQueuedFarming) GetDepositor() sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(msg.Depositor)
+func (msg MsgCancelQueuedFarming) GetFarmer() sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(msg.Farmer)
 	if err != nil {
 		panic(err)
 	}
@@ -114,11 +114,11 @@ func (msg MsgCancelQueuedFarming) GetDepositor() sdk.AccAddress {
 }
 
 // NewMsgUnfarm returns a new MsgUnfarm.
-func NewMsgUnfarm(poolId uint64, withdrawer string, lfCoin sdk.Coin) *MsgUnfarm {
+func NewMsgUnfarm(poolId uint64, farmer string, lfCoin sdk.Coin) *MsgUnfarm {
 	return &MsgUnfarm{
-		PoolId:     poolId,
-		Withdrawer: withdrawer,
-		LFCoin:     lfCoin,
+		PoolId: poolId,
+		Farmer: farmer,
+		LFCoin: lfCoin,
 	}
 }
 
@@ -127,17 +127,17 @@ func (msg MsgUnfarm) Route() string { return RouterKey }
 func (msg MsgUnfarm) Type() string { return TypeMsgUnfarm }
 
 func (msg MsgUnfarm) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Withdrawer); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid withdrawer address: %v", err)
+	if _, err := sdk.AccAddressFromBech32(msg.Farmer); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid farmer address: %v", err)
 	}
 	if msg.PoolId == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid pool id")
 	}
 	if !msg.LFCoin.IsPositive() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "withdrawing coin must be positive")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "liquid farming coin must be positive")
 	}
 	if err := msg.LFCoin.Validate(); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid LFCoin: %v", err)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid liquid farming coin: %v", err)
 	}
 	return nil
 }
@@ -147,15 +147,15 @@ func (msg MsgUnfarm) GetSignBytes() []byte {
 }
 
 func (msg MsgUnfarm) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(msg.Withdrawer)
+	addr, err := sdk.AccAddressFromBech32(msg.Farmer)
 	if err != nil {
 		panic(err)
 	}
 	return []sdk.AccAddress{addr}
 }
 
-func (msg MsgUnfarm) GetWithdrawer() sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(msg.Withdrawer)
+func (msg MsgUnfarm) GetFarmer() sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(msg.Farmer)
 	if err != nil {
 		panic(err)
 	}

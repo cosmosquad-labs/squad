@@ -86,7 +86,7 @@ message QueryQueuedFarmingsRequest {
 
 // QueryQueuedFarmingsResponse is response type for the Query/QueuedFarmings RPC method.
 message QueryQueuedFarmingsResponse {
-  repeated QueuedFarming deposit_requests = 1 [(gogoproto.nullable) = false];
+  repeated QueuedFarming queued_farmings = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
@@ -98,7 +98,7 @@ message QueryQueuedFarmingRequest {
 
 // QueryQueuedFarmingResponse is response type for the Query/QueuedFarming RPC method.
 message QueryQueuedFarmingResponse {
-  QueuedFarming deposit_request = 1 [(gogoproto.nullable) = false];
+  QueuedFarming queued_farming = 1 [(gogoproto.nullable) = false];
 }
 
 // QueryBidsRequest is request type for the Query/Bids RPC method.

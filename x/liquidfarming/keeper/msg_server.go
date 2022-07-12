@@ -20,37 +20,37 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
-// Deposit defines a method for depositing pool coin and the module mints LFCoin at the end of epoch.
-func (m msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types.MsgDepositResponse, error) {
+// Farm defines a method for depositing pool coin and the module mints LFCoin at the end of epoch.
+func (m msgServer) Farm(goCtx context.Context, msg *types.MsgFarm) (*types.MsgFarmResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if _, err := m.Keeper.Deposit(ctx, msg); err != nil {
+	if _, err := m.Keeper.Farm(ctx, msg); err != nil {
 		return nil, err
 	}
 
-	return &types.MsgDepositResponse{}, nil
+	return &types.MsgFarmResponse{}, nil
 }
 
-// Cancel defines a method for canceling the deposit request.
-func (m msgServer) Cancel(goCtx context.Context, msg *types.MsgCancel) (*types.MsgCancelResponse, error) {
+// CancelQueuedFarming defines a method for canceling the queued farming.
+func (m msgServer) CancelQueuedFarming(goCtx context.Context, msg *types.MsgCancelQueuedFarming) (*types.MsgCancelQueuedFarmingResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := m.Keeper.Cancel(ctx, msg); err != nil {
+	if err := m.Keeper.CancelQueuedFarming(ctx, msg); err != nil {
 		return nil, err
 	}
 
-	return &types.MsgCancelResponse{}, nil
+	return &types.MsgCancelQueuedFarmingResponse{}, nil
 }
 
-// Withdraw defines a method for withdrawing LFCoin.
-func (m msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*types.MsgWithdrawResponse, error) {
+// Unfarm defines a method for unfarming LFCoin.
+func (m msgServer) Unfarm(goCtx context.Context, msg *types.MsgUnfarm) (*types.MsgUnfarmResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := m.Keeper.Withdraw(ctx, msg); err != nil {
+	if err := m.Keeper.Unfarm(ctx, msg); err != nil {
 		return nil, err
 	}
 
-	return &types.MsgWithdrawResponse{}, nil
+	return &types.MsgUnfarmResponse{}, nil
 }
 
 // PlaceBid defines a method for placing a bid for a rewards auction.

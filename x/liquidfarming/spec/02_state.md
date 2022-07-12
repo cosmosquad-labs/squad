@@ -4,14 +4,14 @@
 
 The `liquidfarming` module keeps track of the states of pool coins and LFCoins.
 
-## DepositRequest
+## QueuedFarming
 
 ```go
-type DepositRequest struct {
+type QueuedFarming struct {
 	PoolId      uint64
 	Id          uint64
-	Depositor   string
-	DepositCoin sdk.Coin
+	Farmer      string
+	FarmingCoin sdk.Coin
 }
 ```
 

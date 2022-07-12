@@ -52,8 +52,8 @@ func (k Keeper) LiquidFarm(c context.Context, req *types.QueryLiquidFarmRequest)
 	return &types.QueryLiquidFarmResponse{}, nil
 }
 
-// DepositRequests queries all deposit requests.
-func (k Keeper) DepositRequests(c context.Context, req *types.QueryDepositRequestsRequest) (*types.QueryDepositRequestsResponse, error) {
+// QueuedFarmings queries all queued farmings.
+func (k Keeper) QueuedFarmings(c context.Context, req *types.QueryQueuedFarmingsRequest) (*types.QueryQueuedFarmingsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -64,11 +64,11 @@ func (k Keeper) DepositRequests(c context.Context, req *types.QueryDepositReques
 
 	ctx := sdk.UnwrapSDKContext(c)
 	store := ctx.KVStore(k.storeKey)
-	drsStore := prefix.NewStore(store, types.DepositRequestKeyPrefix)
+	qfsStore := prefix.NewStore(store, types.QueuedFarmingKeyPrefix)
 
-	var drs []types.DepositRequest
-	pageRes, err := query.FilteredPaginate(drsStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
-		dr, err := types.UnmarshalDepositRequest(k.cdc, value)
+	var qfs []types.QueuedFarming
+	pageRes, err := query.FilteredPaginate(qfsStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
+		dr, err := types.UnmarshalQueuedFarming(k.cdc, value)
 		if err != nil {
 			return false, err
 		}
@@ -78,7 +78,7 @@ func (k Keeper) DepositRequests(c context.Context, req *types.QueryDepositReques
 		}
 
 		if accumulate {
-			drs = append(drs, dr)
+			qfs = append(qfs, dr)
 		}
 
 		return true, nil
@@ -88,11 +88,11 @@ func (k Keeper) DepositRequests(c context.Context, req *types.QueryDepositReques
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &types.QueryDepositRequestsResponse{DepositRequests: drs, Pagination: pageRes}, nil
+	return &types.QueryQueuedFarmingsResponse{QueuedFarmings: qfs, Pagination: pageRes}, nil
 }
 
-// DepositRequest queries the specific deposit request.
-func (k Keeper) DepositRequest(c context.Context, req *types.QueryDepositRequestRequest) (*types.QueryDepositRequestResponse, error) {
+// QueuedFarming queries the specific queued farming.
+func (k Keeper) QueuedFarming(c context.Context, req *types.QueryQueuedFarmingRequest) (*types.QueryQueuedFarmingResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -111,12 +111,12 @@ func (k Keeper) DepositRequest(c context.Context, req *types.QueryDepositRequest
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	dq, found := k.GetDepositRequest(ctx, req.PoolId, req.RequestId)
+	dq, found := k.GetQueuedFarming(ctx, req.PoolId, req.RequestId)
 	if !found {
 		return nil, status.Errorf(codes.NotFound, "deposit request of pool id %d and request id %d doesn't exist or deleted", req.PoolId, req.RequestId)
 	}
 
-	return &types.QueryDepositRequestResponse{DepositRequest: dq}, nil
+	return &types.QueryQueuedFarmingResponse{QueuedFarming: dq}, nil
 }
 
 // Bids queries all bids.

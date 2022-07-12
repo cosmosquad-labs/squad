@@ -40,6 +40,61 @@ func (l LiquidFarm) MarshalYAML() (interface{}, error) {
 	return string(bz), err
 }
 
+// NewQueuedFarming returns a new QueuedFarming.
+func NewQueuedFarming(poolId uint64, queuedFarmingId uint64, farmer string, farmingCoin sdk.Coin) QueuedFarming {
+	return QueuedFarming{
+		PoolId:      poolId,
+		Id:          queuedFarmingId,
+		Farmer:      farmer,
+		FarmingCoin: farmingCoin,
+	}
+}
+
+// GetFarmer returns farmer in the form of sdk.AccAddress.
+func (req QueuedFarming) GetFarmer() sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(req.Farmer)
+	if err != nil {
+		panic(err)
+	}
+	return addr
+}
+
+// Validate validates QueuedFarming for genesis.
+func (req QueuedFarming) Validate() error {
+	// TODO: not implemented yet
+	return nil
+}
+
+// MarshalQueuedFarming returns the QueuedFarming bytes. Panics if fails.
+func MarshalQueuedFarming(cdc codec.BinaryCodec, msg QueuedFarming) ([]byte, error) {
+	return cdc.Marshal(&msg)
+}
+
+// UnmarshalQueuedFarming returns the QueuedFarming from bytes.
+func UnmarshalQueuedFarming(cdc codec.BinaryCodec, value []byte) (msg QueuedFarming, err error) {
+	err = cdc.Unmarshal(value, &msg)
+	return msg, err
+}
+
+// MustMarshalQueuedFarming returns the QueuedFarming bytes. Panics if fails.
+func MustMarshalQueuedFarming(cdc codec.BinaryCodec, msg QueuedFarming) []byte {
+	bz, err := MarshalQueuedFarming(cdc, msg)
+	if err != nil {
+		panic(err)
+	}
+	return bz
+}
+
+// MustUnmarshalQueuedFarming returns the QueuedFarming from bytes.
+// It throws panic if it fails.
+func MustUnmarshalQueuedFarming(cdc codec.BinaryCodec, value []byte) QueuedFarming {
+	msg, err := UnmarshalQueuedFarming(cdc, value)
+	if err != nil {
+		panic(err)
+	}
+	return msg
+}
+
 // LFCoinDenom returns a unique liquid farming coin denom for a LiquidFarm.
 func LFCoinDenom(poolId uint64) string {
 	return fmt.Sprintf("lf%d", poolId)

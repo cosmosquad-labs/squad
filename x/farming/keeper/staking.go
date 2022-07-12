@@ -579,6 +579,9 @@ func (k Keeper) ProcessQueuedCoins(ctx sdk.Context, currTime time.Time) {
 			Amount:        staking.Amount.Add(newStakingAmt),
 			StartingEpoch: k.GetCurrentEpoch(ctx, stakingCoinDenom),
 		})
+
+		// Call hook right staking is set
+		k.hooks.AfterStaked(ctx, farmerAcc, stakingCoinDenom, newStakingAmt)
 	}
 }
 
