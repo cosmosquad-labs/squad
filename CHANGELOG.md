@@ -38,6 +38,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+### Client Breaking Changes
+
+* (x/farming) [\#334](https://github.com/cosmosquad-labs/squad/pull/334) Add `HistoricalRewards` query endpoint:
+  * `HistoricalRewards`: `/squad/farming/v1beta1/historical_rewards/{staking_coin_denom}`
+
 ## v2.0.0
 
 ### Client Breaking Changes
