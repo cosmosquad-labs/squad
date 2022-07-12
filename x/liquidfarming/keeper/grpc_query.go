@@ -109,14 +109,14 @@ func (k Keeper) QueuedFarming(c context.Context, req *types.QueryQueuedFarmingRe
 		return nil, status.Error(codes.InvalidArgument, "deposit request id cannot be 0")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	// ctx := sdk.UnwrapSDKContext(c)
 
-	dq, found := k.GetQueuedFarming(ctx, req.PoolId, req.RequestId)
-	if !found {
-		return nil, status.Errorf(codes.NotFound, "deposit request of pool id %d and request id %d doesn't exist or deleted", req.PoolId, req.RequestId)
-	}
+	// dq, found := k.GetQueuedFarming(ctx, req.PoolId, req.RequestId)
+	// if !found {
+	// 	return nil, status.Errorf(codes.NotFound, "deposit request of pool id %d and request id %d doesn't exist or deleted", req.PoolId, req.RequestId)
+	// }
 
-	return &types.QueryQueuedFarmingResponse{QueuedFarming: dq}, nil
+	return &types.QueryQueuedFarmingResponse{}, nil
 }
 
 // Bids queries all bids.

@@ -2,6 +2,8 @@ package types
 
 import (
 	"bytes"
+	fmt "fmt"
+	time "time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
@@ -23,9 +25,8 @@ const (
 
 // keys for the store prefixes
 var (
-	LastQueuedFarmingIdKeyPrefix = []byte{0xe1}
-	LastBidIdKeyPrefix           = []byte{0xe2}
-	LastRewardsAuctionIdKey      = []byte{0xe3} // key to retrieve the latest auction id
+	LastBidIdKeyPrefix      = []byte{0xe1}
+	LastRewardsAuctionIdKey = []byte{0xe2} // key to retrieve the latest auction id
 
 	QueuedFarmingKeyPrefix      = []byte{0xe4}
 	QueuedFarmingIndexKeyPrefix = []byte{0xe5}
@@ -33,31 +34,39 @@ var (
 	AuctionKeyPrefix = []byte{0xe8}
 )
 
-// GetLastQueuedFarmingIdKey returns the store key to retrieve the latest deposit request id.
-func GetLastQueuedFarmingIdKey(poolId uint64) []byte {
-	return append(LastQueuedFarmingIdKeyPrefix, sdk.Uint64ToBigEndian(poolId)...)
-}
-
 // GetLastBidIdKey returns the store key to retrieve the latest bid id.
 func GetLastBidIdKey(auctionId uint64) []byte {
 	return append(LastBidIdKeyPrefix, sdk.Uint64ToBigEndian(auctionId)...)
 }
 
-// GetQueuedFarmingKey returns the store key to retrieve deposit request object.
-func GetQueuedFarmingKey(poolId, reqId uint64) []byte {
-	return append(append(QueuedFarmingKeyPrefix, sdk.Uint64ToBigEndian(poolId)...), sdk.Uint64ToBigEndian(reqId)...)
+// GetQueuedFarmingKey returns a key for a queued farming.
+func GetQueuedFarmingKey(endTime time.Time, farmingCoinDenom string, farmerAcc sdk.AccAddress) []byte {
+	return append(append(append(QueuedFarmingKeyPrefix,
+		LengthPrefixTimeBytes(endTime)...),
+		LengthPrefixString(farmingCoinDenom)...),
+		farmerAcc...)
 }
 
-// GetQueuedFarmingIndexKey returns the index key to map deposit requests.
-func GetQueuedFarmingIndexKey(depositor sdk.AccAddress, poolId, reqId uint64) []byte {
-	return append(append(append(QueuedFarmingIndexKeyPrefix, address.MustLengthPrefix(depositor)...),
-		sdk.Uint64ToBigEndian(poolId)...), sdk.Uint64ToBigEndian(reqId)...)
+// GetQueuedFarmingIndexKey returns an indexing key for a queued farming.
+func GetQueuedFarmingIndexKey(farmerAcc sdk.AccAddress, farmingCoinDenom string, endTime time.Time) []byte {
+	return append(append(append(QueuedFarmingIndexKeyPrefix,
+		address.MustLengthPrefix(farmerAcc)...),
+		LengthPrefixString(farmingCoinDenom)...),
+		sdk.FormatTimeBytes(endTime)...)
 }
 
-// GetQueuedFarmingIndexKeyPrefix returns the index key prefix to iterate
-// deposit requests by a depositor.
-func GetQueuedFarmingIndexKeyPrefix(depositor sdk.AccAddress) []byte {
-	return append(QueuedFarmingIndexKeyPrefix, address.MustLengthPrefix(depositor)...)
+// GetQueuedFarmingsByFarmerPrefix returns a key prefix used to iterate
+// queued farmings by a farmer.
+func GetQueuedFarmingsByFarmerPrefix(farmerAcc sdk.AccAddress) []byte {
+	return append(QueuedFarmingIndexKeyPrefix, address.MustLengthPrefix(farmerAcc)...)
+}
+
+// GetQueuedFarmingEndBytes returns end bytes for iteration of queued farmings.
+// The returned end bytes should be used directly, not through
+// sdk.InclusiveEndBytes.
+// The range this end bytes form includes queued farmings with same endTime.
+func GetQueuedFarmingEndBytes(endTime time.Time) []byte {
+	return append(QueuedFarmingKeyPrefix, LengthPrefixTimeBytes(endTime.Add(1))...)
 }
 
 // GetRewardsAuctionKey returns the store key to retrieve rewards auction object.
@@ -65,15 +74,54 @@ func GetRewardsAuctionKey(poolId, auctionId uint64) []byte {
 	return append(append(AuctionKeyPrefix, sdk.Uint64ToBigEndian(poolId)...), sdk.Uint64ToBigEndian(auctionId)...)
 }
 
-// ParseQueuedFarmingIndexKey parses a deposit request index key.
-func ParseQueuedFarmingIndexKey(key []byte) (depositor sdk.AccAddress, poolId, reqId uint64) {
+// ParseQueuedFarmingKey parses a queued farming key.
+func ParseQueuedFarmingKey(key []byte) (endTime time.Time, farmingCoinDenom string, farmerAcc sdk.AccAddress) {
+	if !bytes.HasPrefix(key, QueuedFarmingKeyPrefix) {
+		panic("key does not have proper prefix")
+	}
+	timeLen := key[1]
+	var err error
+	endTime, err = sdk.ParseTimeBytes(key[2 : 2+timeLen])
+	if err != nil {
+		panic(fmt.Errorf("parse end time: %w", err))
+	}
+	denomLen := key[2+timeLen]
+	farmingCoinDenom = string(key[3+timeLen : 3+timeLen+denomLen])
+	farmerAcc = key[3+timeLen+denomLen:]
+	return
+}
+
+// ParseQueuedFarmingIndexKey parses a queued farming index key.
+func ParseQueuedFarmingIndexKey(key []byte) (farmerAcc sdk.AccAddress, farmingCoinDenom string, endTime time.Time) {
 	if !bytes.HasPrefix(key, QueuedFarmingIndexKeyPrefix) {
 		panic("key does not have proper prefix")
 	}
-
 	addrLen := key[1]
-	depositor = key[2 : 2+addrLen]
-	poolId = sdk.BigEndianToUint64(key[2+addrLen : 2+addrLen+8])
-	reqId = sdk.BigEndianToUint64(key[2+addrLen+8:])
+	farmerAcc = key[2 : 2+addrLen]
+	denomLen := key[2+addrLen]
+	farmingCoinDenom = string(key[3+addrLen : 3+addrLen+denomLen])
+	var err error
+	endTime, err = sdk.ParseTimeBytes(key[3+addrLen+denomLen:])
+	if err != nil {
+		panic(fmt.Errorf("parse end time: %w", err))
+	}
 	return
+}
+
+// LengthPrefixString returns length-prefixed bytes representation
+// of a string.
+func LengthPrefixString(s string) []byte {
+	bz := []byte(s)
+	bzLen := len(bz)
+	if bzLen == 0 {
+		return bz
+	}
+	return append([]byte{byte(bzLen)}, bz...)
+}
+
+// LengthPrefixTimeBytes returns length-prefixed bytes representation
+// of time.Time.
+func LengthPrefixTimeBytes(t time.Time) []byte {
+	bz := sdk.FormatTimeBytes(t)
+	return append([]byte{byte(len(bz))}, bz...)
 }

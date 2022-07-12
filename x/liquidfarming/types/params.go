@@ -10,11 +10,11 @@ import (
 // Parameter store keys
 var (
 	KeyLiquidFarmCreationFee = []byte("LiquidFarmCreationFee")
-	KeyDelayedDepositGasFee  = []byte("DelayedDepositGasFee")
+	KeyDelayedFarmGasFee     = []byte("DelayedFarmGasFee")
 	KeyLiquidFarms           = []byte("LiquidFarms")
 
 	DefaultLiquidFarmCreationFee = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100_000_000)))
-	DefaultDelayedDepositGasFee  = sdk.Gas(60000)
+	DefaultDelayedFarmGasFee     = sdk.Gas(60000)
 	DefaultLiquidFarms           = []LiquidFarm{}
 )
 
@@ -29,7 +29,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 func DefaultParams() Params {
 	return Params{
 		LiquidFarmCreationFee: DefaultLiquidFarmCreationFee,
-		DelayedDepositGasFee:  DefaultDelayedDepositGasFee,
+		DelayedFarmGasFee:     DefaultDelayedFarmGasFee,
 		LiquidFarms:           DefaultLiquidFarms,
 	}
 }
@@ -38,7 +38,7 @@ func DefaultParams() Params {
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyLiquidFarmCreationFee, &p.LiquidFarmCreationFee, validateLiquidFarmCreationFee),
-		paramtypes.NewParamSetPair(KeyDelayedDepositGasFee, &p.DelayedDepositGasFee, validateDelayedDepositGasFee),
+		paramtypes.NewParamSetPair(KeyDelayedFarmGasFee, &p.DelayedFarmGasFee, validateDelayedFarmGasFee),
 		paramtypes.NewParamSetPair(KeyLiquidFarms, &p.LiquidFarms, validateLiquidFarms),
 	}
 }
@@ -50,7 +50,7 @@ func (p Params) Validate() error {
 		validator func(interface{}) error
 	}{
 		{p.LiquidFarmCreationFee, validateLiquidFarmCreationFee},
-		{p.DelayedDepositGasFee, validateDelayedDepositGasFee},
+		{p.DelayedFarmGasFee, validateDelayedFarmGasFee},
 		{p.LiquidFarms, validateLiquidFarms},
 	} {
 		if err := v.validator(v.value); err != nil {
@@ -78,7 +78,7 @@ func validateLiquidFarms(i interface{}) error {
 	return nil
 }
 
-func validateDelayedDepositGasFee(i interface{}) error {
+func validateDelayedFarmGasFee(i interface{}) error {
 	_, ok := i.(sdk.Gas)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)

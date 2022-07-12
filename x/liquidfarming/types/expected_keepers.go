@@ -29,6 +29,7 @@ type FarmingKeeper interface {
 	Stake(ctx sdk.Context, farmerAcc sdk.AccAddress, amount sdk.Coins) error
 	Unstake(ctx sdk.Context, farmerAcc sdk.AccAddress, amount sdk.Coins) error
 	Harvest(ctx sdk.Context, farmerAcc sdk.AccAddress, stakingCoinDenoms []string) error
+	GetCurrentEpochDays(ctx sdk.Context) uint32
 }
 
 // LiquidityKeeper defines the expected interface needed to retrieve liquidity pools.

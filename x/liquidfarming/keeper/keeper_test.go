@@ -128,19 +128,19 @@ func (s *KeeperTestSuite) createLiquidFarm(liquidFarms []types.LiquidFarm) {
 	s.keeper.SetParams(s.ctx, params)
 }
 
-func (s *KeeperTestSuite) farm(poolId uint64, farmer sdk.AccAddress, farmingCoin sdk.Coin, fund bool) types.QueuedFarming {
+func (s *KeeperTestSuite) farm(poolId uint64, farmer sdk.AccAddress, farmingCoin sdk.Coin, fund bool) {
 	s.T().Helper()
 	if fund {
 		s.fundAddr(farmer, sdk.NewCoins(farmingCoin))
 	}
-	qf, err := s.keeper.Farm(s.ctx, &types.MsgFarm{
+	err := s.keeper.Farm(s.ctx, &types.MsgFarm{
 		PoolId:      poolId,
 		Farmer:      farmer.String(),
 		FarmingCoin: farmingCoin,
 	})
 	s.Require().NoError(err)
 
-	return qf
+	return
 }
 
 func (s *KeeperTestSuite) unfarm(poolId uint64, farmer sdk.AccAddress, lfCoin sdk.Coin, fund bool) {

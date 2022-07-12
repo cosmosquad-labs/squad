@@ -24,7 +24,7 @@ var _ types.MsgServer = msgServer{}
 func (m msgServer) Farm(goCtx context.Context, msg *types.MsgFarm) (*types.MsgFarmResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if _, err := m.Keeper.Farm(ctx, msg); err != nil {
+	if err := m.Keeper.Farm(ctx, msg); err != nil {
 		return nil, err
 	}
 

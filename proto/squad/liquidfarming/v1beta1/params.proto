@@ -13,9 +13,9 @@ message Params {
   repeated cosmos.base.v1beta1.Coin liquid_farm_creation_fee = 1
     [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
 
-  // delayed_deposit_gas_fee is used to impose gas fee for the deposit request
-  uint64 delayed_deposit_gas_fee = 2 [
-    (gogoproto.moretags)   = "yaml:\"delayed_staking_gas_fee\"",
+  // delayed_farm_gas_fee is used to impose gas fee for the farm request
+  uint64 delayed_farm_gas_fee = 2 [
+    (gogoproto.moretags)   = "yaml:\"delayed_farm_gas_fee\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Gas",
     (gogoproto.nullable)   = false
   ];

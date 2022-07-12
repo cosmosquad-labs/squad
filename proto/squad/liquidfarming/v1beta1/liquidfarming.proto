@@ -9,22 +9,14 @@ import "google/protobuf/timestamp.proto";
 option go_package                      = "github.com/cosmosquad-labs/squad/x/liquidfarming/types";
 option (gogoproto.goproto_getters_all) = false;
 
-// QueuedFarming defines queued farming.
+// QueuedFarming defines queued farming that is waiting in a queue 
+// to be excuted at every epoch to mint LFCoin.
 message QueuedFarming {
-  // pool_id specifies the pool id
+  option (gogoproto.goproto_getters) = false;
+
   uint64 pool_id = 1;
 
-  // id specifies the id for the request
-  uint64 id = 2;
-
-  // farmer specifies the bech32-encoded address that makes a deposit to the pool
-  string farmer = 3;
-
-  // farming_coin specifies the amount of pool coin to deposit
-  cosmos.base.v1beta1.Coin farming_coin = 4 [
-    (gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"
-  ];
+  string amount = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
 }
 
 // RewardsAuction defines rewards auction that is created by the module account

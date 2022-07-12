@@ -6,10 +6,9 @@ const (
 	EventTypeCancelQueuedFarming = "cancel_queued_farming"
 	EventTypeUnfarm              = "unfarm"
 
-	AttributeKeyPoolId          = "pool_id"
-	AttributeKeyQueuedFarmingId = "queued_farming_id"
-	AttributeKeyFarmer          = "farmer"
-	AttributeKeyFarmingCoin     = "farming_coin"
+	AttributeKeyPoolId      = "pool_id"
+	AttributeKeyFarmer      = "farmer"
+	AttributeKeyFarmingCoin = "farming_coin"
 
 	AttributeKeyCanceledCoin  = "canceled_coin"
 	AttributeKeyUnfarmingCoin = "unfarming_coin"

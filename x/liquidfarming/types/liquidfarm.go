@@ -40,31 +40,6 @@ func (l LiquidFarm) MarshalYAML() (interface{}, error) {
 	return string(bz), err
 }
 
-// NewQueuedFarming returns a new QueuedFarming.
-func NewQueuedFarming(poolId uint64, queuedFarmingId uint64, farmer string, farmingCoin sdk.Coin) QueuedFarming {
-	return QueuedFarming{
-		PoolId:      poolId,
-		Id:          queuedFarmingId,
-		Farmer:      farmer,
-		FarmingCoin: farmingCoin,
-	}
-}
-
-// GetFarmer returns farmer in the form of sdk.AccAddress.
-func (req QueuedFarming) GetFarmer() sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(req.Farmer)
-	if err != nil {
-		panic(err)
-	}
-	return addr
-}
-
-// Validate validates QueuedFarming for genesis.
-func (req QueuedFarming) Validate() error {
-	// TODO: not implemented yet
-	return nil
-}
-
 // MarshalQueuedFarming returns the QueuedFarming bytes. Panics if fails.
 func MarshalQueuedFarming(cdc codec.BinaryCodec, msg QueuedFarming) ([]byte, error) {
 	return cdc.Marshal(&msg)

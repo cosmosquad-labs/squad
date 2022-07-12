@@ -2,22 +2,17 @@ package keeper
 
 import (
 	"strconv"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	farmingtypes "github.com/cosmosquad-labs/squad/v2/x/farming/types"
 	"github.com/cosmosquad-labs/squad/v2/x/liquidfarming/types"
 )
 
-// GetNextQueuedFarmingIdWithUpdate increments the last deposit request id and returns it.
-func (k Keeper) GetNextQueuedFarmingIdWithUpdate(ctx sdk.Context, poolId uint64) uint64 {
-	nextId := k.GetLastQueuedFarmingId(ctx, poolId) + 1
-	k.SetQueuedFarmingId(ctx, poolId, nextId)
-	return nextId
-}
-
 // Farm handles types.MsgFarm to farm for liquid farm
-func (k Keeper) Farm(ctx sdk.Context, msg *types.MsgFarm) (types.QueuedFarming, error) {
+func (k Keeper) Farm(ctx sdk.Context, msg *types.MsgFarm) error {
 	params := k.GetParams(ctx)
 	poolId := uint64(0)
 	minDepositAmt := sdk.ZeroInt()
@@ -31,18 +26,18 @@ func (k Keeper) Farm(ctx sdk.Context, msg *types.MsgFarm) (types.QueuedFarming, 
 
 	// Check if liquid farm that corresponds to the pool id exists
 	if poolId == 0 {
-		return types.QueuedFarming{}, sdkerrors.Wrap(sdkerrors.ErrNotFound, "liquid farm not found")
+		return sdkerrors.Wrap(sdkerrors.ErrNotFound, "liquid farm not found")
 	}
 
 	// Check if the farming coin amount exceeds minimum deposit amount
 	if msg.FarmingCoin.Amount.LT(minDepositAmt) {
-		return types.QueuedFarming{}, sdkerrors.Wrapf(types.ErrInsufficientFarmingCoinAmount, "%s is smaller than %s", msg.FarmingCoin, minDepositAmt)
+		return sdkerrors.Wrapf(types.ErrInsufficientFarmingCoinAmount, "%s is smaller than %s", msg.FarmingCoin, minDepositAmt)
 	}
 
 	// Check that the corresponding pool must exist
 	pool, found := k.liquidityKeeper.GetPool(ctx, poolId)
 	if !found {
-		return types.QueuedFarming{}, sdkerrors.Wrapf(sdkerrors.ErrNotFound, "pool %d not found", poolId)
+		return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "pool %d not found", poolId)
 	}
 
 	farmerAcc := msg.GetFarmer()
@@ -52,85 +47,86 @@ func (k Keeper) Farm(ctx sdk.Context, msg *types.MsgFarm) (types.QueuedFarming, 
 	// Check if the depositor has sufficient balance of deposit coin
 	poolCoinBalance := k.bankKeeper.SpendableCoins(ctx, farmerAcc).AmountOf(pool.PoolCoinDenom)
 	if poolCoinBalance.LT(farmingCoin.Amount) {
-		return types.QueuedFarming{}, sdkerrors.Wrapf(types.ErrInsufficientFarmingCoinAmount, "%s is smaller than %s", poolCoinBalance, minDepositAmt)
+		return sdkerrors.Wrapf(types.ErrInsufficientFarmingCoinAmount, "%s is smaller than %s", poolCoinBalance, minDepositAmt)
 	}
 
 	// Reserve farming coins to reserve account
 	if err := k.bankKeeper.SendCoins(ctx, farmerAcc, reserveAcc, sdk.NewCoins(farmingCoin)); err != nil {
-		return types.QueuedFarming{}, sdkerrors.Wrap(err, "reserve farming coin")
+		return sdkerrors.Wrap(err, "reserve farming coin")
 	}
 
-	// Impose more gas in relative to a number of deposit requests made by the depositor
+	// Impose more gas in relative to a number of queued farmings farmed by the farmer
 	numQueuedFarmings := 0
-	for _, req := range k.GetQueuedFarmingsByDepositor(ctx, farmerAcc) {
-		if req.FarmingCoin.Denom == farmingCoin.Denom {
-			numQueuedFarmings++
-		}
+	for range k.GetQueuedFarmingsByFarmer(ctx, farmerAcc) {
+		numQueuedFarmings++
 	}
 	if numQueuedFarmings > 0 {
-		ctx.GasMeter().ConsumeGas(sdk.Gas(numQueuedFarmings)*params.DelayedDepositGasFee, "DelayedDepositGasFee")
+		ctx.GasMeter().ConsumeGas(sdk.Gas(numQueuedFarmings)*params.DelayedFarmGasFee, "DelayedFarmGasFee")
 	}
 
 	// Stake with the reserve account in the farming module
 	if err := k.farmingKeeper.Stake(ctx, reserveAcc, sdk.NewCoins(farmingCoin)); err != nil {
-		return types.QueuedFarming{}, err
+		return err
 	}
 
-	nextId := k.GetNextQueuedFarmingIdWithUpdate(ctx, msg.PoolId)
-	qf := types.NewQueuedFarming(nextId, msg.PoolId, farmerAcc.String(), farmingCoin)
-	k.SetQueuedFarming(ctx, qf)
-	k.SetQueuedFarmingIndex(ctx, qf)
+	currentEpochDays := k.farmingKeeper.GetCurrentEpochDays(ctx)
+	endTime := ctx.BlockTime().Add(time.Duration(currentEpochDays) * farmingtypes.Day)
+
+	// Store queued farming
+	k.SetQueuedFarming(ctx, endTime, pool.PoolCoinDenom, farmerAcc, types.QueuedFarming{
+		PoolId: msg.PoolId,
+		Amount: msg.FarmingCoin.Amount,
+	})
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeFarm,
 			sdk.NewAttribute(types.AttributeKeyPoolId, strconv.FormatUint(msg.PoolId, 10)),
-			sdk.NewAttribute(types.AttributeKeyQueuedFarmingId, strconv.FormatUint(nextId, 10)),
 			sdk.NewAttribute(types.AttributeKeyFarmer, farmerAcc.String()),
 			sdk.NewAttribute(types.AttributeKeyFarmingCoin, farmingCoin.String()),
 		),
 	})
 
-	return qf, nil
+	return nil
 }
 
 // CancelQueuedFarming handles types.MsgCancelQueuedFarming to cancel the queued farming.
 func (k Keeper) CancelQueuedFarming(ctx sdk.Context, msg *types.MsgCancelQueuedFarming) error {
-	qfs := k.GetQueuedFarmingsByDepositor(ctx, msg.GetFarmer())
-	if len(qfs) == 0 {
+	queuedFarmings := k.GetQueuedFarmingsByFarmer(ctx, msg.GetFarmer())
+	if len(queuedFarmings) == 0 {
 		return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "queued farming by %s not found", msg.Farmer)
 	}
 
-	qf, found := k.GetQueuedFarming(ctx, msg.PoolId, msg.QueuedFarmingId)
-	if !found {
-		return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "queued farming by pool id %d and queued farming id %d not found", msg.PoolId, msg.QueuedFarmingId)
-	}
+	// TODO: do we need to receive endTime to delete particular QueuedFarming?
+	// qf, found := k.GetQueuedFarming(ctx, msg.PoolId, msg.QueuedFarmingId)
+	// if !found {
+	// 	return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "queued farming by pool id %d and queued farming id %d not found", msg.PoolId, msg.QueuedFarmingId)
+	// }
 
-	reserveAddr := types.LiquidFarmReserveAddress(qf.PoolId)
-	canceledCoin := qf.FarmingCoin
+	// reserveAddr := types.LiquidFarmReserveAddress(qf.PoolId)
+	// canceledCoin := qf.FarmingCoin
 
-	// Unstake with the reserve account from the farming module
-	if err := k.farmingKeeper.Unstake(ctx, reserveAddr, sdk.NewCoins(canceledCoin)); err != nil {
-		return err
-	}
+	// // Unstake with the reserve account from the farming module
+	// if err := k.farmingKeeper.Unstake(ctx, reserveAddr, sdk.NewCoins(canceledCoin)); err != nil {
+	// 	return err
+	// }
 
-	// Release corresponding pool coin to the farmer
-	if err := k.bankKeeper.SendCoins(ctx, reserveAddr, msg.GetFarmer(), sdk.NewCoins(canceledCoin)); err != nil {
-		return err
-	}
+	// // Release corresponding pool coin to the farmer
+	// if err := k.bankKeeper.SendCoins(ctx, reserveAddr, msg.GetFarmer(), sdk.NewCoins(canceledCoin)); err != nil {
+	// 	return err
+	// }
 
-	// Delete the store
-	k.DeleteQueuedFarming(ctx, qf)
+	// // Delete the store
+	// k.DeleteQueuedFarming(ctx, qf)
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeCancelQueuedFarming,
-			sdk.NewAttribute(types.AttributeKeyPoolId, strconv.FormatUint(msg.PoolId, 10)),
-			sdk.NewAttribute(types.AttributeKeyQueuedFarmingId, strconv.FormatUint(msg.QueuedFarmingId, 10)),
-			sdk.NewAttribute(types.AttributeKeyFarmer, msg.Farmer),
-			sdk.NewAttribute(types.AttributeKeyCanceledCoin, canceledCoin.String()),
-		),
-	})
+	// ctx.EventManager().EmitEvents(sdk.Events{
+	// 	sdk.NewEvent(
+	// 		types.EventTypeCancelQueuedFarming,
+	// 		sdk.NewAttribute(types.AttributeKeyPoolId, strconv.FormatUint(msg.PoolId, 10)),
+	// 		sdk.NewAttribute(types.AttributeKeyFarmer, msg.Farmer),
+	// 		sdk.NewAttribute(types.AttributeKeyCanceledCoin, canceledCoin.String()),
+	// 	),
+	// })
 
 	return nil
 }

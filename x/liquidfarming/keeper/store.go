@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"time"
+
 	gogotypes "github.com/gogo/protobuf/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -8,30 +10,8 @@ import (
 	"github.com/cosmosquad-labs/squad/v2/x/liquidfarming/types"
 )
 
-// GetLastQueuedFarmingId returns the last queued farming id for the pool id.
-func (k Keeper) GetLastQueuedFarmingId(ctx sdk.Context, poolId uint64) uint64 {
-	var id uint64
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetLastQueuedFarmingIdKey(poolId))
-	if bz == nil {
-		id = 0 // initialize the deposit request id
-	} else {
-		val := gogotypes.UInt64Value{}
-		k.cdc.MustUnmarshal(bz, &val)
-		id = val.GetValue()
-	}
-	return id
-}
-
-// SetQueuedFarmingId sets the deposit request id with the given pool id.
-func (k Keeper) SetQueuedFarmingId(ctx sdk.Context, poolId uint64, reqId uint64) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(&gogotypes.UInt64Value{Value: reqId})
-	store.Set(types.GetLastQueuedFarmingIdKey(poolId), bz)
-}
-
-// GetLastBidId returns the last bid id for the bid.
-func (k Keeper) GetLastBidId(ctx sdk.Context, auctionId uint64) uint64 {
+// GetBidId returns the last bid id for the bid.
+func (k Keeper) GetBidId(ctx sdk.Context, auctionId uint64) uint64 {
 	var id uint64
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetLastBidIdKey(auctionId))
@@ -74,50 +54,45 @@ func (k Keeper) SetRewardsAuctionId(ctx sdk.Context, id uint64) {
 	store.Set(types.LastRewardsAuctionIdKey, bz)
 }
 
-// GetQueuedFarming returns the particular queued farming.
-func (k Keeper) GetQueuedFarming(ctx sdk.Context, poolId, reqId uint64) (qf types.QueuedFarming, found bool) {
+// GetQueuedFarming returns a queued farming for given farming coin denom
+// and farmer.
+func (k Keeper) GetQueuedFarming(ctx sdk.Context, endTime time.Time, farmingCoinDenom string, farmerAcc sdk.AccAddress) (queuedFarming types.QueuedFarming, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetQueuedFarmingKey(poolId, reqId))
+	bz := store.Get(types.GetQueuedFarmingKey(endTime, farmingCoinDenom, farmerAcc))
 	if bz == nil {
 		return
 	}
-	qf = types.MustUnmarshalQueuedFarming(k.cdc, bz)
-	return qf, true
-}
-
-// GetQueuedFarmingsByDepositor returns queued farmings by the depositor.
-func (k Keeper) GetQueuedFarmingsByDepositor(ctx sdk.Context, depositor sdk.AccAddress) (qfs []types.QueuedFarming) {
-	_ = k.IterateQueuedFarmingsByDepositor(ctx, depositor, func(req types.QueuedFarming) (stop bool, err error) {
-		qfs = append(qfs, req)
-		return false, nil
-	})
+	k.cdc.MustUnmarshal(bz, &queuedFarming)
+	found = true
 	return
 }
 
-// SetQueuedFarming stores queued farming for the batch execution.
-func (k Keeper) SetQueuedFarming(ctx sdk.Context, qf types.QueuedFarming) {
+// SetQueuedFarming sets a queued farming for given farming coin denom
+// and farmer.
+func (k Keeper) SetQueuedFarming(ctx sdk.Context, endTime time.Time, farmingCoinDenom string, farmerAcc sdk.AccAddress, queuedFarming types.QueuedFarming) {
 	store := ctx.KVStore(k.storeKey)
-	bz := types.MustMarshalQueuedFarming(k.cdc, qf)
-	store.Set(types.GetQueuedFarmingKey(qf.PoolId, qf.Id), bz)
+	bz := k.cdc.MustMarshal(&queuedFarming)
+	store.Set(types.GetQueuedFarmingKey(endTime, farmingCoinDenom, farmerAcc), bz)
+	store.Set(types.GetQueuedFarmingIndexKey(farmerAcc, farmingCoinDenom, endTime), []byte{})
 }
 
-// SetQueuedFarmingIndex stores the queued farming index.
-func (k Keeper) SetQueuedFarmingIndex(ctx sdk.Context, req types.QueuedFarming) {
+// DeleteQueuedFarming deletes a queued farming for given farming coin denom
+// and farmer.
+func (k Keeper) DeleteQueuedFarming(ctx sdk.Context, endTime time.Time, farmingCoinDenom string, farmerAcc sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetQueuedFarmingIndexKey(req.GetFarmer(), req.PoolId, req.Id), []byte{})
+	store.Delete(types.GetQueuedFarmingKey(endTime, farmingCoinDenom, farmerAcc))
+	store.Delete(types.GetQueuedFarmingIndexKey(farmerAcc, farmingCoinDenom, endTime))
 }
 
-// DeleteQueuedFarming deletes deposit request and its index.
-func (k Keeper) DeleteQueuedFarming(ctx sdk.Context, req types.QueuedFarming) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetQueuedFarmingKey(req.PoolId, req.Id))
-	k.DeleteQueuedFarmingIndex(ctx, req)
-}
-
-// DeleteQueuedFarmingIndex deletes deposit request index.
-func (k Keeper) DeleteQueuedFarmingIndex(ctx sdk.Context, req types.QueuedFarming) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetQueuedFarmingIndexKey(req.GetFarmer(), req.PoolId, req.Id))
+// GetQueuedFarmingsByFarmer returns all queued farmings
+// by a farmer.
+func (k Keeper) GetQueuedFarmingsByFarmer(ctx sdk.Context, farmerAcc sdk.AccAddress) []types.QueuedFarming {
+	queuedFarmings := []types.QueuedFarming{}
+	k.IterateQueuedFarmingsByFarmer(ctx, farmerAcc, func(farmingCoinDenom string, endTime time.Time, queuedFarming types.QueuedFarming) (stop bool) {
+		queuedFarmings = append(queuedFarmings, queuedFarming)
+		return false
+	})
+	return queuedFarmings
 }
 
 func (k Keeper) GetRewardsAuction(ctx sdk.Context, poolId, auctionId uint64) (auction types.RewardsAuction, found bool) {
@@ -147,24 +122,20 @@ func (k Keeper) GetRewardsAuctions(ctx sdk.Context) (auctions []types.RewardsAuc
 	return auctions
 }
 
-// IterateQueuedFarmingsByDepositor iterates through deposit requests in the
-// store by a depositor and call cb on each order.
-func (k Keeper) IterateQueuedFarmingsByDepositor(ctx sdk.Context, depositor sdk.AccAddress, cb func(req types.QueuedFarming) (stop bool, err error)) error {
+// IterateQueuedFarmingsByFarmer iterates through all queued farmings
+// by farmer stored in the store and invokes callback function for each item.
+// Stops the iteration when the callback function returns true.
+func (k Keeper) IterateQueuedFarmingsByFarmer(ctx sdk.Context, farmerAcc sdk.AccAddress, cb func(stakingCoinDenom string, endTime time.Time, queuedFarming types.QueuedFarming) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.GetQueuedFarmingIndexKeyPrefix(depositor))
+	iter := sdk.KVStorePrefixIterator(store, types.GetQueuedFarmingsByFarmerPrefix(farmerAcc))
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
-		_, poolId, reqId := types.ParseQueuedFarmingIndexKey(iter.Key())
-		req, _ := k.GetQueuedFarming(ctx, poolId, reqId)
-		stop, err := cb(req)
-		if err != nil {
-			return err
-		}
-		if stop {
+		_, farmingCoinDenom, endTime := types.ParseQueuedFarmingIndexKey(iter.Key())
+		queuedFarming, _ := k.GetQueuedFarming(ctx, endTime, farmingCoinDenom, farmerAcc)
+		if cb(farmingCoinDenom, endTime, queuedFarming) {
 			break
 		}
 	}
-	return nil
 }
 
 // IterateRewardsAuctions iterates over all the stored auctions and performs a callback function.
