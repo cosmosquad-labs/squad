@@ -55,6 +55,14 @@ func GetQueuedFarmingIndexKey(farmerAcc sdk.AccAddress, farmingCoinDenom string,
 		sdk.FormatTimeBytes(endTime)...)
 }
 
+// GetQueuedFarmingsByFarmerAndDenomPrefix returns a key prefix used to
+// iterate queued farmings by farmer address and farming coin denom.
+func GetQueuedFarmingsByFarmerAndDenomPrefix(farmerAcc sdk.AccAddress, farmingCoinDenom string) []byte {
+	return append(append(QueuedFarmingIndexKeyPrefix,
+		address.MustLengthPrefix(farmerAcc)...),
+		LengthPrefixString(farmingCoinDenom)...)
+}
+
 // GetQueuedFarmingsByFarmerPrefix returns a key prefix used to iterate
 // queued farmings by a farmer.
 func GetQueuedFarmingsByFarmerPrefix(farmerAcc sdk.AccAddress) []byte {

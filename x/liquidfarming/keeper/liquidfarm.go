@@ -97,7 +97,8 @@ func (k Keeper) CancelQueuedFarming(ctx sdk.Context, msg *types.MsgCancelQueuedF
 		return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "queued farming by %s not found", msg.Farmer)
 	}
 
-	// TODO: do we need to receive endTime to delete particular QueuedFarming?
+	// TODO: since key must have endTime, it is mandatory to receive endTime to delete particular QueuedFarming.
+
 	// qf, found := k.GetQueuedFarming(ctx, msg.PoolId, msg.QueuedFarmingId)
 	// if !found {
 	// 	return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "queued farming by pool id %d and queued farming id %d not found", msg.PoolId, msg.QueuedFarmingId)

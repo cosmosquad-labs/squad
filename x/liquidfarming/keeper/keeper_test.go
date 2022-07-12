@@ -139,8 +139,6 @@ func (s *KeeperTestSuite) farm(poolId uint64, farmer sdk.AccAddress, farmingCoin
 		FarmingCoin: farmingCoin,
 	})
 	s.Require().NoError(err)
-
-	return
 }
 
 func (s *KeeperTestSuite) unfarm(poolId uint64, farmer sdk.AccAddress, lfCoin sdk.Coin, fund bool) {
