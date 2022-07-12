@@ -10,9 +10,9 @@ import (
 var _ types.FarmingHooks = Keeper{}
 
 // AfterStaked - call hook if registered
-func (k Keeper) AfterStaked(ctx sdk.Context) {
+func (k Keeper) AfterStaked(ctx sdk.Context, farmer sdk.AccAddress, stakingCoinDenom string, stakingAmt sdk.Int) {
 	if k.hooks != nil {
-		k.hooks.AfterStaked(ctx)
+		k.hooks.AfterStaked(ctx, farmer, stakingCoinDenom, stakingAmt)
 	}
 }
 

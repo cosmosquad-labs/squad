@@ -7,13 +7,13 @@ import (
 	_ "github.com/stretchr/testify/suite"
 )
 
-func (s *KeeperTestSuite) TestLastDepositRequestId() {
+func (s *KeeperTestSuite) TestLastQueuedFarmingId() {
 	poolId := uint64(1)
-	reqId := s.keeper.GetLastDepositRequestId(s.ctx, poolId)
+	reqId := s.keeper.GetLastQueuedFarmingId(s.ctx, poolId)
 	s.Require().Equal(uint64(0), reqId)
 
 	cacheCtx, _ := s.ctx.CacheContext()
-	nextId := s.keeper.GetNextDepositRequestIdWithUpdate(cacheCtx, poolId)
+	nextId := s.keeper.GetNextQueuedFarmingIdWithUpdate(cacheCtx, poolId)
 	s.Require().Equal(uint64(1), nextId)
 
 	s.createPair(s.addr(0), "denom1", "denom2", true)
@@ -22,9 +22,9 @@ func (s *KeeperTestSuite) TestLastDepositRequestId() {
 		sdk.NewInt64Coin("denom2", 100000000)), true)
 	s.createLiquidFarm([]types.LiquidFarm{
 		{PoolId: poolId, MinimumDepositAmount: sdk.NewInt(1), MinimumBidAmount: sdk.NewInt(1)}})
-	s.deposit(poolId, s.addr(0), sdk.NewInt64Coin("pool1", 100000000), true)
+	s.farm(poolId, s.addr(0), sdk.NewInt64Coin("pool1", 100000000), true)
 
-	nextId = s.keeper.GetNextDepositRequestIdWithUpdate(cacheCtx, poolId)
+	nextId = s.keeper.GetNextQueuedFarmingIdWithUpdate(cacheCtx, poolId)
 	s.Require().Equal(uint64(2), nextId)
 }
 

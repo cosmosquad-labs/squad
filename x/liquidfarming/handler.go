@@ -18,20 +18,24 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 
 		switch msg := msg.(type) {
-		case *types.MsgDeposit:
-			res, err := msgServer.Deposit(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgFarm:
+			res, err := msgServer.Farm(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgCancel:
-			res, err := msgServer.Cancel(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgCancelQueuedFarming:
+			res, err := msgServer.CancelQueuedFarming(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgWithdraw:
-			res, err := msgServer.Withdraw(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgUnfarm:
+			res, err := msgServer.Unfarm(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
 		case *types.MsgPlaceBid:
 			res, err := msgServer.PlaceBid(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+
+		case *types.MsgRefundBid:
+			res, err := msgServer.RefundBid(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
 		default:

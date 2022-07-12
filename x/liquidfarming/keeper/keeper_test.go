@@ -128,30 +128,30 @@ func (s *KeeperTestSuite) createLiquidFarm(liquidFarms []types.LiquidFarm) {
 	s.keeper.SetParams(s.ctx, params)
 }
 
-func (s *KeeperTestSuite) deposit(poolId uint64, depositor sdk.AccAddress, depositCoin sdk.Coin, fund bool) types.DepositRequest {
+func (s *KeeperTestSuite) farm(poolId uint64, farmer sdk.AccAddress, farmingCoin sdk.Coin, fund bool) types.QueuedFarming {
 	s.T().Helper()
 	if fund {
-		s.fundAddr(depositor, sdk.NewCoins(depositCoin))
+		s.fundAddr(farmer, sdk.NewCoins(farmingCoin))
 	}
-	req, err := s.keeper.Deposit(s.ctx, &types.MsgDeposit{
+	qf, err := s.keeper.Farm(s.ctx, &types.MsgFarm{
 		PoolId:      poolId,
-		Depositor:   depositor.String(),
-		DepositCoin: depositCoin,
+		Farmer:      farmer.String(),
+		FarmingCoin: farmingCoin,
 	})
 	s.Require().NoError(err)
 
-	return req
+	return qf
 }
 
-func (s *KeeperTestSuite) withdraw(poolId uint64, withdrawer sdk.AccAddress, lfCoin sdk.Coin, fund bool) {
+func (s *KeeperTestSuite) unfarm(poolId uint64, farmer sdk.AccAddress, lfCoin sdk.Coin, fund bool) {
 	s.T().Helper()
 	if fund {
-		s.fundAddr(withdrawer, sdk.NewCoins(lfCoin))
+		s.fundAddr(farmer, sdk.NewCoins(lfCoin))
 	}
-	err := s.keeper.Withdraw(s.ctx, &types.MsgWithdraw{
-		PoolId:     poolId,
-		Withdrawer: withdrawer.String(),
-		LFCoin:     lfCoin,
+	err := s.keeper.Unfarm(s.ctx, &types.MsgUnfarm{
+		PoolId: poolId,
+		Farmer: farmer.String(),
+		LFCoin: lfCoin,
 	})
 	s.Require().NoError(err)
 }

@@ -16,7 +16,7 @@ type MockFarmingHooksReceiver struct {
 	AfterAllocateRewardsValid bool
 }
 
-func (h *MockFarmingHooksReceiver) AfterStaked(ctx sdk.Context) {
+func (h *MockFarmingHooksReceiver) AfterStaked(ctx sdk.Context, farmer sdk.AccAddress, stakingCoinDenom string, stakingAmt sdk.Int) {
 	h.AfterStakedValid = true
 }
 

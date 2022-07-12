@@ -580,8 +580,8 @@ func (k Keeper) ProcessQueuedCoins(ctx sdk.Context, currTime time.Time) {
 			StartingEpoch: k.GetCurrentEpoch(ctx, stakingCoinDenom),
 		})
 
-		// Call hook right staking is set
-		k.hooks.AfterStaked(ctx, farmerAcc, stakingCoinDenom, newStakingAmt)
+		// Call hook right after staking is set
+		k.AfterStaked(ctx, farmerAcc, stakingCoinDenom, newStakingAmt)
 	}
 }
 

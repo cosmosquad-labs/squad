@@ -12,9 +12,9 @@ func NewMultiFarmingHooks(hooks ...FarmingHooks) MultiFarmingHooks {
 	return hooks
 }
 
-func (h MultiFarmingHooks) AfterStaked(ctx sdk.Context) {
+func (h MultiFarmingHooks) AfterStaked(ctx sdk.Context, farmer sdk.AccAddress, stakingCoinDenom string, stakingAmt sdk.Int) {
 	for i := range h {
-		h[i].AfterAllocateRewards(ctx)
+		h[i].AfterStaked(ctx, farmer, stakingCoinDenom, stakingAmt)
 	}
 }
 
