@@ -68,11 +68,11 @@ func (msg MsgFarm) GetFarmer() sdk.AccAddress {
 }
 
 // NewMsgCancelQueuedFarming returns a new MsgCancelQueuedFarming.
-func NewMsgCancelQueuedFarming(farmer string, poolId, queuedFarmingId uint64) *MsgCancelQueuedFarming {
+func NewMsgCancelQueuedFarming(farmer string, poolId uint64, unfarmingCoin sdk.Coin) *MsgCancelQueuedFarming {
 	return &MsgCancelQueuedFarming{
-		Farmer:          farmer,
-		PoolId:          poolId,
-		QueuedFarmingId: queuedFarmingId,
+		PoolId:        poolId,
+		Farmer:        farmer,
+		UnfarmingCoin: unfarmingCoin,
 	}
 }
 
@@ -87,8 +87,11 @@ func (msg MsgCancelQueuedFarming) ValidateBasic() error {
 	if msg.PoolId == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid pool id")
 	}
-	if msg.QueuedFarmingId == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid queued farming id")
+	if !msg.UnfarmingCoin.IsPositive() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "unfarming coin must be positive")
+	}
+	if err := msg.UnfarmingCoin.Validate(); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid unfarming coin: %v", err)
 	}
 	return nil
 }

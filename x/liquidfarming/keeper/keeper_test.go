@@ -13,6 +13,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	chain "github.com/cosmosquad-labs/squad/v2/app"
+	"github.com/cosmosquad-labs/squad/v2/x/farming"
 	farmingtypes "github.com/cosmosquad-labs/squad/v2/x/farming/types"
 	"github.com/cosmosquad-labs/squad/v2/x/liquidfarming/keeper"
 	"github.com/cosmosquad-labs/squad/v2/x/liquidfarming/types"
@@ -90,6 +91,12 @@ func (s *KeeperTestSuite) harvest(farmerAcc sdk.AccAddress, stakingCoinDenoms []
 	s.Require().NoError(err)
 }
 
+func (s *KeeperTestSuite) advanceEpochDays() {
+	currentEpochDays := s.app.FarmingKeeper.GetCurrentEpochDays(s.ctx)
+	s.ctx = s.ctx.WithBlockTime(s.ctx.BlockTime().Add(time.Duration(currentEpochDays) * farmingtypes.Day))
+	farming.EndBlocker(s.ctx, s.app.FarmingKeeper)
+}
+
 func (s *KeeperTestSuite) createPair(creator sdk.AccAddress, baseCoinDenom, quoteCoinDenom string, fund bool) liquiditytypes.Pair {
 	s.T().Helper()
 	params := s.app.LiquidityKeeper.GetParams(s.ctx)
@@ -150,6 +157,16 @@ func (s *KeeperTestSuite) unfarm(poolId uint64, farmer sdk.AccAddress, lfCoin sd
 		PoolId: poolId,
 		Farmer: farmer.String(),
 		LFCoin: lfCoin,
+	})
+	s.Require().NoError(err)
+}
+
+func (s *KeeperTestSuite) cancelQueuedFarming(poolId uint64, farmer sdk.AccAddress, unfarmingCoin sdk.Coin) {
+	s.T().Helper()
+	err := s.keeper.CancelQueuedFarming(s.ctx, &types.MsgCancelQueuedFarming{
+		PoolId:        poolId,
+		Farmer:        farmer.String(),
+		UnfarmingCoin: unfarmingCoin,
 	})
 	s.Require().NoError(err)
 }

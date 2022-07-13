@@ -14,6 +14,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCancelQueuedFarming{}, "liquidfarming/MsgCancelQueuedFarming", nil)
 	cdc.RegisterConcrete(&MsgUnfarm{}, "liquidfarming/MsgUnfarm", nil)
 	cdc.RegisterConcrete(&MsgPlaceBid{}, "liquidfarming/MsgPlaceBid", nil)
+	cdc.RegisterConcrete(&MsgRefundBid{}, "liquidfarming/MsgRefundBid", nil)
 }
 
 // RegisterInterfaces registers the x/liquidfarming interfaces types with the interface registry
@@ -24,6 +25,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgCancelQueuedFarming{},
 		&MsgUnfarm{},
 		&MsgPlaceBid{},
+		&MsgRefundBid{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

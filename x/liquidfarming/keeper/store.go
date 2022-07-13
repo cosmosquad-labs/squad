@@ -149,7 +149,7 @@ func (k Keeper) GetRewardsAuctions(ctx sdk.Context) (auctions []types.RewardsAuc
 // IterateQueuedFarmingsByFarmer iterates through all queued farmings
 // by farmer stored in the store and invokes callback function for each item.
 // Stops the iteration when the callback function returns true.
-func (k Keeper) IterateQueuedFarmingsByFarmer(ctx sdk.Context, farmerAcc sdk.AccAddress, cb func(stakingCoinDenom string, endTime time.Time, queuedFarming types.QueuedFarming) (stop bool)) {
+func (k Keeper) IterateQueuedFarmingsByFarmer(ctx sdk.Context, farmerAcc sdk.AccAddress, cb func(farmingCoinDenom string, endTime time.Time, queuedFarming types.QueuedFarming) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iter := sdk.KVStorePrefixIterator(store, types.GetQueuedFarmingsByFarmerPrefix(farmerAcc))
 	defer iter.Close()
@@ -157,6 +157,39 @@ func (k Keeper) IterateQueuedFarmingsByFarmer(ctx sdk.Context, farmerAcc sdk.Acc
 		_, farmingCoinDenom, endTime := types.ParseQueuedFarmingIndexKey(iter.Key())
 		queuedFarming, _ := k.GetQueuedFarming(ctx, endTime, farmingCoinDenom, farmerAcc)
 		if cb(farmingCoinDenom, endTime, queuedFarming) {
+			break
+		}
+	}
+}
+
+// IterateMatureQueuedFarmings iterates through all the queued farmings
+// that are mature at currTime.
+// Stops the iteration when the callback function returns true.
+func (k Keeper) IterateMatureQueuedFarmings(ctx sdk.Context, currTime time.Time, cb func(endTime time.Time, farmingCoinDenom string, farmerAcc sdk.AccAddress, queuedFarming types.QueuedFarming) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iter := store.Iterator(types.QueuedFarmingKeyPrefix, types.GetQueuedFarmingEndBytes(currTime))
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		var queuedFarming types.QueuedFarming
+		k.cdc.MustUnmarshal(iter.Value(), &queuedFarming)
+		endTime, farmingCoinDenom, farmerAcc := types.ParseQueuedFarmingKey(iter.Key())
+		if cb(endTime, farmingCoinDenom, farmerAcc, queuedFarming) {
+			break
+		}
+	}
+}
+
+// IterateQueuedFarmingsByFarmerAndDenomReverse iterates through all the queued
+// farmings by farmer address and staking coin denom, in reverse order.
+// Stops the iteration when the callback function returns true.
+func (k Keeper) IterateQueuedFarmingsByFarmerAndDenomReverse(ctx sdk.Context, farmerAcc sdk.AccAddress, farmingCoinDenom string, cb func(endTime time.Time, queuedFarming types.QueuedFarming) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStoreReversePrefixIterator(store, types.GetQueuedFarmingsByFarmerAndDenomPrefix(farmerAcc, farmingCoinDenom))
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		_, _, endTime := types.ParseQueuedFarmingIndexKey(iter.Key())
+		queuedFarming, _ := k.GetQueuedFarming(ctx, endTime, farmingCoinDenom, farmerAcc)
+		if cb(endTime, queuedFarming) {
 			break
 		}
 	}

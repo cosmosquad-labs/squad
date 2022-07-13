@@ -66,3 +66,14 @@ func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramSpace.SetParamSet(ctx, &params)
 }
+
+// GetLiquidFarm returns LiquidFarm object that corresponds to the given pool id.
+func (k Keeper) GetLiquidFarm(ctx sdk.Context, poolId uint64) (liquidFarm types.LiquidFarm, found bool) {
+	params := k.GetParams(ctx)
+	for _, lf := range params.LiquidFarms {
+		if lf.PoolId == poolId {
+			return lf, true
+		}
+	}
+	return types.LiquidFarm{}, false
+}

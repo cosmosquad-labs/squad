@@ -109,15 +109,15 @@ $ %s tx %s cancel-queued-farming 1 1 --from mykey
 				return fmt.Errorf("failed to parse pool id: %w", err)
 			}
 
-			reqId, err := strconv.ParseUint(args[1], 10, 64)
+			farmingCoin, err := sdk.ParseCoinNormalized(args[1])
 			if err != nil {
-				return fmt.Errorf("failed to parse deposit request id: %w", err)
+				return fmt.Errorf("invalid farming coin: %w", err)
 			}
 
 			msg := types.NewMsgCancelQueuedFarming(
 				clientCtx.GetFromAddress().String(),
 				poolId,
-				reqId,
+				farmingCoin,
 			)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)

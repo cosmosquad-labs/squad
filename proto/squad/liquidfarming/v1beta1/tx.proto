@@ -42,16 +42,18 @@ message MsgFarm {
 // MsgFarmResponse defines the MsgFarmResponse response type.
 message MsgFarmResponse {}
 
-
 // MsgCancelQueuedFarming defines a SDK message for canceling the queued farming.
 message MsgCancelQueuedFarming {
   option (gogoproto.goproto_getters) = false;
 
-  string farmer = 1;
+  uint64 pool_id = 1;
 
-  uint64 pool_id = 2;
+  string farmer = 2;
 
-  uint64 queued_farming_id = 3;
+  cosmos.base.v1beta1.Coin unfarming_coin = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"
+  ];
 }
 
 // MsgCancelQueuedFarmingResponse defines the MsgCancelQueuedFarmingResponse response type.
