@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"time"
 
 	gogotypes "github.com/gogo/protobuf/types"
@@ -63,29 +62,6 @@ func (k Keeper) GetQueuedFarming(ctx sdk.Context, endTime time.Time, farmingCoin
 	if bz == nil {
 		return
 	}
-	k.cdc.MustUnmarshal(bz, &queuedFarming)
-	found = true
-	return
-}
-
-// TODO: Test
-func (k Keeper) GetQueuedFarmingByFarmer(ctx sdk.Context, farmerAcc sdk.AccAddress, farmingCoinDenom string) (queuedFarming types.QueuedFarming, found bool) {
-	bz := types.GetQueuedFarmingsByFarmerAndDenomPrefix(farmerAcc, farmingCoinDenom)
-	if bz == nil {
-		return
-	}
-
-	endTime, err := sdk.ParseTimeBytes(bz)
-	if err != nil {
-		panic(fmt.Errorf("parse end time: %w", err))
-	}
-
-	store := ctx.KVStore(k.storeKey)
-	bz = store.Get(types.GetQueuedFarmingKey(endTime, farmingCoinDenom, farmerAcc))
-	if bz == nil {
-		return
-	}
-
 	k.cdc.MustUnmarshal(bz, &queuedFarming)
 	found = true
 	return

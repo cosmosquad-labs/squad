@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -196,6 +198,12 @@ func (s *KeeperTestSuite) TestUnfarm() {
 	queuedFarmings := s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAcc)
 	s.Require().Len(queuedFarmings, 2)
 
-	// Advanced epoch days to mint
-	// advanceEpochDays
+	// Advanced epoch days
+	s.advanceEpochDays()
+
+	// Check minted LFCoin
+	lfCoinDenom := types.LFCoinDenom(pool.Id)
+	balance := s.getBalance(farmerAcc, lfCoinDenom)
+	fmt.Println("balance: ", balance)
+	s.Require().Equal(sdk.NewCoin(lfCoinDenom, amount1.Add(amount2)), balance)
 }
