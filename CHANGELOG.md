@@ -42,6 +42,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Client Breaking Changes
 
+* (x/farming) [\#334](https://github.com/cosmosquad-labs/squad/pull/334) Add `HistoricalRewards` query endpoint:
+  * `HistoricalRewards`: `/squad/farming/v1beta1/historical_rewards/{staking_coin_denom}`
 * (x/liquidity) [\#318](https://github.com/cosmosquad-labs/squad/pull/318) Add `OrderBooks` query endpoint:
   * `OrderBooks`: `/squad/liquidity/v1beta1/order_books`
 * (x/farming) [\#305](https://github.com/cosmosquad-labs/squad/pull/305) Rename existing `Stakings` endpoint to `Position` and add three new endpoints:
@@ -51,6 +53,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### CLI Breaking Changes
 
+* (x/farming) [\#334](https://github.com/cosmosquad-labs/squad/pull/334) Add `historical-rewards` query cmd:
+  * `historical-rewards [staking-coin-denom]`
 * (x/liquidity) [\#318](https://github.com/cosmosquad-labs/squad/pull/318) Add `create-ranged-pool` tx cmd and `order-books` query cmd:
   * `create-ranged-pool [pair-id] [deposit-coins] [min-price] [max-price] [initial-price]`
   * `order-books [pair-ids] [tick-precisions]`
