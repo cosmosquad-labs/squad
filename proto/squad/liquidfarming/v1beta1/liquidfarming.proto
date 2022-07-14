@@ -38,10 +38,10 @@ message RewardsAuction {
   string paying_reserve_address = 6;
   
   google.protobuf.Timestamp start_time = 7
-      [(gogoproto.stdtime) = true, (gogoproto.nullable) = true, (gogoproto.moretags) = "yaml:\"start_time\""];
+      [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
 
   google.protobuf.Timestamp end_time = 8
-      [(gogoproto.stdtime) = true, (gogoproto.nullable) = true, (gogoproto.moretags) = "yaml:\"end_time\""];
+      [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
 
   AuctionStatus status = 9;
 

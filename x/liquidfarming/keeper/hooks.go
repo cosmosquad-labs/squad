@@ -37,7 +37,6 @@ func (h Hooks) AfterStaked(ctx sdk.Context, reserveAcc sdk.AccAddress, stakingCo
 			}
 			mintingCoins := sdk.NewCoins(sdk.NewCoin(lfCoinDenom, mintingAmt))
 
-			// Mint liquid farming coin and send it to the farmer
 			if err := h.k.bankKeeper.MintCoins(ctx, types.ModuleName, mintingCoins); err != nil {
 				panic(err)
 			}

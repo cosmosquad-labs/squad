@@ -11,6 +11,9 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {
 	k.SetParams(ctx, genState.Params)
 
 	// TODO: not implemented yet
+	// Set all liquidfarms
+	// Set winning bid
+	// Set all RewardsAuction
 }
 
 // ExportGenesis returns the capability module's exported genesis.
