@@ -3,6 +3,7 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmosquad-labs/squad/v2/x/farming/keeper"
 	"github.com/cosmosquad-labs/squad/v2/x/farming/types"
 
 	_ "github.com/stretchr/testify/suite"
@@ -28,7 +29,9 @@ func (s *KeeperTestSuite) TestHooks() {
 	farmingHooksReceiver := MockFarmingHooksReceiver{}
 
 	// Set hooks
-	s.keeper.SetHooks(types.NewMultiFarmingHooks(&farmingHooksReceiver))
+	keeper.UnsafeSetHooks(
+		&s.keeper, types.NewMultiFarmingHooks(&farmingHooksReceiver),
+	)
 
 	// Default must be false
 	s.Require().False(farmingHooksReceiver.AfterStakedValid)
