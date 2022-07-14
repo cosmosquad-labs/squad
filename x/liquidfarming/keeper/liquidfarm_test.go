@@ -1,8 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -47,6 +45,50 @@ func (s *KeeperTestSuite) TestFarm() {
 	// Check queued farmings farmed by the farmer
 	queuedFarmings := s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAcc)
 	s.Require().Len(queuedFarmings, 3)
+}
+
+func (s *KeeperTestSuite) TestFarm_AfterStaked() {
+	s.createPair(s.addr(0), "denom1", "denom2", true)
+	s.createPool(s.addr(0), 1, utils.ParseCoins("100_000_000denom1, 100_000_000denom2"), true)
+	s.createLiquidFarm([]types.LiquidFarm{{
+		PoolId:               1,
+		MinimumDepositAmount: sdk.ZeroInt(),
+		MinimumBidAmount:     sdk.ZeroInt(),
+	}})
+	s.Require().Len(s.keeper.GetParams(s.ctx).LiquidFarms, 1)
+
+	pool, found := s.app.LiquidityKeeper.GetPool(s.ctx, 1)
+	s.Require().True(found)
+
+	farmerAcc := s.addr(1)
+	amount1, amount2 := sdk.NewInt(100_000_000), sdk.NewInt(400_000_000)
+
+	s.farm(pool.Id, farmerAcc, sdk.NewCoin(pool.PoolCoinDenom, amount1), true)
+	s.nextBlock()
+	s.advanceEpochDays()
+
+	// Staked amount must be 100
+	totalStakings, found := s.app.FarmingKeeper.GetTotalStakings(s.ctx, pool.PoolCoinDenom)
+	s.Require().True(found)
+	s.Require().Equal(amount1, totalStakings.Amount)
+
+	s.farm(pool.Id, farmerAcc, sdk.NewCoin(pool.PoolCoinDenom, amount2), true)
+	s.nextBlock()
+	s.advanceEpochDays()
+
+	// Staked amount must be 500 (amount1 + amount2)
+	totalStakings, found = s.app.FarmingKeeper.GetTotalStakings(s.ctx, pool.PoolCoinDenom)
+	s.Require().True(found)
+	s.Require().Equal(amount1.Add(amount2), totalStakings.Amount)
+
+	// Check minted LFCoin
+	lfCoinDenom := types.LFCoinDenom(pool.Id)
+	lfCoinBalance := s.getBalance(farmerAcc, lfCoinDenom)
+	s.Require().Equal(sdk.NewCoin(lfCoinDenom, amount1.Add(amount2)), lfCoinBalance)
+
+	// Queued farmings must be deleted
+	queuedFarmings := s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAcc)
+	s.Require().Len(queuedFarmings, 0)
 }
 
 func (s *KeeperTestSuite) TestCancelQueuedFarming_All() {
@@ -173,7 +215,7 @@ func (s *KeeperTestSuite) TestCancelQueuedFarming_Exceed() {
 	s.Require().ErrorIs(err, sdkerrors.ErrInsufficientFunds)
 }
 
-func (s *KeeperTestSuite) TestUnfarm() {
+func (s *KeeperTestSuite) TestUnfarm_All() {
 	s.createPair(s.addr(0), "denom1", "denom2", true)
 	s.createPool(s.addr(0), 1, utils.ParseCoins("100_000_000denom1, 100_000_000denom2"), true)
 	s.createLiquidFarm([]types.LiquidFarm{{
@@ -187,23 +229,33 @@ func (s *KeeperTestSuite) TestUnfarm() {
 	s.Require().True(found)
 
 	farmerAcc := s.addr(1)
-	amount1, amount2 := sdk.NewInt(100_000_000), sdk.NewInt(400_000_000)
+	amount1 := sdk.NewInt(100_000_000)
 
 	s.farm(pool.Id, farmerAcc, sdk.NewCoin(pool.PoolCoinDenom, amount1), true)
 	s.nextBlock()
+	s.advanceEpochDays()
 
-	s.farm(pool.Id, farmerAcc, sdk.NewCoin(pool.PoolCoinDenom, amount2), true)
-	s.nextBlock()
+	// Staked amount must be 100
+	totalStakings, found := s.app.FarmingKeeper.GetTotalStakings(s.ctx, pool.PoolCoinDenom)
+	s.Require().True(found)
+	s.Require().Equal(amount1, totalStakings.Amount)
 
 	queuedFarmings := s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAcc)
-	s.Require().Len(queuedFarmings, 2)
-
-	// Advanced epoch days
-	s.advanceEpochDays()
+	s.Require().Len(queuedFarmings, 0)
 
 	// Check minted LFCoin
 	lfCoinDenom := types.LFCoinDenom(pool.Id)
-	balance := s.getBalance(farmerAcc, lfCoinDenom)
-	fmt.Println("balance: ", balance)
-	s.Require().Equal(sdk.NewCoin(lfCoinDenom, amount1.Add(amount2)), balance)
+	lfCoinBalance := s.getBalance(farmerAcc, lfCoinDenom)
+	s.Require().Equal(sdk.NewCoin(lfCoinDenom, amount1), lfCoinBalance)
+
+	// Unfarm all amounts
+	err := s.keeper.Unfarm(s.ctx, types.NewMsgUnfarm(pool.Id, farmerAcc.String(), lfCoinBalance))
+	s.Require().NoError(err)
+
+	// Verify
+	_, found = s.app.FarmingKeeper.GetTotalStakings(s.ctx, pool.PoolCoinDenom)
+	s.Require().False(found)
+
+	supply := s.app.BankKeeper.GetSupply(s.ctx, lfCoinDenom)
+	s.Require().Equal(sdk.ZeroInt(), supply.Amount)
 }

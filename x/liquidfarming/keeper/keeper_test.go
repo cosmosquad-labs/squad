@@ -140,11 +140,8 @@ func (s *KeeperTestSuite) farm(poolId uint64, farmer sdk.AccAddress, farmingCoin
 	if fund {
 		s.fundAddr(farmer, sdk.NewCoins(farmingCoin))
 	}
-	err := s.keeper.Farm(s.ctx, &types.MsgFarm{
-		PoolId:      poolId,
-		Farmer:      farmer.String(),
-		FarmingCoin: farmingCoin,
-	})
+
+	err := s.keeper.Farm(s.ctx, types.NewMsgFarm(poolId, farmer.String(), farmingCoin))
 	s.Require().NoError(err)
 }
 
@@ -153,21 +150,15 @@ func (s *KeeperTestSuite) unfarm(poolId uint64, farmer sdk.AccAddress, lfCoin sd
 	if fund {
 		s.fundAddr(farmer, sdk.NewCoins(lfCoin))
 	}
-	err := s.keeper.Unfarm(s.ctx, &types.MsgUnfarm{
-		PoolId: poolId,
-		Farmer: farmer.String(),
-		LFCoin: lfCoin,
-	})
+
+	err := s.keeper.Unfarm(s.ctx, types.NewMsgUnfarm(poolId, farmer.String(), lfCoin))
 	s.Require().NoError(err)
 }
 
 func (s *KeeperTestSuite) cancelQueuedFarming(poolId uint64, farmer sdk.AccAddress, unfarmingCoin sdk.Coin) {
 	s.T().Helper()
-	err := s.keeper.CancelQueuedFarming(s.ctx, &types.MsgCancelQueuedFarming{
-		PoolId:        poolId,
-		Farmer:        farmer.String(),
-		UnfarmingCoin: unfarmingCoin,
-	})
+
+	err := s.keeper.CancelQueuedFarming(s.ctx, types.NewMsgCancelQueuedFarming(poolId, farmer.String(), unfarmingCoin))
 	s.Require().NoError(err)
 }
 

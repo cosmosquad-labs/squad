@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 
+	farmingtypes "github.com/cosmosquad-labs/squad/v2/x/farming/types"
 	liquiditytypes "github.com/cosmosquad-labs/squad/v2/x/liquidity/types"
 )
 
@@ -23,6 +24,7 @@ type BankKeeper interface {
 	MintCoins(ctx sdk.Context, name string, amt sdk.Coins) error
 	BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
 }
 
 // FarmingKeeper defines the expected interface needed for the liquidfarming module to use.
@@ -31,6 +33,8 @@ type FarmingKeeper interface {
 	Unstake(ctx sdk.Context, farmerAcc sdk.AccAddress, amount sdk.Coins) error
 	Harvest(ctx sdk.Context, farmerAcc sdk.AccAddress, stakingCoinDenoms []string) error
 	GetCurrentEpochDays(ctx sdk.Context) uint32
+	GetStaking(ctx sdk.Context, stakingCoinDenom string, farmerAcc sdk.AccAddress) (staking farmingtypes.Staking, found bool)
+	GetTotalStakings(ctx sdk.Context, stakingCoinDenom string) (totalStakings farmingtypes.TotalStakings, found bool)
 }
 
 // LiquidityKeeper defines the expected interface needed to retrieve liquidity pools.

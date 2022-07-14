@@ -154,10 +154,8 @@ func (k Keeper) CancelQueuedFarming(ctx sdk.Context, msg *types.MsgCancelQueuedF
 }
 
 // Unfarm handles types.MsgUnfarm to unfarm LFCoin.
-// It unstakes pool coin from the farming module, burns the LFCoin, and releases the corresponding amount of pool coin.
 func (k Keeper) Unfarm(ctx sdk.Context, msg *types.MsgUnfarm) error {
-	params := k.GetParams(ctx)
-	for _, lf := range params.LiquidFarms {
+	for _, lf := range k.GetParams(ctx).LiquidFarms {
 		if msg.PoolId == lf.PoolId {
 			reserveAddr := types.LiquidFarmReserveAddress(lf.PoolId)
 			lfCoinDenom := types.LFCoinDenom(lf.PoolId)
@@ -172,27 +170,30 @@ func (k Keeper) Unfarm(ctx sdk.Context, msg *types.MsgUnfarm) error {
 				return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "pool %d not found", lf.PoolId)
 			}
 
-			poolCoinBalance := k.bankKeeper.SpendableCoins(ctx, reserveAddr).AmountOf(pool.PoolCoinDenom)
 			lfCoinTotalSupply := k.bankKeeper.GetSupply(ctx, lfCoinDenom).Amount
-			unfarmingAmt := msg.LFCoin.Amount
-			fee := sdk.ZeroInt() // TODO: TBD
+			lpCoinTotalStaked, found := k.farmingKeeper.GetTotalStakings(ctx, pool.PoolCoinDenom)
+			if !found {
+				return sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "TODO: describe...") // TODO: can it be not found?
+			}
+			unfarmFee := sdk.ZeroInt() // TODO: TBD
 
-			// UnfarmedCoin = LPCoinTotalStaked / LFCoinTotalSupply * UnfarmingAmt * (1 - Fee)
-			unfarmedAmt := poolCoinBalance.Quo(lfCoinTotalSupply).Mul(unfarmingAmt).Mul(sdk.OneInt().Sub(fee))
+			// UnfarmedAmount = TotalStakedLPAmount / TotalSupplyLFAmount * UnfarmingLFAmount * (1 - UnfarmFee)
+			unfarmedAmt := lpCoinTotalStaked.Amount.Quo(lfCoinTotalSupply).Mul(msg.LFCoin.Amount).Mul(sdk.OneInt().Sub(unfarmFee))
 			unfarmedCoin := sdk.NewCoin(pool.PoolCoinDenom, unfarmedAmt)
 
-			// Unstake with the reserve account from the farming module
+			// Send the unfarming LFCoin to module account and burn them.
+			if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, msg.GetFarmer(), types.ModuleName, sdk.NewCoins(msg.LFCoin)); err != nil {
+				return err
+			}
+			if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(msg.LFCoin)); err != nil {
+				return err
+			}
+
+			// Unstake and release corresponding pool coin to the farmer
 			if err := k.farmingKeeper.Unstake(ctx, reserveAddr, sdk.NewCoins(unfarmedCoin)); err != nil {
 				return err
 			}
-
-			// Release corresponding pool coin to the farmer
 			if err := k.bankKeeper.SendCoins(ctx, reserveAddr, msg.GetFarmer(), sdk.NewCoins(unfarmedCoin)); err != nil {
-				return err
-			}
-
-			// Burn the withdrawn LFCoin
-			if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(msg.LFCoin)); err != nil {
 				return err
 			}
 

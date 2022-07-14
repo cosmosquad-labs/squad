@@ -68,7 +68,7 @@ func (msg MsgFarm) GetFarmer() sdk.AccAddress {
 }
 
 // NewMsgCancelQueuedFarming returns a new MsgCancelQueuedFarming.
-func NewMsgCancelQueuedFarming(farmer string, poolId uint64, unfarmingCoin sdk.Coin) *MsgCancelQueuedFarming {
+func NewMsgCancelQueuedFarming(poolId uint64, farmer string, unfarmingCoin sdk.Coin) *MsgCancelQueuedFarming {
 	return &MsgCancelQueuedFarming{
 		PoolId:        poolId,
 		Farmer:        farmer,

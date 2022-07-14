@@ -115,8 +115,8 @@ $ %s tx %s cancel-queued-farming 1 1 --from mykey
 			}
 
 			msg := types.NewMsgCancelQueuedFarming(
-				clientCtx.GetFromAddress().String(),
 				poolId,
+				clientCtx.GetFromAddress().String(),
 				farmingCoin,
 			)
 
@@ -129,17 +129,17 @@ $ %s tx %s cancel-queued-farming 1 1 --from mykey
 	return cmd
 }
 
-// NewUnfarmCmd implements the withdraw command handler.
+// NewUnfarmCmd implements the unfarm command handler.
 func NewUnfarmCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "withdraw [pool-id] [amount]",
+		Use:   "unfarm [pool-id] [amount]",
 		Args:  cobra.ExactArgs(2),
-		Short: "Withdraw liquid farming coin",
+		Short: "Unfarm liquid farming coin",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Withdraw liquid farming coin to receive the corresponding pool coin from the module.
+			fmt.Sprintf(`Unfarm liquid farming coin to receive the corresponding pool coin.
 			
 Example:
-$ %s tx %s withdraw 1 100000lf1 --from mykey
+$ %s tx %s unfarm 1 100000lf1 --from mykey
 `,
 				version.AppName, types.ModuleName,
 			),
@@ -155,15 +155,15 @@ $ %s tx %s withdraw 1 100000lf1 --from mykey
 				return fmt.Errorf("failed to parse pool id: %w", err)
 			}
 
-			withdrawingCoin, err := sdk.ParseCoinNormalized(args[1])
+			unfarmingCoin, err := sdk.ParseCoinNormalized(args[1])
 			if err != nil {
-				return fmt.Errorf("invalid deposit coin: %w", err)
+				return fmt.Errorf("invalid unfarming coin: %w", err)
 			}
 
 			msg := types.NewMsgUnfarm(
 				poolId,
 				clientCtx.GetFromAddress().String(),
-				withdrawingCoin,
+				unfarmingCoin,
 			)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)

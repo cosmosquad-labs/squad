@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,47 +21,39 @@ var _ farmingtypes.FarmingHooks = Hooks{}
 func (k Keeper) Hooks() Hooks { return Hooks{k} }
 
 func (h Hooks) AfterStaked(ctx sdk.Context, reserveAcc sdk.AccAddress, stakingCoinDenom string, newStakingAmt sdk.Int) {
-	farmer := sdk.AccAddress{}
-	mintingCoin := sdk.Coin{}
+	mintingAmt := sdk.ZeroInt()
 	h.k.IterateMatureQueuedFarmings(ctx, ctx.BlockTime(), func(endTime time.Time, farmingCoinDenom string, farmerAcc sdk.AccAddress, queuedFarming types.QueuedFarming) (stop bool) {
 		poolCoinDenom := liquiditytypes.PoolCoinDenom(queuedFarming.PoolId)
-		lfCoinDenom := types.LFCoinDenom(queuedFarming.PoolId)
-
 		if poolCoinDenom == farmingCoinDenom && newStakingAmt.Equal(queuedFarming.Amount) {
+			lfCoinDenom := types.LFCoinDenom(queuedFarming.PoolId)
 			lfCoinTotalSupply := h.k.bankKeeper.GetSupply(ctx, lfCoinDenom).Amount
-			poolCoinBalance := h.k.bankKeeper.SpendableCoins(ctx, reserveAcc).AmountOf(poolCoinDenom)
-			farmedAmt := queuedFarming.Amount
-
-			if poolCoinBalance.IsZero() || lfCoinTotalSupply.IsZero() { // first case
-				mintingCoin = sdk.NewCoin(lfCoinDenom, farmedAmt)
+			lpCoinTotalStaked, found := h.k.farmingKeeper.GetTotalStakings(ctx, stakingCoinDenom) // TODO: need verification
+			if !found || lfCoinTotalSupply.IsZero() {
+				// Initial minting amount
+				mintingAmt = queuedFarming.Amount
 			} else {
-				// MintingAmount = TotalLFCoinSupply / TotalLPCoinStaked * LPCoinDeposit
-				mintingAmt := lfCoinTotalSupply.Quo(poolCoinBalance).Mul(farmedAmt)
-				mintingCoin = sdk.NewCoin(lfCoinDenom, mintingAmt)
+				// Minting Amount = TotalSupplyLFCoin / TotalStakedLPCoin * LPCoinFarmed
+				mintingAmt = lfCoinTotalSupply.Quo(lpCoinTotalStaked.Amount).Mul(queuedFarming.Amount)
 			}
-			fmt.Println("poolCoinBalance: ", poolCoinBalance)
-			fmt.Println("lfCoinTotalSupply: ", lfCoinTotalSupply)
-			fmt.Println("mintingCoin: ", mintingCoin)
-			fmt.Println("")
+			mintingCoins := sdk.NewCoins(sdk.NewCoin(lfCoinDenom, mintingAmt))
 
-			farmer = farmerAcc
+			// Mint liquid farming coin and send it to the farmer
+			if err := h.k.bankKeeper.MintCoins(ctx, types.ModuleName, mintingCoins); err != nil {
+				panic(err)
+			}
+			if err := h.k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, farmerAcc, mintingCoins); err != nil {
+				panic(err)
+			}
+
+			// Delete queued farming
+			h.k.DeleteQueuedFarming(ctx, endTime, farmingCoinDenom, farmerAcc)
+
+			// TODO: emit events?
 
 			return true
 		}
 		return false
 	})
-
-	// Mint liquid farming coin
-	if err := h.k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(mintingCoin)); err != nil {
-		panic(err)
-	}
-
-	// Send LFCoin to the farmer
-	if err := h.k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, farmer, sdk.NewCoins(mintingCoin)); err != nil {
-		panic(err)
-	}
-
-	// TODO: emit events?
 }
 
 func (h Hooks) AfterAllocateRewards(ctx sdk.Context) {
