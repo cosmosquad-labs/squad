@@ -25,6 +25,30 @@ func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) error {
 	// Check if the auction exists
 	// Check if the bid amount is greater than the currently winning bid amount
 
+	// params := k.GetParams(ctx)
+	// poolId := uint64(0)
+	// minBidAmt := sdk.ZeroInt()
+	// for _, lf := range params.LiquidFarms {
+	// 	if lf.PoolId == msg.PoolId {
+	// 		poolId = lf.PoolId
+	// 		minBidAmt = lf.MinimumBidAmount
+	// 		break
+	// 	}
+	// }
+
+	// // Check if the amount exceeds minimum bid amount
+	// if msg.Amount.Amount.LT(minBidAmt) {
+	// 	return sdkerrors.Wrapf(types.ErrInsufficientBidAmount, "%s is smaller than %s", msg.Amount.Amount, minBidAmt)
+	// }
+
+	// Check if the bidder has sufficient balance to place a bid
+	// poolCoinBalance := k.bankKeeper.SpendableCoins(ctx, bidder).AmountOf(pool.PoolCoinDenom)
+	// if poolCoinBalance.LT(farmingCoin.Amount) {
+	// return sdkerrors.Wrapf(types.ErrInsufficientFarmingCoinAmount, "%s is smaller than %s", poolCoinBalance, minDepositAmt)
+	// }
+
+	// k.GetRewardsAuction(ctx, poolId uint64, auctionId uint64)
+
 	return nil
 }
 
