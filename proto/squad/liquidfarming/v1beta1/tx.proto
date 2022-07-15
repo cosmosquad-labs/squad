@@ -85,7 +85,7 @@ message MsgPlaceBid {
 
   string bidder = 2;
 
-  cosmos.base.v1beta1.Coin amount = 3 [
+  cosmos.base.v1beta1.Coin bidding_coin = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"
   ];

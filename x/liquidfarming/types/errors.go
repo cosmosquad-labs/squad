@@ -10,4 +10,6 @@ import (
 var (
 	ErrInsufficientFarmingCoinAmount = sdkerrors.Register(ModuleName, 2, "insufficient farming coin amount")
 	ErrInsufficientUnfarmingAmount   = sdkerrors.Register(ModuleName, 3, "insufficient unfarming amount")
+	ErrInsufficientBidAmount         = sdkerrors.Register(ModuleName, 4, "insufficient bid amount")
+	ErrInvalidAuctionStatus          = sdkerrors.Register(ModuleName, 5, "invalid auction status")
 )

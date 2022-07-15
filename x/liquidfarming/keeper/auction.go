@@ -1,10 +1,10 @@
 package keeper
 
 import (
-	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	farmingtypes "github.com/cosmosquad-labs/squad/v2/x/farming/types"
 	"github.com/cosmosquad-labs/squad/v2/x/liquidfarming/types"
@@ -19,37 +19,44 @@ func (k Keeper) GetNextAuctionIdWithUpdate(ctx sdk.Context) uint64 {
 }
 
 func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) error {
-	// TODO: not implemented yet
-	// Check for minimum deposit amount
-	// Check if the bidder has enough amount of coin to place a bid
-	// Check if the auction exists
-	// Check if the bid amount is greater than the currently winning bid amount
+	auctionId := k.GetRewardsAuctionId(ctx)
+	auction, found := k.GetRewardsAuction(ctx, msg.PoolId, auctionId)
+	if !found {
+		return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "auction %d not found", auctionId)
+	}
 
-	// Get the last auction id
+	if auction.Status != types.AuctionStatusStarted {
+		return sdkerrors.Wrapf(types.ErrInvalidAuctionStatus, "auction status is not %s", auction.Status.String())
+	}
 
-	// params := k.GetParams(ctx)
-	// poolId := uint64(0)
-	// minBidAmt := sdk.ZeroInt()
-	// for _, lf := range params.LiquidFarms {
-	// 	if lf.PoolId == msg.PoolId {
-	// 		poolId = lf.PoolId
-	// 		minBidAmt = lf.MinimumBidAmount
-	// 		break
-	// 	}
-	// }
+	liquidFarm, found := k.GetLiquidFarm(ctx, msg.PoolId)
+	if !found {
+		return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "liquid farm with pool %d not found", msg.PoolId)
+	}
 
-	// // Check if the amount exceeds minimum bid amount
-	// if msg.Amount.Amount.LT(minBidAmt) {
-	// 	return sdkerrors.Wrapf(types.ErrInsufficientBidAmount, "%s is smaller than %s", msg.Amount.Amount, minBidAmt)
-	// }
+	balance := k.bankKeeper.SpendableCoins(ctx, msg.GetBidder()).AmountOf(msg.BiddingCoin.Denom)
+	if balance.LT(msg.BiddingCoin.Amount) {
+		return sdkerrors.Wrapf(types.ErrInsufficientFarmingCoinAmount, "%s is smaller than %s", balance, msg.BiddingCoin.Amount)
+	}
 
-	// Check if the bidder has sufficient balance to place a bid
-	// poolCoinBalance := k.bankKeeper.SpendableCoins(ctx, bidder).AmountOf(pool.PoolCoinDenom)
-	// if poolCoinBalance.LT(farmingCoin.Amount) {
-	// return sdkerrors.Wrapf(types.ErrInsufficientFarmingCoinAmount, "%s is smaller than %s", poolCoinBalance, minDepositAmt)
-	// }
+	if msg.BiddingCoin.Amount.LT(liquidFarm.MinimumBidAmount) {
+		return sdkerrors.Wrapf(types.ErrInsufficientBidAmount, "%s is smaller than %s", msg.BiddingCoin.Amount, liquidFarm.MinimumBidAmount)
+	}
 
-	// k.GetRewardsAuction(ctx, poolId uint64, auctionId uint64)
+	bidId := k.GetBidId(ctx, auctionId)
+	bid, found := k.GetBid(ctx, auctionId, bidId)
+	if found {
+		if bid.Amount.IsGTE(msg.BiddingCoin) { // bidding amount must be greater than the winning bid amount
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "%s is smaller than winning bid amount %s", msg.BiddingCoin.Amount, bid.Amount)
+		}
+	}
+
+	k.SetBid(ctx, types.Bid{
+		Id:        k.GetNextAuctionIdWithUpdate(ctx),
+		AuctionId: auctionId,
+		Bidder:    msg.Bidder,
+		Amount:    msg.BiddingCoin,
+	})
 
 	return nil
 }
@@ -76,29 +83,18 @@ func (k Keeper) TerminateRewardsAuction(ctx sdk.Context) error {
 	return nil
 }
 
+// CreateRewardsAuction ...
 func (k Keeper) CreateRewardsAuction(ctx sdk.Context) error {
-	// Harvest and create rewards auction for every liquid farm
+	currentEpochDays := k.farmingKeeper.GetCurrentEpochDays(ctx)
+
 	for _, lf := range k.GetParams(ctx).LiquidFarms { // looping LiquidFarms?
-		reserveAddr := types.LiquidFarmReserveAddress(lf.PoolId)
-		stakingCoinDenom := liquiditytypes.PoolCoinDenom(lf.PoolId)
-		// if err := k.farmingKeeper.Harvest(ctx, reserveAddr, []string{stakingCoinDenom}); err != nil {
-		// 	return err
-		// }
-
-		// TODO: staking coin is already staked, so i believe the reserve account only has rewards
-		// but verify this with test code
-		spendable := k.bankKeeper.SpendableCoins(ctx, reserveAddr)
-		fmt.Println("spendable: ", spendable)
-
 		startTime := ctx.BlockTime()
-		currentEpochDays := k.farmingKeeper.GetCurrentEpochDays(ctx)
 		endTime := startTime.Add(time.Duration(currentEpochDays) * farmingtypes.Day)
 
 		auction := types.NewRewardsAuction(
 			k.GetNextAuctionIdWithUpdate(ctx),
 			lf.PoolId,
-			spendable, // Remove this field
-			stakingCoinDenom,
+			liquiditytypes.PoolCoinDenom(lf.PoolId),
 			startTime,
 			endTime,
 		)

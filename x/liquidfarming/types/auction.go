@@ -23,7 +23,6 @@ const (
 func NewRewardsAuction(
 	id uint64,
 	poolId uint64,
-	sellingRewards sdk.Coins,
 	biddingCoinDenom string,
 	startTime time.Time,
 	endTime time.Time,
@@ -31,7 +30,6 @@ func NewRewardsAuction(
 	return RewardsAuction{
 		Id:                    id,
 		PoolId:                poolId,
-		SellingRewards:        sellingRewards,
 		BiddingCoinDenom:      biddingCoinDenom,
 		SellingReserveAddress: SellingReserveAddress(poolId).String(),
 		PayingReserveAddress:  PayingReserveAddress(poolId).String(),
@@ -43,9 +41,6 @@ func NewRewardsAuction(
 }
 
 func (ra *RewardsAuction) Validate() error {
-	if err := ra.SellingRewards.Validate(); err != nil {
-		return sdkerrors.Wrapf(err, "invalid rewards")
-	}
 	if ra.BiddingCoinDenom == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "bidding coin denom cannot be empty")
 	}

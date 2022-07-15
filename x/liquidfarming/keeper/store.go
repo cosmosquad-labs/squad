@@ -32,6 +32,24 @@ func (k Keeper) SetBidId(ctx sdk.Context, auctionId uint64, bidId uint64) {
 	store.Set(types.GetLastBidIdKey(auctionId), bz)
 }
 
+// GetBid returns a bid for the given auction id and bid id.
+func (k Keeper) GetBid(ctx sdk.Context, auctionId uint64, bidId uint64) (bid types.Bid, found bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetBidKey(auctionId, bidId))
+	if bz == nil {
+		return bid, false
+	}
+	k.cdc.MustUnmarshal(bz, &bid)
+	return bid, true
+}
+
+// SetBid sets a bid with the given arguments.
+func (k Keeper) SetBid(ctx sdk.Context, bid types.Bid) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&bid)
+	store.Set(types.GetBidKey(bid.AuctionId, bid.Id), bz)
+}
+
 // GetRewardsAuctionId returns the last auction id.
 func (k Keeper) GetRewardsAuctionId(ctx sdk.Context) uint64 {
 	var id uint64
