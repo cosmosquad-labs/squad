@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"strconv"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,58 +13,100 @@ import (
 )
 
 // GetNextAuctionIdWithUpdate increments rewards auction id by one and store it.
-func (k Keeper) GetNextAuctionIdWithUpdate(ctx sdk.Context) uint64 {
-	id := k.GetRewardsAuctionId(ctx) + 1
-	k.SetRewardsAuctionId(ctx, id)
+func (k Keeper) GetNextAuctionIdWithUpdate(ctx sdk.Context, poolId uint64) uint64 {
+	id := k.GetLastRewardsAuctionId(ctx, poolId) + 1
+	k.SetRewardsAuctionId(ctx, poolId, id)
 	return id
 }
 
-func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) error {
-	auctionId := k.GetRewardsAuctionId(ctx)
+func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) (types.Bid, error) {
+	auctionId := k.GetLastRewardsAuctionId(ctx, msg.PoolId)
+	auction, found := k.GetRewardsAuction(ctx, msg.PoolId, auctionId)
+	if !found {
+		return types.Bid{}, sdkerrors.Wrapf(sdkerrors.ErrNotFound, "auction %d not found", auctionId)
+	}
+
+	liquidFarm, found := k.GetLiquidFarm(ctx, msg.PoolId)
+	if !found {
+		return types.Bid{}, sdkerrors.Wrapf(sdkerrors.ErrNotFound, "liquid farm with pool %d not found", msg.PoolId)
+	}
+
+	balance := k.bankKeeper.SpendableCoins(ctx, msg.GetBidder()).AmountOf(msg.BiddingCoin.Denom)
+	if balance.LT(msg.BiddingCoin.Amount) {
+		return types.Bid{}, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "%s is smaller than %s", balance, msg.BiddingCoin.Amount)
+	}
+
+	if msg.BiddingCoin.Amount.LT(liquidFarm.MinimumBidAmount) {
+		return types.Bid{}, sdkerrors.Wrapf(types.ErrInsufficientBidAmount, "%s is smaller than %s", msg.BiddingCoin.Amount, liquidFarm.MinimumBidAmount)
+	}
+
+	_, found = k.GetBid(ctx, auctionId, msg.GetBidder())
+	if found {
+		return types.Bid{}, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "bid by %s already exists", msg.Bidder)
+	}
+
+	winningBid, found := k.GetWinningBid(ctx, msg.PoolId, auctionId)
+	if found {
+		if winningBid.Amount.IsGTE(msg.BiddingCoin) {
+			return types.Bid{}, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "%s is smaller than winning bid amount %s", msg.BiddingCoin.Amount, winningBid.Amount)
+		}
+	}
+
+	if err := k.bankKeeper.SendCoins(ctx, msg.GetBidder(), auction.GetPayingReserveAddress(), sdk.NewCoins(msg.BiddingCoin)); err != nil {
+		return types.Bid{}, err
+	}
+
+	bid := types.NewBid(
+		msg.PoolId,
+		msg.Bidder,
+		msg.BiddingCoin,
+	)
+	k.SetBid(ctx, bid)
+	k.SetWinningBid(ctx, bid, auction.Id)
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypePlaceBid,
+			sdk.NewAttribute(types.AttributeKeyPoolId, strconv.FormatUint(msg.PoolId, 10)),
+			sdk.NewAttribute(types.AttributeKeyAuctionId, strconv.FormatUint(auctionId, 10)),
+			sdk.NewAttribute(types.AttributeKeyBidder, msg.Bidder),
+			sdk.NewAttribute(types.AttributeKeyBiddingCoin, msg.BiddingCoin.String()),
+		),
+	})
+
+	return bid, nil
+}
+
+func (k Keeper) RefundBid(ctx sdk.Context, msg *types.MsgRefundBid) error {
+	bid, found := k.GetBid(ctx, msg.PoolId, msg.GetBidder())
+	if !found {
+		return sdkerrors.Wrap(sdkerrors.ErrNotFound, "bid not found")
+	}
+
+	auctionId := k.GetLastRewardsAuctionId(ctx, msg.PoolId)
 	auction, found := k.GetRewardsAuction(ctx, msg.PoolId, auctionId)
 	if !found {
 		return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "auction %d not found", auctionId)
 	}
 
-	if auction.Status != types.AuctionStatusStarted {
-		return sdkerrors.Wrapf(types.ErrInvalidAuctionStatus, "auction status is not %s", auction.Status.String())
-	}
-
-	liquidFarm, found := k.GetLiquidFarm(ctx, msg.PoolId)
-	if !found {
-		return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "liquid farm with pool %d not found", msg.PoolId)
-	}
-
-	balance := k.bankKeeper.SpendableCoins(ctx, msg.GetBidder()).AmountOf(msg.BiddingCoin.Denom)
-	if balance.LT(msg.BiddingCoin.Amount) {
-		return sdkerrors.Wrapf(types.ErrInsufficientFarmingCoinAmount, "%s is smaller than %s", balance, msg.BiddingCoin.Amount)
-	}
-
-	if msg.BiddingCoin.Amount.LT(liquidFarm.MinimumBidAmount) {
-		return sdkerrors.Wrapf(types.ErrInsufficientBidAmount, "%s is smaller than %s", msg.BiddingCoin.Amount, liquidFarm.MinimumBidAmount)
-	}
-
-	bidId := k.GetBidId(ctx, auctionId)
-	bid, found := k.GetBid(ctx, auctionId, bidId)
+	_, found = k.GetWinningBid(ctx, msg.PoolId, auctionId)
 	if found {
-		if bid.Amount.IsGTE(msg.BiddingCoin) { // bidding amount must be greater than the winning bid amount
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "%s is smaller than winning bid amount %s", msg.BiddingCoin.Amount, bid.Amount)
-		}
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "winning bid cannot be refunded")
 	}
 
-	k.SetBid(ctx, types.Bid{
-		Id:        k.GetNextAuctionIdWithUpdate(ctx),
-		AuctionId: auctionId,
-		Bidder:    msg.Bidder,
-		Amount:    msg.BiddingCoin,
+	if err := k.bankKeeper.SendCoins(ctx, auction.GetPayingReserveAddress(), msg.GetBidder(), sdk.NewCoins(bid.Amount)); err != nil {
+		return err
+	}
+
+	k.DeleteBid(ctx, bid)
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeRefundBid,
+			sdk.NewAttribute(types.AttributeKeyPoolId, strconv.FormatUint(msg.PoolId, 10)),
+			sdk.NewAttribute(types.AttributeKeyBidder, msg.Bidder),
+		),
 	})
-
-	return nil
-}
-
-func (k Keeper) RefundBid(ctx sdk.Context, msg *types.MsgRefundBid) error {
-	// TODO: not implemented yet
-	// Winning bid can't be refunded
 
 	return nil
 }
@@ -83,16 +126,15 @@ func (k Keeper) TerminateRewardsAuction(ctx sdk.Context) error {
 	return nil
 }
 
-// CreateRewardsAuction ...
-func (k Keeper) CreateRewardsAuction(ctx sdk.Context) error {
+// CreateRewardsAuctions ...
+func (k Keeper) CreateRewardsAuctions(ctx sdk.Context) error {
 	currentEpochDays := k.farmingKeeper.GetCurrentEpochDays(ctx)
+	startTime := ctx.BlockTime()
+	endTime := startTime.Add(time.Duration(currentEpochDays) * farmingtypes.Day)
 
-	for _, lf := range k.GetParams(ctx).LiquidFarms { // looping LiquidFarms?
-		startTime := ctx.BlockTime()
-		endTime := startTime.Add(time.Duration(currentEpochDays) * farmingtypes.Day)
-
+	for _, lf := range k.GetParams(ctx).LiquidFarms {
 		auction := types.NewRewardsAuction(
-			k.GetNextAuctionIdWithUpdate(ctx),
+			k.GetNextAuctionIdWithUpdate(ctx, lf.PoolId),
 			lf.PoolId,
 			liquiditytypes.PoolCoinDenom(lf.PoolId),
 			startTime,

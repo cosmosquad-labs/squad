@@ -49,18 +49,14 @@ message RewardsAuction {
 message Bid {
   option (gogoproto.goproto_getters) = false;
 
-  uint64 id = 1;
+  uint64 pool_id = 1;
 
-  uint64 auction_id = 2;
+  string bidder = 2;
 
-  string bidder = 3;
-
-  cosmos.base.v1beta1.Coin amount = 4 [
+  cosmos.base.v1beta1.Coin amount = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"
   ];
-
-  bool is_matched = 5;
 }
 
 // AuctionStatus enumerates the valid status of an auction.

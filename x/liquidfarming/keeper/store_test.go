@@ -22,11 +22,7 @@ func (s *KeeperTestSuite) TestIterateQueuedFarmingsByFarmerAndDenomReverse() {
 
 	s.createPair(farmerAcc, "denom1", "denom2", true)
 	s.createPool(farmerAcc, 1, sdk.NewCoins(sdk.NewInt64Coin("denom1", 100000000), sdk.NewInt64Coin("denom2", 100000000)), true)
-	s.createLiquidFarm([]types.LiquidFarm{{
-		PoolId:               poolId,
-		MinimumDepositAmount: sdk.ZeroInt(),
-		MinimumBidAmount:     sdk.ZeroInt(),
-	}})
+	s.createLiquidFarm(types.NewLiquidFarm(poolId, sdk.ZeroInt(), sdk.ZeroInt()))
 	s.Require().Len(s.keeper.GetParams(s.ctx).LiquidFarms, 1)
 
 	for seed := int64(0); seed <= 5; seed++ {

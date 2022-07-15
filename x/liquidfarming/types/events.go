@@ -5,13 +5,17 @@ const (
 	EventTypeFarm                = "farm"
 	EventTypeCancelQueuedFarming = "cancel_queued_farming"
 	EventTypeUnfarm              = "unfarm"
+	EventTypePlaceBid            = "place_bid"
+	EventTypeRefundBid           = "refund_bid"
 
-	AttributeKeyPoolId      = "pool_id"
-	AttributeKeyFarmer      = "farmer"
-	AttributeKeyFarmingCoin = "farming_coin"
-
+	AttributeKeyPoolId        = "pool_id"
+	AttributeKeyAuctionId     = "auction_id"
+	AttributeKeyBidId         = "bid_id"
+	AttributeKeyFarmer        = "farmer"
+	AttributeKeyBidder        = "bidder"
+	AttributeKeyFarmingCoin   = "farming_coin"
+	AttributeKeyBiddingCoin   = "bidding_coin"
 	AttributeKeyCanceledCoin  = "canceled_coin"
 	AttributeKeyUnfarmingCoin = "unfarming_coin"
 	AttributeKeyUnfarmedCoin  = "unfarmed_coin"
-	AttributeKeyAuctionId     = "auction_id"
 )

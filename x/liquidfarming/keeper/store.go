@@ -10,32 +10,10 @@ import (
 	"github.com/cosmosquad-labs/squad/v2/x/liquidfarming/types"
 )
 
-// GetBidId returns the last bid id for the bid.
-func (k Keeper) GetBidId(ctx sdk.Context, auctionId uint64) uint64 {
-	var id uint64
+// GetBid returns a bid for the given pool id and bidder address.
+func (k Keeper) GetBid(ctx sdk.Context, poolId uint64, bidder sdk.AccAddress) (bid types.Bid, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetLastBidIdKey(auctionId))
-	if bz == nil {
-		id = 0 // initialize the bid id
-	} else {
-		val := gogotypes.UInt64Value{}
-		k.cdc.MustUnmarshal(bz, &val)
-		id = val.GetValue()
-	}
-	return id
-}
-
-// SetBidId sets the bid id for the auction.
-func (k Keeper) SetBidId(ctx sdk.Context, auctionId uint64, bidId uint64) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(&gogotypes.UInt64Value{Value: bidId})
-	store.Set(types.GetLastBidIdKey(auctionId), bz)
-}
-
-// GetBid returns a bid for the given auction id and bid id.
-func (k Keeper) GetBid(ctx sdk.Context, auctionId uint64, bidId uint64) (bid types.Bid, found bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetBidKey(auctionId, bidId))
+	bz := store.Get(types.GetBidKey(poolId, bidder))
 	if bz == nil {
 		return bid, false
 	}
@@ -43,18 +21,39 @@ func (k Keeper) GetBid(ctx sdk.Context, auctionId uint64, bidId uint64) (bid typ
 	return bid, true
 }
 
-// SetBid sets a bid with the given arguments.
+// SetBid stores bid.
 func (k Keeper) SetBid(ctx sdk.Context, bid types.Bid) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&bid)
-	store.Set(types.GetBidKey(bid.AuctionId, bid.Id), bz)
+	store.Set(types.GetBidKey(bid.PoolId, bid.GetBidder()), bz)
 }
 
-// GetRewardsAuctionId returns the last auction id.
-func (k Keeper) GetRewardsAuctionId(ctx sdk.Context) uint64 {
+func (k Keeper) GetWinningBid(ctx sdk.Context, poolId uint64, auctionId uint64) (bid types.Bid, found bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetWinningBidKey(poolId, auctionId))
+	if bz == nil {
+		return bid, false
+	}
+	k.cdc.MustUnmarshal(bz, &bid)
+	return bid, true
+}
+
+func (k Keeper) SetWinningBid(ctx sdk.Context, bid types.Bid, auctionId uint64) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&bid)
+	store.Set(types.GetWinningBidKey(bid.PoolId, auctionId), bz)
+}
+
+func (k Keeper) DeleteBid(ctx sdk.Context, bid types.Bid) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetBidKey(bid.PoolId, bid.GetBidder()))
+}
+
+// GetLastRewardsAuctionId returns the last rewards auction id.
+func (k Keeper) GetLastRewardsAuctionId(ctx sdk.Context, poolId uint64) uint64 {
 	var id uint64
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.LastRewardsAuctionIdKey)
+	bz := store.Get(types.GetLastRewardsAuctionIdKey(poolId))
 	if bz == nil {
 		id = 0 // initialize the auction id
 	} else {
@@ -65,11 +64,11 @@ func (k Keeper) GetRewardsAuctionId(ctx sdk.Context) uint64 {
 	return id
 }
 
-// SetRewardsAuctionId stores the last auction id.
-func (k Keeper) SetRewardsAuctionId(ctx sdk.Context, id uint64) {
+// SetRewardsAuctionId stores the last rewards auction id.
+func (k Keeper) SetRewardsAuctionId(ctx sdk.Context, poolId uint64, id uint64) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&gogotypes.UInt64Value{Value: id})
-	store.Set(types.LastRewardsAuctionIdKey, bz)
+	store.Set(types.GetLastRewardsAuctionIdKey(poolId), bz)
 }
 
 // GetQueuedFarming returns a queued farming for given farming coin denom

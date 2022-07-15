@@ -40,23 +40,55 @@ func NewRewardsAuction(
 	}
 }
 
-func (ra *RewardsAuction) Validate() error {
-	if ra.BiddingCoinDenom == "" {
+func (a *RewardsAuction) Validate() error {
+	if a.BiddingCoinDenom == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "bidding coin denom cannot be empty")
 	}
-	if _, err := sdk.AccAddressFromBech32(ra.SellingReserveAddress); err != nil {
+	if _, err := sdk.AccAddressFromBech32(a.SellingReserveAddress); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid selling reserve address: %v", err)
 	}
-	if _, err := sdk.AccAddressFromBech32(ra.PayingReserveAddress); err != nil {
+	if _, err := sdk.AccAddressFromBech32(a.PayingReserveAddress); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid paying reserve address: %v", err)
 	}
-	if !ra.EndTime.After(ra.StartTime) {
+	if !a.EndTime.After(a.StartTime) {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "end time must be set after than start time")
 	}
-	if ra.Status != AuctionStatusStarted {
+	if a.Status != AuctionStatusStarted {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "auction status must be set correctly")
 	}
 	return nil
+}
+
+func (a *RewardsAuction) GetSellingReserveAddress() sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(a.SellingReserveAddress)
+	if err != nil {
+		panic(err)
+	}
+	return addr
+}
+
+func (a *RewardsAuction) GetPayingReserveAddress() sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(a.PayingReserveAddress)
+	if err != nil {
+		panic(err)
+	}
+	return addr
+}
+
+func NewBid(poolId uint64, bidder string, amount sdk.Coin) Bid {
+	return Bid{
+		PoolId: poolId,
+		Bidder: bidder,
+		Amount: amount,
+	}
+}
+
+func (b Bid) GetBidder() sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(b.Bidder)
+	if err != nil {
+		panic(err)
+	}
+	return addr
 }
 
 func MustMarshalRewardsAuction(cdc codec.BinaryCodec, auction RewardsAuction) []byte {
@@ -72,7 +104,7 @@ func MustUnmarshalRewardsAuction(cdc codec.BinaryCodec, value []byte) RewardsAuc
 }
 
 func UnmarshalRewardsAuction(cdc codec.BinaryCodec, value []byte) (auction RewardsAuction, err error) {
-	err = cdc.UnmarshalInterface(value, &auction)
+	err = cdc.Unmarshal(value, &auction)
 	return auction, err
 }
 

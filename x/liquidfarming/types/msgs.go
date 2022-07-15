@@ -214,11 +214,10 @@ func (msg MsgPlaceBid) GetBidder() sdk.AccAddress {
 	return addr
 }
 
-func NewMsgRefundBid(auctionId, bidId uint64, bidder string) *MsgRefundBid {
+func NewMsgRefundBid(poolId uint64, bidder string) *MsgRefundBid {
 	return &MsgRefundBid{
-		AuctionId: auctionId,
-		BidId:     bidId,
-		Bidder:    bidder,
+		PoolId: poolId,
+		Bidder: bidder,
 	}
 }
 
@@ -230,11 +229,8 @@ func (msg MsgRefundBid) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Bidder); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid bidder address: %v", err)
 	}
-	if msg.AuctionId == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid auction id")
-	}
-	if msg.BidId == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid bid id")
+	if msg.PoolId == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid pool id")
 	}
 	return nil
 }

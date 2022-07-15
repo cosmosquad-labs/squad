@@ -57,7 +57,7 @@ func (m msgServer) Unfarm(goCtx context.Context, msg *types.MsgUnfarm) (*types.M
 func (m msgServer) PlaceBid(goCtx context.Context, msg *types.MsgPlaceBid) (*types.MsgPlaceBidResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := m.Keeper.PlaceBid(ctx, msg); err != nil {
+	if _, err := m.Keeper.PlaceBid(ctx, msg); err != nil {
 		return nil, err
 	}
 

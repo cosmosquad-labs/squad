@@ -31,7 +31,7 @@ func (k Keeper) Farm(ctx sdk.Context, msg *types.MsgFarm) error {
 
 	// Check if the farming coin amount exceeds minimum deposit amount
 	if msg.FarmingCoin.Amount.LT(minDepositAmt) {
-		return sdkerrors.Wrapf(types.ErrInsufficientFarmingCoinAmount, "%s is smaller than %s", msg.FarmingCoin, minDepositAmt)
+		return sdkerrors.Wrapf(types.ErrInsufficientFarmingAmount, "%s is smaller than %s", msg.FarmingCoin, minDepositAmt)
 	}
 
 	// Check that the corresponding pool must exist
@@ -52,7 +52,7 @@ func (k Keeper) Farm(ctx sdk.Context, msg *types.MsgFarm) error {
 	// Check if the depositor has sufficient balance of deposit coin
 	poolCoinBalance := k.bankKeeper.SpendableCoins(ctx, farmerAcc).AmountOf(pool.PoolCoinDenom)
 	if poolCoinBalance.LT(farmingCoin.Amount) {
-		return sdkerrors.Wrapf(types.ErrInsufficientFarmingCoinAmount, "%s is smaller than %s", poolCoinBalance, minDepositAmt)
+		return sdkerrors.Wrapf(types.ErrInsufficientFarmingAmount, "%s is smaller than %s", poolCoinBalance, minDepositAmt)
 	}
 
 	// Reserve farming coins to reserve account

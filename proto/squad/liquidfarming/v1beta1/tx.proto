@@ -98,11 +98,9 @@ message MsgPlaceBidResponse {}
 message MsgRefundBid {
   option (gogoproto.goproto_getters) = false;
 
-  uint64 auction_id = 1;
+  uint64 pool_id = 1;
 
-  uint64 bid_id = 2;
-
-  string bidder = 3;
+  string bidder = 2;
 }
 
 // MsgRefundBidResponse defines the MsgRefundBidResponse response type.

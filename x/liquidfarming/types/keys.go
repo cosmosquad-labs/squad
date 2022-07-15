@@ -25,20 +25,20 @@ const (
 
 // keys for the store prefixes
 var (
-	LastBidIdKeyPrefix      = []byte{0xe1}
-	LastRewardsAuctionIdKey = []byte{0xe2} // key to retrieve the latest auction id
+	LastRewardsAuctionIdKey = []byte{0xe1} // key to retrieve the latest auction id
 
 	QueuedFarmingKeyPrefix      = []byte{0xe4}
 	QueuedFarmingIndexKeyPrefix = []byte{0xe5}
 
 	AuctionKeyPrefix = []byte{0xe7}
 
-	BidKeyPrefix = []byte{0xea}
+	BidKeyPrefix        = []byte{0xea}
+	WinningBidKeyPrefix = []byte{0xeb}
 )
 
-// GetLastBidIdKey returns the store key to retrieve the latest bid id.
-func GetLastBidIdKey(auctionId uint64) []byte {
-	return append(LastBidIdKeyPrefix, sdk.Uint64ToBigEndian(auctionId)...)
+// GetLastRewardsAuctionIdKey returns the store key to retrieve the latest rewards auction id.
+func GetLastRewardsAuctionIdKey(poolId uint64) []byte {
+	return append(LastRewardsAuctionIdKey, sdk.Uint64ToBigEndian(poolId)...)
 }
 
 // GetQueuedFarmingKey returns a key for a queued farming.
@@ -84,9 +84,14 @@ func GetRewardsAuctionKey(poolId, auctionId uint64) []byte {
 	return append(append(AuctionKeyPrefix, sdk.Uint64ToBigEndian(poolId)...), sdk.Uint64ToBigEndian(auctionId)...)
 }
 
-// GetBidKey returns the store key to retrieve the bid object.
-func GetBidKey(auctionId uint64, bidId uint64) []byte {
-	return append(append(BidKeyPrefix, sdk.Uint64ToBigEndian(auctionId)...), sdk.Uint64ToBigEndian(bidId)...)
+// GetBidKey returns the store key to retrieve the bid by .
+func GetBidKey(poolId uint64, bidder sdk.AccAddress) []byte {
+	return append(append(BidKeyPrefix, sdk.Uint64ToBigEndian(poolId)...), address.MustLengthPrefix(bidder)...)
+}
+
+// GetWinningBidKey returns the store key to retrieve the winning bid.
+func GetWinningBidKey(poolId uint64, auctionId uint64) []byte {
+	return append(append(WinningBidKeyPrefix, sdk.Uint64ToBigEndian(poolId)...), sdk.Uint64ToBigEndian(auctionId)...)
 }
 
 // ParseQueuedFarmingKey parses a queued farming key.

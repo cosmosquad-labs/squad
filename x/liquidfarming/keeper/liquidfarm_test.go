@@ -16,11 +16,7 @@ func (s *KeeperTestSuite) TestFarm() {
 
 	s.createPair(farmerAcc, "denom1", "denom2", true)
 	s.createPool(s.addr(0), 1, utils.ParseCoins("100_000_000denom1, 100_000_000denom2"), true)
-	s.createLiquidFarm([]types.LiquidFarm{{
-		PoolId:               1,
-		MinimumDepositAmount: sdk.ZeroInt(),
-		MinimumBidAmount:     sdk.ZeroInt(),
-	}})
+	s.createLiquidFarm(types.NewLiquidFarm(1, sdk.ZeroInt(), sdk.ZeroInt()))
 	s.Require().Len(s.keeper.GetParams(s.ctx).LiquidFarms, 1)
 
 	pool, found := s.app.LiquidityKeeper.GetPool(s.ctx, 1)
@@ -50,11 +46,7 @@ func (s *KeeperTestSuite) TestFarm() {
 func (s *KeeperTestSuite) TestFarm_AfterStaked() {
 	s.createPair(s.addr(0), "denom1", "denom2", true)
 	s.createPool(s.addr(0), 1, utils.ParseCoins("100_000_000denom1, 100_000_000denom2"), true)
-	s.createLiquidFarm([]types.LiquidFarm{{
-		PoolId:               1,
-		MinimumDepositAmount: sdk.ZeroInt(),
-		MinimumBidAmount:     sdk.ZeroInt(),
-	}})
+	s.createLiquidFarm(types.NewLiquidFarm(1, sdk.ZeroInt(), sdk.ZeroInt()))
 	s.Require().Len(s.keeper.GetParams(s.ctx).LiquidFarms, 1)
 
 	pool, found := s.app.LiquidityKeeper.GetPool(s.ctx, 1)
@@ -94,11 +86,7 @@ func (s *KeeperTestSuite) TestFarm_AfterStaked() {
 func (s *KeeperTestSuite) TestCancelQueuedFarming_All() {
 	s.createPair(s.addr(0), "denom1", "denom2", true)
 	s.createPool(s.addr(0), 1, utils.ParseCoins("100_000_000denom1, 100_000_000denom2"), true)
-	s.createLiquidFarm([]types.LiquidFarm{{
-		PoolId:               1,
-		MinimumDepositAmount: sdk.ZeroInt(),
-		MinimumBidAmount:     sdk.ZeroInt(),
-	}})
+	s.createLiquidFarm(types.NewLiquidFarm(1, sdk.ZeroInt(), sdk.ZeroInt()))
 	s.Require().Len(s.keeper.GetParams(s.ctx).LiquidFarms, 1)
 
 	pool, found := s.app.LiquidityKeeper.GetPool(s.ctx, 1)
@@ -131,11 +119,7 @@ func (s *KeeperTestSuite) TestCancelQueuedFarming_All() {
 func (s *KeeperTestSuite) TestCancelQueuedFarming_Partial() {
 	s.createPair(s.addr(0), "denom1", "denom2", true)
 	s.createPool(s.addr(0), 1, utils.ParseCoins("100_000_000denom1, 100_000_000denom2"), true)
-	s.createLiquidFarm([]types.LiquidFarm{{
-		PoolId:               1,
-		MinimumDepositAmount: sdk.ZeroInt(),
-		MinimumBidAmount:     sdk.ZeroInt(),
-	}})
+	s.createLiquidFarm(types.NewLiquidFarm(1, sdk.ZeroInt(), sdk.ZeroInt()))
 	s.Require().Len(s.keeper.GetParams(s.ctx).LiquidFarms, 1)
 
 	pool, found := s.app.LiquidityKeeper.GetPool(s.ctx, 1)
@@ -178,11 +162,7 @@ func (s *KeeperTestSuite) TestCancelQueuedFarming_Partial() {
 func (s *KeeperTestSuite) TestCancelQueuedFarming_Exceed() {
 	s.createPair(s.addr(0), "denom1", "denom2", true)
 	s.createPool(s.addr(0), 1, utils.ParseCoins("100_000_000denom1, 100_000_000denom2"), true)
-	s.createLiquidFarm([]types.LiquidFarm{{
-		PoolId:               1,
-		MinimumDepositAmount: sdk.ZeroInt(),
-		MinimumBidAmount:     sdk.ZeroInt(),
-	}})
+	s.createLiquidFarm(types.NewLiquidFarm(1, sdk.ZeroInt(), sdk.ZeroInt()))
 	s.Require().Len(s.keeper.GetParams(s.ctx).LiquidFarms, 1)
 
 	pool, found := s.app.LiquidityKeeper.GetPool(s.ctx, 1)
@@ -218,11 +198,7 @@ func (s *KeeperTestSuite) TestCancelQueuedFarming_Exceed() {
 func (s *KeeperTestSuite) TestUnfarm_All() {
 	s.createPair(s.addr(0), "denom1", "denom2", true)
 	s.createPool(s.addr(0), 1, utils.ParseCoins("100_000_000denom1, 100_000_000denom2"), true)
-	s.createLiquidFarm([]types.LiquidFarm{{
-		PoolId:               1,
-		MinimumDepositAmount: sdk.ZeroInt(),
-		MinimumBidAmount:     sdk.ZeroInt(),
-	}})
+	s.createLiquidFarm(types.NewLiquidFarm(1, sdk.ZeroInt(), sdk.ZeroInt()))
 	s.Require().Len(s.keeper.GetParams(s.ctx).LiquidFarms, 1)
 
 	pool, found := s.app.LiquidityKeeper.GetPool(s.ctx, 1)
