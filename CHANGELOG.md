@@ -38,14 +38,23 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
-## v2.0.0
-
 ### Client Breaking Changes
 
 * (x/liquidity) [\#338](https://github.com/cosmosquad-labs/squad/pull/338) Refactor `OrderBooks` query:
   * `tick_precisions` field has been removed from `QueryOrderBooksRequest`
   * `tick_precision` field has been removed from `OrderBookResponse` and `price_unit` has been added instead
   * The order between `sells` and `buys` has been changed
+
+### CLI Breaking Changes
+
+* (x/liquidity) [\#338](https://github.com/cosmosquad-labs/squad/pull/338) Refactor `order-books` query cmd:
+  * `[tick-precisions]` argument has been removed: `order-books [pair-ids]`
+  * Response structure has been changed
+
+## v2.0.0
+
+### Client Breaking Changes
+
 * (x/liquidity) [\#335](https://github.com/cosmosquad-labs/squad/pull/335) Modify `PoolResponse`:
   * `balances` field has been modified to contain `base_coin` and `quote_coin` fields
   * `pool_coin_supply` field has been added
@@ -61,9 +70,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### CLI Breaking Changes
 
-* (x/liquidity) [\#338](https://github.com/cosmosquad-labs/squad/pull/338) Refactor `order-books` query cmd:
-  * `[tick-precisions]` argument has been removed: `order-books [pair-ids]`
-  * Response structure has been changed
 * (x/farming) [\#334](https://github.com/cosmosquad-labs/squad/pull/334) Add `historical-rewards` query cmd:
   * `historical-rewards [staking-coin-denom]`
 * (x/liquidity) [\#318](https://github.com/cosmosquad-labs/squad/pull/318) Add `create-ranged-pool` tx cmd and `order-books` query cmd:
