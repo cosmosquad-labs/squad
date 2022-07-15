@@ -81,7 +81,7 @@ message MsgUnfarmResponse {}
 message MsgPlaceBid {
   option (gogoproto.goproto_getters) = false;
 
-  uint64 auction_id = 1;
+  uint64 pool_id = 1;
 
   string bidder = 2;
 

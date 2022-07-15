@@ -166,11 +166,11 @@ func (msg MsgUnfarm) GetFarmer() sdk.AccAddress {
 }
 
 // NewMsgPlaceBid returns a new MsgPlaceBid.
-func NewMsgPlaceBid(auctionId uint64, bidder string, amount sdk.Coin) *MsgPlaceBid {
+func NewMsgPlaceBid(poolId uint64, bidder string, amount sdk.Coin) *MsgPlaceBid {
 	return &MsgPlaceBid{
-		AuctionId: auctionId,
-		Bidder:    bidder,
-		Amount:    amount,
+		PoolId: poolId,
+		Bidder: bidder,
+		Amount: amount,
 	}
 }
 
@@ -182,8 +182,8 @@ func (msg MsgPlaceBid) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Bidder); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid bidder address: %v", err)
 	}
-	if msg.AuctionId == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid auction id")
+	if msg.PoolId == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid pool id")
 	}
 	if !msg.Amount.IsPositive() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "amount must be positive")

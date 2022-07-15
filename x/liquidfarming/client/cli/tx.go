@@ -178,8 +178,8 @@ $ %s tx %s unfarm 1 100000lf1 --from mykey
 // NewPlaceBidCmd implements the place bid command handler.
 func NewPlaceBidCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "place-bid [auction-id] [amount]",
-		Args:  cobra.ExactArgs(1),
+		Use:   "place-bid [pool-id] [amount]",
+		Args:  cobra.ExactArgs(2),
 		Short: "Place a bid for a rewards auction",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Place a bid for a rewards auction.
@@ -196,18 +196,18 @@ $ %s tx %s place-bid 1 100000lf1 --from mykey
 				return err
 			}
 
-			auctionId, err := strconv.ParseUint(args[0], 10, 64)
+			poolId, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
 				return fmt.Errorf("failed to parse pool id: %w", err)
 			}
 
 			amount, err := sdk.ParseCoinNormalized(args[1])
 			if err != nil {
-				return fmt.Errorf("invalid deposit coin: %w", err)
+				return fmt.Errorf("invalid bidding amount: %w", err)
 			}
 
 			msg := types.NewMsgPlaceBid(
-				auctionId,
+				poolId,
 				clientCtx.GetFromAddress().String(),
 				amount,
 			)

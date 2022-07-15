@@ -25,6 +25,8 @@ func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) error {
 	// Check if the auction exists
 	// Check if the bid amount is greater than the currently winning bid amount
 
+	// Get the last auction id
+
 	// params := k.GetParams(ctx)
 	// poolId := uint64(0)
 	// minBidAmt := sdk.ZeroInt()
@@ -63,7 +65,7 @@ func (k Keeper) TerminateRewardsAuction(ctx sdk.Context) error {
 	/*
 		Loop through all existing RewardsAuctions
 		Get winning bidder
-		Distribute rewards to the winner
+		Harvest and distribute rewards to the winner
 		Set WinningBidId in the RewardsAuction
 		Stake bid amounts (auto-compound)
 	*/
@@ -79,9 +81,9 @@ func (k Keeper) CreateRewardsAuction(ctx sdk.Context) error {
 	for _, lf := range k.GetParams(ctx).LiquidFarms { // looping LiquidFarms?
 		reserveAddr := types.LiquidFarmReserveAddress(lf.PoolId)
 		stakingCoinDenom := liquiditytypes.PoolCoinDenom(lf.PoolId)
-		if err := k.farmingKeeper.Harvest(ctx, reserveAddr, []string{stakingCoinDenom}); err != nil {
-			return err
-		}
+		// if err := k.farmingKeeper.Harvest(ctx, reserveAddr, []string{stakingCoinDenom}); err != nil {
+		// 	return err
+		// }
 
 		// TODO: staking coin is already staked, so i believe the reserve account only has rewards
 		// but verify this with test code
@@ -95,7 +97,7 @@ func (k Keeper) CreateRewardsAuction(ctx sdk.Context) error {
 		auction := types.NewRewardsAuction(
 			k.GetNextAuctionIdWithUpdate(ctx),
 			lf.PoolId,
-			spendable,
+			spendable, // Remove this field
 			stakingCoinDenom,
 			startTime,
 			endTime,
