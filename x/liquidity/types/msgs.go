@@ -17,6 +17,7 @@ var (
 	_ sdk.Msg = (*MsgWithdraw)(nil)
 	_ sdk.Msg = (*MsgLimitOrder)(nil)
 	_ sdk.Msg = (*MsgMarketOrder)(nil)
+	_ sdk.Msg = (*MsgMMOrder)(nil)
 	_ sdk.Msg = (*MsgCancelOrder)(nil)
 	_ sdk.Msg = (*MsgCancelAllOrders)(nil)
 )
@@ -30,6 +31,7 @@ const (
 	TypeMsgWithdraw         = "withdraw"
 	TypeMsgLimitOrder       = "limit_order"
 	TypeMsgMarketOrder      = "market_order"
+	TypeMsgMMOrder          = "mm_order"
 	TypeMsgCancelOrder      = "cancel_order"
 	TypeMsgCancelAllOrders  = "cancel_all_orders"
 )
@@ -483,6 +485,88 @@ func (msg MsgMarketOrder) GetSigners() []sdk.AccAddress {
 }
 
 func (msg MsgMarketOrder) GetOrderer() sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(msg.Orderer)
+	if err != nil {
+		panic(err)
+	}
+	return addr
+}
+
+// NewMsgMMOrder creates a new MsgMMOrder.
+func NewMsgMMOrder(
+	orderer sdk.AccAddress,
+	pairId uint64,
+	maxSellPrice, minSellPrice sdk.Dec, sellAmt sdk.Int,
+	maxBuyPrice, minBuyPrice sdk.Dec, buyAmt sdk.Int,
+	orderLifespan time.Duration,
+) *MsgMMOrder {
+	return &MsgMMOrder{
+		Orderer:       orderer.String(),
+		PairId:        pairId,
+		MaxSellPrice:  maxSellPrice,
+		MinSellPrice:  minSellPrice,
+		SellAmount:    sellAmt,
+		MaxBuyPrice:   maxBuyPrice,
+		MinBuyPrice:   minBuyPrice,
+		BuyAmount:     buyAmt,
+		OrderLifespan: orderLifespan,
+	}
+}
+
+func (msg MsgMMOrder) Route() string { return RouterKey }
+
+func (msg MsgMMOrder) Type() string { return TypeMsgMMOrder }
+
+func (msg MsgMMOrder) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Orderer); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid orderer address: %v", err)
+	}
+	if msg.PairId == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "pair id must not be 0")
+	}
+	if !msg.MaxSellPrice.IsPositive() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "max sell price must be positive: %s", msg.MaxSellPrice)
+	}
+	if !msg.MinSellPrice.IsPositive() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "min sell price must be positive: %s", msg.MinSellPrice)
+	}
+	if msg.MinSellPrice.GT(msg.MaxSellPrice) {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "max sell price must be higher than min sell price")
+	}
+	if msg.SellAmount.LT(amm.MinCoinAmount) {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "sell amount %s is smaller than the min amount %s", msg.SellAmount, amm.MinCoinAmount)
+	}
+	if !msg.MinBuyPrice.IsPositive() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "min buy price must be positive: %s", msg.MinBuyPrice)
+	}
+	if !msg.MaxBuyPrice.IsPositive() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "max buy price must be positive: %s", msg.MaxBuyPrice)
+	}
+	if msg.MinBuyPrice.GT(msg.MaxBuyPrice) {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "max buy price must be higher than min buy price")
+	}
+	if msg.BuyAmount.LT(amm.MinCoinAmount) {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "buy amount %s is smaller than the min amount %s", msg.BuyAmount, amm.MinCoinAmount)
+	}
+	if msg.OrderLifespan < 0 {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "order lifespan must not be negative: %s", msg.OrderLifespan)
+	}
+	return nil
+}
+
+func (msg MsgMMOrder) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&msg))
+}
+
+func (msg MsgMMOrder) GetSigners() []sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(msg.Orderer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr}
+}
+
+func (msg MsgMMOrder) GetOrderer() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.Orderer)
 	if err != nil {
 		panic(err)

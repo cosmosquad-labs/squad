@@ -24308,10 +24308,26 @@ paths:
                 items:
                   type: object
                   properties:
+                    type:
+                      title: type specifies the typo of the order
+                      type: string
+                      enum:
+                        - ORDER_TYPE_UNSPECIFIED
+                        - ORDER_TYPE_LIMIT
+                        - ORDER_TYPE_MARKET
+                        - ORDER_TYPE_MM
+                      default: ORDER_TYPE_UNSPECIFIED
+                      description: |-
+                        OrderType enumerates order types.
+
+                         - ORDER_TYPE_UNSPECIFIED: ORDER_TYPE_UNSPECIFIED specifies unknown order type.
+                         - ORDER_TYPE_LIMIT: ORDER_TYPE_LIMIT specifies limit order type.
+                         - ORDER_TYPE_MARKET: ORDER_TYPE_MARKET specifies market order type.
+                         - ORDER_TYPE_MM: ORDER_TYPE_MM specifies MM(market making) order type.
                     id:
                       type: string
                       format: uint64
-                      title: id specifies the id for the request
+                      title: id specifies the id of the order
                     pair_id:
                       type: string
                       format: uint64
@@ -24320,8 +24336,8 @@ paths:
                       type: string
                       format: int64
                       title: >-
-                        msg_height specifies the block height when the request
-                        is stored for the batch execution
+                        msg_height specifies the block height when the order is
+                        stored for the batch execution
                     orderer:
                       type: string
                       title: >-
@@ -24780,10 +24796,26 @@ paths:
                 items:
                   type: object
                   properties:
+                    type:
+                      title: type specifies the typo of the order
+                      type: string
+                      enum:
+                        - ORDER_TYPE_UNSPECIFIED
+                        - ORDER_TYPE_LIMIT
+                        - ORDER_TYPE_MARKET
+                        - ORDER_TYPE_MM
+                      default: ORDER_TYPE_UNSPECIFIED
+                      description: |-
+                        OrderType enumerates order types.
+
+                         - ORDER_TYPE_UNSPECIFIED: ORDER_TYPE_UNSPECIFIED specifies unknown order type.
+                         - ORDER_TYPE_LIMIT: ORDER_TYPE_LIMIT specifies limit order type.
+                         - ORDER_TYPE_MARKET: ORDER_TYPE_MARKET specifies market order type.
+                         - ORDER_TYPE_MM: ORDER_TYPE_MM specifies MM(market making) order type.
                     id:
                       type: string
                       format: uint64
-                      title: id specifies the id for the request
+                      title: id specifies the id of the order
                     pair_id:
                       type: string
                       format: uint64
@@ -24792,8 +24824,8 @@ paths:
                       type: string
                       format: int64
                       title: >-
-                        msg_height specifies the block height when the request
-                        is stored for the batch execution
+                        msg_height specifies the block height when the order is
+                        stored for the batch execution
                     orderer:
                       type: string
                       title: >-
@@ -25032,10 +25064,26 @@ paths:
               order:
                 type: object
                 properties:
+                  type:
+                    title: type specifies the typo of the order
+                    type: string
+                    enum:
+                      - ORDER_TYPE_UNSPECIFIED
+                      - ORDER_TYPE_LIMIT
+                      - ORDER_TYPE_MARKET
+                      - ORDER_TYPE_MM
+                    default: ORDER_TYPE_UNSPECIFIED
+                    description: |-
+                      OrderType enumerates order types.
+
+                       - ORDER_TYPE_UNSPECIFIED: ORDER_TYPE_UNSPECIFIED specifies unknown order type.
+                       - ORDER_TYPE_LIMIT: ORDER_TYPE_LIMIT specifies limit order type.
+                       - ORDER_TYPE_MARKET: ORDER_TYPE_MARKET specifies market order type.
+                       - ORDER_TYPE_MM: ORDER_TYPE_MM specifies MM(market making) order type.
                   id:
                     type: string
                     format: uint64
-                    title: id specifies the id for the request
+                    title: id specifies the id of the order
                   pair_id:
                     type: string
                     format: uint64
@@ -25044,7 +25092,7 @@ paths:
                     type: string
                     format: int64
                     title: >-
-                      msg_height specifies the block height when the request is
+                      msg_height specifies the block height when the order is
                       stored for the batch execution
                   orderer:
                     type: string
@@ -25255,6 +25303,9 @@ paths:
                     type: string
                   max_price_limit_ratio:
                     type: string
+                  max_num_market_making_order_ticks:
+                    type: integer
+                    format: int64
                   max_order_lifespan:
                     type: string
                   swap_fee_rate:
@@ -45125,10 +45176,26 @@ definitions:
   squad.liquidity.v1beta1.Order:
     type: object
     properties:
+      type:
+        title: type specifies the typo of the order
+        type: string
+        enum:
+          - ORDER_TYPE_UNSPECIFIED
+          - ORDER_TYPE_LIMIT
+          - ORDER_TYPE_MARKET
+          - ORDER_TYPE_MM
+        default: ORDER_TYPE_UNSPECIFIED
+        description: |-
+          OrderType enumerates order types.
+
+           - ORDER_TYPE_UNSPECIFIED: ORDER_TYPE_UNSPECIFIED specifies unknown order type.
+           - ORDER_TYPE_LIMIT: ORDER_TYPE_LIMIT specifies limit order type.
+           - ORDER_TYPE_MARKET: ORDER_TYPE_MARKET specifies market order type.
+           - ORDER_TYPE_MM: ORDER_TYPE_MM specifies MM(market making) order type.
       id:
         type: string
         format: uint64
-        title: id specifies the id for the request
+        title: id specifies the id of the order
       pair_id:
         type: string
         format: uint64
@@ -45137,8 +45204,8 @@ definitions:
         type: string
         format: int64
         title: >-
-          msg_height specifies the block height when the request is stored for
-          the batch execution
+          msg_height specifies the block height when the order is stored for the
+          batch execution
       orderer:
         type: string
         title: orderer specifies the bech32-encoded address that makes an order
@@ -45337,6 +45404,21 @@ definitions:
        - ORDER_STATUS_COMPLETED: ORDER_STATUS_COMPLETED indicates the order has been fully matched and completed
        - ORDER_STATUS_CANCELED: ORDER_STATUS_CANCELED indicates the order has been canceled
        - ORDER_STATUS_EXPIRED: ORDER_STATUS_EXPIRED indicates the order has been expired
+  squad.liquidity.v1beta1.OrderType:
+    type: string
+    enum:
+      - ORDER_TYPE_UNSPECIFIED
+      - ORDER_TYPE_LIMIT
+      - ORDER_TYPE_MARKET
+      - ORDER_TYPE_MM
+    default: ORDER_TYPE_UNSPECIFIED
+    description: |-
+      OrderType enumerates order types.
+
+       - ORDER_TYPE_UNSPECIFIED: ORDER_TYPE_UNSPECIFIED specifies unknown order type.
+       - ORDER_TYPE_LIMIT: ORDER_TYPE_LIMIT specifies limit order type.
+       - ORDER_TYPE_MARKET: ORDER_TYPE_MARKET specifies market order type.
+       - ORDER_TYPE_MM: ORDER_TYPE_MM specifies MM(market making) order type.
   squad.liquidity.v1beta1.Pair:
     type: object
     properties:
@@ -45405,6 +45487,9 @@ definitions:
         type: string
       max_price_limit_ratio:
         type: string
+      max_num_market_making_order_ticks:
+        type: integer
+        format: int64
       max_order_lifespan:
         type: string
       swap_fee_rate:
@@ -45806,10 +45891,26 @@ definitions:
       order:
         type: object
         properties:
+          type:
+            title: type specifies the typo of the order
+            type: string
+            enum:
+              - ORDER_TYPE_UNSPECIFIED
+              - ORDER_TYPE_LIMIT
+              - ORDER_TYPE_MARKET
+              - ORDER_TYPE_MM
+            default: ORDER_TYPE_UNSPECIFIED
+            description: |-
+              OrderType enumerates order types.
+
+               - ORDER_TYPE_UNSPECIFIED: ORDER_TYPE_UNSPECIFIED specifies unknown order type.
+               - ORDER_TYPE_LIMIT: ORDER_TYPE_LIMIT specifies limit order type.
+               - ORDER_TYPE_MARKET: ORDER_TYPE_MARKET specifies market order type.
+               - ORDER_TYPE_MM: ORDER_TYPE_MM specifies MM(market making) order type.
           id:
             type: string
             format: uint64
-            title: id specifies the id for the request
+            title: id specifies the id of the order
           pair_id:
             type: string
             format: uint64
@@ -45818,8 +45919,8 @@ definitions:
             type: string
             format: int64
             title: >-
-              msg_height specifies the block height when the request is stored
-              for the batch execution
+              msg_height specifies the block height when the order is stored for
+              the batch execution
           orderer:
             type: string
             title: orderer specifies the bech32-encoded address that makes an order
@@ -45929,10 +46030,26 @@ definitions:
         items:
           type: object
           properties:
+            type:
+              title: type specifies the typo of the order
+              type: string
+              enum:
+                - ORDER_TYPE_UNSPECIFIED
+                - ORDER_TYPE_LIMIT
+                - ORDER_TYPE_MARKET
+                - ORDER_TYPE_MM
+              default: ORDER_TYPE_UNSPECIFIED
+              description: |-
+                OrderType enumerates order types.
+
+                 - ORDER_TYPE_UNSPECIFIED: ORDER_TYPE_UNSPECIFIED specifies unknown order type.
+                 - ORDER_TYPE_LIMIT: ORDER_TYPE_LIMIT specifies limit order type.
+                 - ORDER_TYPE_MARKET: ORDER_TYPE_MARKET specifies market order type.
+                 - ORDER_TYPE_MM: ORDER_TYPE_MM specifies MM(market making) order type.
             id:
               type: string
               format: uint64
-              title: id specifies the id for the request
+              title: id specifies the id of the order
             pair_id:
               type: string
               format: uint64
@@ -45941,7 +46058,7 @@ definitions:
               type: string
               format: int64
               title: >-
-                msg_height specifies the block height when the request is stored
+                msg_height specifies the block height when the order is stored
                 for the batch execution
             orderer:
               type: string
@@ -46204,6 +46321,9 @@ definitions:
             type: string
           max_price_limit_ratio:
             type: string
+          max_num_market_making_order_ticks:
+            type: integer
+            format: int64
           max_order_lifespan:
             type: string
           swap_fee_rate:

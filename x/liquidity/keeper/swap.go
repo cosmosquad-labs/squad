@@ -231,6 +231,10 @@ func (k Keeper) MarketOrder(ctx sdk.Context, msg *types.MsgMarketOrder) (types.O
 	return order, nil
 }
 
+func (k Keeper) MMOrder(ctx sdk.Context, msg *types.MsgMMOrder) (orders []types.Order, err error) {
+	panic("not implemented")
+}
+
 // ValidateMsgCancelOrder validates types.MsgCancelOrder and returns the order.
 func (k Keeper) ValidateMsgCancelOrder(ctx sdk.Context, msg *types.MsgCancelOrder) (order types.Order, err error) {
 	var found bool
