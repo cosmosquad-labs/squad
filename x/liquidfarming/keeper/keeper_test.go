@@ -170,8 +170,11 @@ func (s *KeeperTestSuite) cancelQueuedFarming(poolId uint64, farmer sdk.AccAddre
 	s.Require().NoError(err)
 }
 
-func (s *KeeperTestSuite) placeBid(poolId uint64, bidder sdk.AccAddress, biddingCoin sdk.Coin) types.Bid {
+func (s *KeeperTestSuite) placeBid(poolId uint64, bidder sdk.AccAddress, biddingCoin sdk.Coin, fund bool) types.Bid {
 	s.T().Helper()
+	if fund {
+		s.fundAddr(bidder, sdk.NewCoins(biddingCoin))
+	}
 
 	bid, err := s.keeper.PlaceBid(s.ctx, types.NewMsgPlaceBid(poolId, bidder.String(), biddingCoin))
 	s.Require().NoError(err)

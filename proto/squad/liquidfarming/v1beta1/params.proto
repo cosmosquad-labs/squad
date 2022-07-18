@@ -30,7 +30,7 @@ message LiquidFarm {
 
   uint64 pool_id = 1;
 
-  string minimum_deposit_amount = 2
+  string minimum_farm_amount = 2
       [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
 
   string minimum_bid_amount = 3

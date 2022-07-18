@@ -12,8 +12,8 @@ import (
 	liquiditytypes "github.com/cosmosquad-labs/squad/v2/x/liquidity/types"
 )
 
-// GetNextAuctionIdWithUpdate increments rewards auction id by one and store it.
-func (k Keeper) GetNextAuctionIdWithUpdate(ctx sdk.Context, poolId uint64) uint64 {
+// getNextAuctionIdWithUpdate increments rewards auction id by one and store it.
+func (k Keeper) getNextAuctionIdWithUpdate(ctx sdk.Context, poolId uint64) uint64 {
 	id := k.GetLastRewardsAuctionId(ctx, poolId) + 1
 	k.SetRewardsAuctionId(ctx, poolId, id)
 	return id
@@ -78,20 +78,22 @@ func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) (types.Bid, er
 }
 
 func (k Keeper) RefundBid(ctx sdk.Context, msg *types.MsgRefundBid) error {
-	bid, found := k.GetBid(ctx, msg.PoolId, msg.GetBidder())
-	if !found {
-		return sdkerrors.Wrap(sdkerrors.ErrNotFound, "bid not found")
-	}
-
 	auctionId := k.GetLastRewardsAuctionId(ctx, msg.PoolId)
 	auction, found := k.GetRewardsAuction(ctx, msg.PoolId, auctionId)
 	if !found {
-		return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "auction %d not found", auctionId)
+		return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "auction corresponds to pool %d not found", msg.PoolId)
 	}
 
-	_, found = k.GetWinningBid(ctx, msg.PoolId, auctionId)
+	winningBid, found := k.GetWinningBid(ctx, msg.PoolId, auctionId)
 	if found {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "winning bid cannot be refunded")
+		if winningBid.Bidder == msg.Bidder {
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "unable to refund winning bid")
+		}
+	}
+
+	bid, found := k.GetBid(ctx, msg.PoolId, msg.GetBidder())
+	if !found {
+		return sdkerrors.Wrap(sdkerrors.ErrNotFound, "bid not found")
 	}
 
 	if err := k.bankKeeper.SendCoins(ctx, auction.GetPayingReserveAddress(), msg.GetBidder(), sdk.NewCoins(bid.Amount)); err != nil {
@@ -134,7 +136,7 @@ func (k Keeper) CreateRewardsAuctions(ctx sdk.Context) error {
 
 	for _, lf := range k.GetParams(ctx).LiquidFarms {
 		auction := types.NewRewardsAuction(
-			k.GetNextAuctionIdWithUpdate(ctx, lf.PoolId),
+			k.getNextAuctionIdWithUpdate(ctx, lf.PoolId),
 			lf.PoolId,
 			liquiditytypes.PoolCoinDenom(lf.PoolId),
 			startTime,

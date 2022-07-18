@@ -10,7 +10,6 @@ import (
 	"github.com/cosmosquad-labs/squad/v2/x/liquidfarming/types"
 )
 
-// GetBid returns a bid for the given pool id and bidder address.
 func (k Keeper) GetBid(ctx sdk.Context, poolId uint64, bidder sdk.AccAddress) (bid types.Bid, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetBidKey(poolId, bidder))
@@ -21,11 +20,15 @@ func (k Keeper) GetBid(ctx sdk.Context, poolId uint64, bidder sdk.AccAddress) (b
 	return bid, true
 }
 
-// SetBid stores bid.
 func (k Keeper) SetBid(ctx sdk.Context, bid types.Bid) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&bid)
 	store.Set(types.GetBidKey(bid.PoolId, bid.GetBidder()), bz)
+}
+
+func (k Keeper) DeleteBid(ctx sdk.Context, bid types.Bid) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetBidKey(bid.PoolId, bid.GetBidder()))
 }
 
 func (k Keeper) GetWinningBid(ctx sdk.Context, poolId uint64, auctionId uint64) (bid types.Bid, found bool) {
@@ -42,11 +45,6 @@ func (k Keeper) SetWinningBid(ctx sdk.Context, bid types.Bid, auctionId uint64) 
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&bid)
 	store.Set(types.GetWinningBidKey(bid.PoolId, auctionId), bz)
-}
-
-func (k Keeper) DeleteBid(ctx sdk.Context, bid types.Bid) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetBidKey(bid.PoolId, bid.GetBidder()))
 }
 
 // GetLastRewardsAuctionId returns the last rewards auction id.

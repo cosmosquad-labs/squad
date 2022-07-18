@@ -131,3 +131,64 @@ func (s *KeeperTestSuite) TestPlaceBid_EdgeCases() {
 	s.Require().True(found)
 	s.Require().Equal(newBiddingAmt, winningBid.Amount.Amount)
 }
+
+func (s *KeeperTestSuite) TestRefundBid() {
+	pair := s.createPair(s.addr(0), "denom1", "denom2", true)
+	pool := s.createPool(s.addr(0), pair.Id, utils.ParseCoins("100_000_000denom1, 100_000_000denom2"), true)
+	s.createLiquidFarm(types.NewLiquidFarm(pool.Id, sdk.NewInt(10_000_000), sdk.NewInt(10_000_000)))
+	s.createRewardsAuction()
+	s.placeBid(pool.Id, s.addr(0), sdk.NewInt64Coin(pool.PoolCoinDenom, 500_000_000), true)
+	s.placeBid(pool.Id, s.addr(1), sdk.NewInt64Coin(pool.PoolCoinDenom, 600_000_000), true)
+
+	for _, tc := range []struct {
+		name        string
+		msg         *types.MsgRefundBid
+		postRun     func(ctx sdk.Context, bid types.Bid)
+		expectedErr string
+	}{
+		{
+			"happy case",
+			types.NewMsgRefundBid(
+				pool.Id,
+				s.addr(0).String(),
+			),
+			func(ctx sdk.Context, bid types.Bid) {
+				s.Require().Equal(pool.Id, bid.PoolId)
+				s.Require().Equal(s.addr(0), bid.GetBidder())
+			},
+			"",
+		},
+		{
+			"refund winning bid",
+			types.NewMsgRefundBid(
+				pool.Id,
+				s.addr(1).String(),
+			),
+			nil,
+			"unable to refund winning bid: invalid request",
+		},
+		{
+			"auction not found",
+			types.NewMsgRefundBid(
+				5,
+				s.addr(1).String(),
+			),
+			nil,
+			"auction corresponds to pool 5 not found: not found",
+		},
+	} {
+		s.Run(tc.name, func() {
+			s.Require().NoError(tc.msg.ValidateBasic())
+			cacheCtx, _ := s.ctx.CacheContext()
+			err := s.keeper.RefundBid(cacheCtx, tc.msg)
+			if tc.expectedErr == "" {
+				s.Require().NoError(err)
+
+				_, found := s.keeper.GetBid(cacheCtx, tc.msg.PoolId, s.addr(0))
+				s.Require().False(found)
+			} else {
+				s.Require().EqualError(err, tc.expectedErr)
+			}
+		})
+	}
+}
