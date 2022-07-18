@@ -38,6 +38,19 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+### Client Breaking Changes
+
+* (x/liquidity) [\#338](https://github.com/cosmosquad-labs/squad/pull/338) Refactor `OrderBooks` query:
+  * `tick_precisions` field has been removed from `QueryOrderBooksRequest`
+  * `tick_precision` field has been removed from `OrderBookResponse` and `price_unit` has been added instead
+  * The order between `sells` and `buys` has been changed
+
+### CLI Breaking Changes
+
+* (x/liquidity) [\#338](https://github.com/cosmosquad-labs/squad/pull/338) Refactor `order-books` query cmd:
+  * `[tick-precisions]` argument has been removed: `order-books [pair-ids]`
+  * Response structure has been changed
+
 ## v2.0.0
 
 ### Client Breaking Changes
