@@ -531,7 +531,7 @@ func (msg MsgMMOrder) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "min sell price must be positive: %s", msg.MinSellPrice)
 	}
 	if msg.MinSellPrice.GT(msg.MaxSellPrice) {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "max sell price must be higher than min sell price")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "max sell price must not be lower than min sell price")
 	}
 	if !msg.SellAmount.IsZero() && msg.SellAmount.LT(amm.MinCoinAmount) {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "sell amount %s is smaller than the min amount %s", msg.SellAmount, amm.MinCoinAmount)
@@ -543,7 +543,7 @@ func (msg MsgMMOrder) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "max buy price must be positive: %s", msg.MaxBuyPrice)
 	}
 	if msg.MinBuyPrice.GT(msg.MaxBuyPrice) {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "max buy price must be higher than min buy price")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "max buy price must not be lower than min buy price")
 	}
 	if !msg.BuyAmount.IsZero() && msg.BuyAmount.LT(amm.MinCoinAmount) {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "buy amount %s is smaller than the min amount %s", msg.BuyAmount, amm.MinCoinAmount)

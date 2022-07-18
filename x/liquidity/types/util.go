@@ -108,6 +108,52 @@ type MMOrderTick struct {
 }
 
 // MMOrderTicks returns fairly distributed tick information with given parameters.
-func MMOrderTicks(minPrice, maxPrice sdk.Dec, amt sdk.Int, maxNumTicks, tickPrec int) []MMOrderTick {
-	return nil
+func MMOrderTicks(dir OrderDirection, minPrice, maxPrice sdk.Dec, amt sdk.Int, maxNumTicks, tickPrec int) (ticks []MMOrderTick) {
+	if minPrice.Equal(maxPrice) {
+		return []MMOrderTick{{Price: minPrice, Amount: amt}}
+	}
+	gap := maxPrice.Sub(minPrice).QuoInt64(int64(maxNumTicks - 1))
+	switch dir {
+	case OrderDirectionBuy:
+		var prevP sdk.Dec
+		for i := 0; i < maxNumTicks-1; i++ {
+			p := amm.PriceToDownTick(minPrice.Add(gap.MulInt64(int64(i))), tickPrec)
+			if prevP.IsNil() || !p.Equal(prevP) {
+				ticks = append(ticks, MMOrderTick{
+					Price: p,
+				})
+				prevP = p
+			}
+		}
+		tickAmt := amt.QuoRaw(int64(len(ticks) + 1))
+		for i := range ticks {
+			ticks[i].Amount = tickAmt
+			amt = amt.Sub(tickAmt)
+		}
+		ticks = append(ticks, MMOrderTick{
+			Price:  maxPrice,
+			Amount: amt,
+		})
+	case OrderDirectionSell:
+		var prevP sdk.Dec
+		for i := 0; i < maxNumTicks-1; i++ {
+			p := amm.PriceToUpTick(maxPrice.Sub(gap.MulInt64(int64(i))), tickPrec)
+			if prevP.IsNil() || !p.Equal(prevP) {
+				ticks = append(ticks, MMOrderTick{
+					Price: p,
+				})
+				prevP = p
+			}
+		}
+		tickAmt := amt.QuoRaw(int64(len(ticks) + 1))
+		for i := range ticks {
+			ticks[i].Amount = tickAmt
+			amt = amt.Sub(tickAmt)
+		}
+		ticks = append(ticks, MMOrderTick{
+			Price:  minPrice,
+			Amount: amt,
+		})
+	}
+	return
 }
