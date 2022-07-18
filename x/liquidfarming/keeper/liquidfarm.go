@@ -171,14 +171,11 @@ func (k Keeper) Unfarm(ctx sdk.Context, msg *types.MsgUnfarm) error {
 			}
 
 			lfCoinTotalSupply := k.bankKeeper.GetSupply(ctx, lfCoinDenom).Amount
-			lpCoinTotalStaked, found := k.farmingKeeper.GetTotalStakings(ctx, pool.PoolCoinDenom)
-			if !found {
-				return sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "TODO: describe...") // TODO: can it be not found?
-			}
+			lpCoinTotalStaked := k.farmingKeeper.GetAllStakedCoinsByFarmer(ctx, reserveAddr).AmountOf(pool.PoolCoinDenom)
 			unfarmFee := sdk.ZeroInt() // TODO: TBD
 
 			// UnfarmedAmount = TotalStakedLPAmount / TotalSupplyLFAmount * UnfarmingLFAmount * (1 - UnfarmFee)
-			unfarmedAmt := lpCoinTotalStaked.Amount.Quo(lfCoinTotalSupply).Mul(msg.LFCoin.Amount).Mul(sdk.OneInt().Sub(unfarmFee))
+			unfarmedAmt := lpCoinTotalStaked.Quo(lfCoinTotalSupply).Mul(msg.LFCoin.Amount).Mul(sdk.OneInt().Sub(unfarmFee))
 			unfarmedCoin := sdk.NewCoin(pool.PoolCoinDenom, unfarmedAmt)
 
 			// Send the unfarming LFCoin to module account and burn them.

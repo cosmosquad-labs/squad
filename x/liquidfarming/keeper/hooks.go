@@ -20,44 +20,66 @@ var _ farmingtypes.FarmingHooks = Hooks{}
 // Create new liquidfarming hooks
 func (k Keeper) Hooks() Hooks { return Hooks{k} }
 
-func (h Hooks) AfterStaked(ctx sdk.Context, reserveAcc sdk.AccAddress, stakingCoinDenom string, newStakingAmt sdk.Int) {
+func (h Hooks) AfterStaked(ctx sdk.Context, stakingAcc sdk.AccAddress, stakingCoinDenom string, newStakingAmt sdk.Int) {
 	mintingAmt := sdk.ZeroInt()
 	h.k.IterateMatureQueuedFarmings(ctx, ctx.BlockTime(), func(endTime time.Time, farmingCoinDenom string, farmerAcc sdk.AccAddress, queuedFarming types.QueuedFarming) (stop bool) {
-		poolCoinDenom := liquiditytypes.PoolCoinDenom(queuedFarming.PoolId)
-		if poolCoinDenom == farmingCoinDenom && newStakingAmt.Equal(queuedFarming.Amount) {
-			lfCoinDenom := types.LFCoinDenom(queuedFarming.PoolId)
-			lfCoinTotalSupply := h.k.bankKeeper.GetSupply(ctx, lfCoinDenom).Amount
-			lpCoinTotalStaked, found := h.k.farmingKeeper.GetTotalStakings(ctx, stakingCoinDenom) // TODO: need verification
-			if !found || lfCoinTotalSupply.IsZero() {
-				// Initial minting amount
-				mintingAmt = queuedFarming.Amount
-			} else {
-				// Minting Amount = TotalSupplyLFCoin / TotalStakedLPCoin * LPCoinFarmed
-				mintingAmt = lfCoinTotalSupply.Quo(lpCoinTotalStaked.Amount).Mul(queuedFarming.Amount)
+		poolId := queuedFarming.PoolId
+		reserveAddr := types.LiquidFarmReserveAddress(poolId)
+		poolCoinDenom := liquiditytypes.PoolCoinDenom(poolId)
+		if stakingAcc.Equals(reserveAddr) && poolCoinDenom == farmingCoinDenom {
+			// Consider a case when multiple farmers farm their respective amount in the same block and
+			// the same reserve account stakes the total amount in the farming module, which results to newStakingAmt.
+			remainingAmt := newStakingAmt
+			if newStakingAmt.GTE(queuedFarming.Amount) {
+				remainingAmt = remainingAmt.Sub(queuedFarming.Amount)
+				lfCoinTotalSupply := h.k.bankKeeper.GetSupply(ctx, types.LFCoinDenom(poolId)).Amount
+				lpCoinTotalStaked := h.k.farmingKeeper.GetAllStakedCoinsByFarmer(ctx, reserveAddr).AmountOf(poolCoinDenom)
+				if lfCoinTotalSupply.IsZero() || lpCoinTotalStaked.IsZero() {
+					// Initial minting amount
+					mintingAmt = queuedFarming.Amount
+				} else {
+					// Minting Amount = TotalSupplyLFCoin * LPCoinFarmed / TotalStakedLPCoin
+					// lfCoinTotalSupply.ToDec().Mul(queuedFarming.Amount.ToDec()).QuoTruncate(lpCoinTotalStaked.ToDec()) // TODO: verify this with test case
+					mintingAmt = lfCoinTotalSupply.Mul(queuedFarming.Amount).Quo(lpCoinTotalStaked)
+				}
+				mintingCoins := sdk.NewCoins(sdk.NewCoin(types.LFCoinDenom(poolId), mintingAmt))
+
+				if err := h.k.bankKeeper.MintCoins(ctx, types.ModuleName, mintingCoins); err != nil {
+					panic(err)
+				}
+				if err := h.k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, farmerAcc, mintingCoins); err != nil {
+					panic(err)
+				}
+
+				// Delete queued farming after the module successfully mints LFCoin and send it to the farmer
+				h.k.DeleteQueuedFarming(ctx, endTime, farmingCoinDenom, farmerAcc)
+
+				if remainingAmt.IsZero() {
+					return true
+				}
 			}
-			mintingCoins := sdk.NewCoins(sdk.NewCoin(lfCoinDenom, mintingAmt))
-
-			if err := h.k.bankKeeper.MintCoins(ctx, types.ModuleName, mintingCoins); err != nil {
-				panic(err)
-			}
-			if err := h.k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, farmerAcc, mintingCoins); err != nil {
-				panic(err)
-			}
-
-			// Delete queued farming
-			h.k.DeleteQueuedFarming(ctx, endTime, farmingCoinDenom, farmerAcc)
-
-			// TODO: emit events?
-
-			return true
 		}
 		return false
 	})
 }
 
 func (h Hooks) AfterAllocateRewards(ctx sdk.Context) {
-	// TODO: not implemented yet
-	// Select winner -> Distribute rewards -> Refund (?)
-	// Stake with the pool coin (auto-compounding role)
-	// Create RewardsAuction
+
+	// Get existing auctions
+	// Select winner
+	// Distribute rewards
+	// Refund existing bids
+	// Create new RewardsAuction
+
+	// params := h.k.GetParams(ctx)
+	// for _, lf := range params.LiquidFarms {
+	// 	lf.PoolId
+	// }
+
+	// Select winner
+	// auctionId := h.k.GetLastRewardsAuctionId(ctx, bid.PoolId)
+	// auction, found := h.k.GetWinningBid(ctx, bid.PoolId, auctionId)
+	// if !found {
+	// 	fmt.Println("NOT FOUND")
+	// }
 }

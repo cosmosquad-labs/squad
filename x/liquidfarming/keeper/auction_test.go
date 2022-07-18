@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -191,4 +193,30 @@ func (s *KeeperTestSuite) TestRefundBid() {
 			}
 		})
 	}
+}
+
+func (s *KeeperTestSuite) TestCoreCalculation() {
+	lfCoinTotalSupply := sdk.NewInt(66)
+	queuedFarmingAmt := sdk.NewInt(33)
+	lpCoinTotalStaked := sdk.NewInt(5)
+
+	t1 := lfCoinTotalSupply.ToDec().Mul(queuedFarmingAmt.ToDec()).QuoTruncate(lpCoinTotalStaked.ToDec()).TruncateInt()
+	t2 := lfCoinTotalSupply.Mul(queuedFarmingAmt).Quo(lpCoinTotalStaked)
+	// t3 := lfCoinTotalSupply.Quo(lpCoinTotalStaked).Mul(queuedFarmingAmt)
+
+	fmt.Println("t1: ", t1)
+	fmt.Println("t2: ", t2)
+	// fmt.Println("t3: ", t3)
+}
+
+func (s *KeeperTestSuite) TestCoreCalculation2() {
+	lfCoinTotalSupply := sdk.NewInt(66)
+	queuedFarmingAmt := sdk.NewInt(10)
+	lpCoinTotalStaked := sdk.NewInt(10)
+
+	t1 := lfCoinTotalSupply.Mul(queuedFarmingAmt).Quo(lpCoinTotalStaked)
+	t2 := lfCoinTotalSupply.Quo(lpCoinTotalStaked).Mul(queuedFarmingAmt)
+	fmt.Println("t1: ", t1)
+	fmt.Println("t2: ", t2)
+	fmt.Println("t2: ", lfCoinTotalSupply.Quo(lpCoinTotalStaked))
 }
