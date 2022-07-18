@@ -100,3 +100,14 @@ func PriceLimits(lastPrice, priceLimitRatio sdk.Dec, tickPrec int) (lowestPrice,
 	highestPrice = amm.PriceToDownTick(lastPrice.Mul(sdk.OneDec().Add(priceLimitRatio)), tickPrec)
 	return
 }
+
+// MMOrderTick holds information about each tick's price and amount of an MMOrder.
+type MMOrderTick struct {
+	Price  sdk.Dec
+	Amount sdk.Int
+}
+
+// MMOrderTicks returns fairly distributed tick information with given parameters.
+func MMOrderTicks(minPrice, maxPrice sdk.Dec, amt sdk.Int, maxNumTicks, tickPrec int) []MMOrderTick {
+	return nil
+}

@@ -533,7 +533,7 @@ func (msg MsgMMOrder) ValidateBasic() error {
 	if msg.MinSellPrice.GT(msg.MaxSellPrice) {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "max sell price must be higher than min sell price")
 	}
-	if msg.SellAmount.LT(amm.MinCoinAmount) {
+	if !msg.SellAmount.IsZero() && msg.SellAmount.LT(amm.MinCoinAmount) {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "sell amount %s is smaller than the min amount %s", msg.SellAmount, amm.MinCoinAmount)
 	}
 	if !msg.MinBuyPrice.IsPositive() {
@@ -545,7 +545,7 @@ func (msg MsgMMOrder) ValidateBasic() error {
 	if msg.MinBuyPrice.GT(msg.MaxBuyPrice) {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "max buy price must be higher than min buy price")
 	}
-	if msg.BuyAmount.LT(amm.MinCoinAmount) {
+	if !msg.BuyAmount.IsZero() && msg.BuyAmount.LT(amm.MinCoinAmount) {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "buy amount %s is smaller than the min amount %s", msg.BuyAmount, amm.MinCoinAmount)
 	}
 	if msg.OrderLifespan < 0 {

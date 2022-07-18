@@ -232,7 +232,61 @@ func (k Keeper) MarketOrder(ctx sdk.Context, msg *types.MsgMarketOrder) (types.O
 }
 
 func (k Keeper) MMOrder(ctx sdk.Context, msg *types.MsgMMOrder) (orders []types.Order, err error) {
-	panic("not implemented")
+	pair, found := k.GetPair(ctx, msg.PairId)
+	if !found {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrNotFound, "pair %d not found", msg.PairId)
+	}
+
+	tickPrec := int(k.GetTickPrecision(ctx))
+
+	var lowestPrice, highestPrice sdk.Dec
+	if pair.LastPrice != nil {
+		lowestPrice, highestPrice = k.PriceLimits(ctx, *pair.LastPrice)
+	} else {
+		lowestPrice = amm.LowestTick(tickPrec)
+		highestPrice = amm.HighestTick(tickPrec)
+	}
+
+	if msg.MinSellPrice.LT(lowestPrice) || msg.MinSellPrice.GT(highestPrice) {
+		return nil, sdkerrors.Wrapf(types.ErrPriceOutOfRange, "%s is out of range [%s, %s]",)
+	}
+
+	maxNumTicks := int(k.GetMaxNumMarketMakingOrderTicks(ctx))
+
+	var buyTicks, sellTicks []types.MMOrderTick
+	offerBaseCoin := sdk.NewInt64Coin(pair.BaseCoinDenom, 0)
+	offerQuoteCoin := sdk.NewInt64Coin(pair.QuoteCoinDenom, 0)
+	if msg.BuyAmount.IsPositive() {
+		buyTicks = types.MMOrderTicks(msg.MinBuyPrice, msg.MaxBuyPrice, msg.BuyAmount, maxNumTicks, tickPrec)
+		for _, tick := range buyTicks {
+			offerQuoteCoin = offerQuoteCoin.AddAmount(amm.OfferCoinAmount(amm.Buy, tick.Price, tick.Amount))
+		}
+	}
+	if msg.SellAmount.IsPositive() {
+		sellTicks = types.MMOrderTicks(msg.MinSellPrice, msg.MaxSellPrice, msg.SellAmount, maxNumTicks, tickPrec)
+		for _, tick := range sellTicks {
+			offerBaseCoin = offerBaseCoin.AddAmount(amm.OfferCoinAmount(amm.Sell, tick.Price, tick.Amount))
+		}
+	}
+
+	spendable := k.bankKeeper.SpendableCoins(ctx, msg.GetOrderer())
+	if spendableAmt := spendable.AmountOf(pair.BaseCoinDenom); spendableAmt.LT(offerBaseCoin.Amount) {
+		return nil, sdkerrors.Wrapf(
+			sdkerrors.ErrInsufficientFunds, "%s is smaller than %s",
+			sdk.NewCoin(pair.BaseCoinDenom, spendableAmt), offerBaseCoin)
+	}
+	if spendableAmt := spendable.AmountOf(pair.QuoteCoinDenom); spendableAmt.LT(offerQuoteCoin.Amount) {
+		return nil, sdkerrors.Wrapf(
+			sdkerrors.ErrInsufficientFunds, "%s is smaller than %s",
+			sdk.NewCoin(pair.QuoteCoinDenom, spendableAmt), offerQuoteCoin)
+	}
+
+	maxOrderLifespan := k.GetMaxOrderLifespan(ctx)
+
+	if msg.OrderLifespan > maxOrderLifespan {
+		return nil, sdkerrors.Wrapf(
+			types.ErrTooLongOrderLifespan, "%s is longer than %s", msg.OrderLifespan, maxOrderLifespan)
+	}
 }
 
 // ValidateMsgCancelOrder validates types.MsgCancelOrder and returns the order.
