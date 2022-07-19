@@ -113,40 +113,19 @@ func (k Keeper) getNextAuctionIdWithUpdate(ctx sdk.Context, poolId uint64) uint6
 	return id
 }
 
-// CreateRewardsAuctions ...
-func (k Keeper) CreateRewardsAuctions(ctx sdk.Context) error {
+func (k Keeper) CreateRewardsAuction(ctx sdk.Context, poolId uint64) {
 	currentEpochDays := k.farmingKeeper.GetCurrentEpochDays(ctx)
 	startTime := ctx.BlockTime()
 	endTime := startTime.Add(time.Duration(currentEpochDays) * farmingtypes.Day)
-	for _, lf := range k.GetParams(ctx).LiquidFarms {
-		auction := types.NewRewardsAuction(
-			k.getNextAuctionIdWithUpdate(ctx, lf.PoolId),
-			lf.PoolId,
-			liquiditytypes.PoolCoinDenom(lf.PoolId),
-			startTime,
-			endTime,
-		)
-		k.SetRewardsAuction(ctx, auction)
-	}
-	return nil
-}
+	nextAuctionId := k.getNextAuctionIdWithUpdate(ctx, poolId)
+	poolCoinDenom := liquiditytypes.PoolCoinDenom(poolId)
 
-func (k Keeper) DistributeRewards(ctx sdk.Context) {
-
-}
-
-func (k Keeper) TerminateRewardsAuction(ctx sdk.Context) error {
-	/*
-		Loop through all existing RewardsAuctions
-		Get winning bidder
-		Harvest and distribute rewards to the winner
-		Set WinningBidId in the RewardsAuction
-		Stake bid amounts (auto-compound)
-	*/
-
-	// for _, auction := range k.GetRewardsAuctions(ctx) {
-
-	// }
-
-	return nil
+	auction := types.NewRewardsAuction(
+		nextAuctionId,
+		poolId,
+		poolCoinDenom,
+		startTime,
+		endTime,
+	)
+	k.SetRewardsAuction(ctx, auction)
 }

@@ -1,8 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -24,7 +22,7 @@ func (s *KeeperTestSuite) TestPlaceBid() {
 	s.Require().ErrorIs(err, sdkerrors.ErrNotFound)
 
 	s.createLiquidFarm(types.NewLiquidFarm(pool.Id, sdk.NewInt(10_000_000), sdk.NewInt(10_000_000)))
-	s.createRewardsAuction()
+	s.createRewardsAuction(pool.Id)
 
 	for _, tc := range []struct {
 		name        string
@@ -91,7 +89,7 @@ func (s *KeeperTestSuite) TestPlaceBid_EdgeCases() {
 	pair := s.createPair(s.addr(0), "denom1", "denom2", true)
 	pool := s.createPool(s.addr(0), pair.Id, utils.ParseCoins("100_000_000denom1, 100_000_000denom2"), true)
 	s.createLiquidFarm(types.NewLiquidFarm(pool.Id, sdk.NewInt(10_000_000), sdk.NewInt(10_000_000)))
-	s.createRewardsAuction()
+	s.createRewardsAuction(pool.Id)
 
 	// Place a bid successfully
 	_, err := s.keeper.PlaceBid(s.ctx, &types.MsgPlaceBid{
@@ -138,7 +136,7 @@ func (s *KeeperTestSuite) TestRefundBid() {
 	pair := s.createPair(s.addr(0), "denom1", "denom2", true)
 	pool := s.createPool(s.addr(0), pair.Id, utils.ParseCoins("100_000_000denom1, 100_000_000denom2"), true)
 	s.createLiquidFarm(types.NewLiquidFarm(pool.Id, sdk.NewInt(10_000_000), sdk.NewInt(10_000_000)))
-	s.createRewardsAuction()
+	s.createRewardsAuction(pool.Id)
 	s.placeBid(pool.Id, s.addr(0), sdk.NewInt64Coin(pool.PoolCoinDenom, 500_000_000), true)
 	s.placeBid(pool.Id, s.addr(1), sdk.NewInt64Coin(pool.PoolCoinDenom, 600_000_000), true)
 
@@ -195,28 +193,27 @@ func (s *KeeperTestSuite) TestRefundBid() {
 	}
 }
 
-func (s *KeeperTestSuite) TestCoreCalculation() {
-	lfCoinTotalSupply := sdk.NewInt(66)
-	queuedFarmingAmt := sdk.NewInt(33)
-	lpCoinTotalStaked := sdk.NewInt(5)
+func (s *KeeperTestSuite) TestAfterAllocateRewards() {
+	s.ctx = s.ctx.WithBlockTime(utils.ParseTime("2022-07-01T00:00:00Z"))
+	pair := s.createPair(s.addr(0), "denom1", "denom2", true)
+	pool := s.createPool(s.addr(0), pair.Id, utils.ParseCoins("100_000_000denom1, 100_000_000denom2"), true)
+	s.createLiquidFarm(types.NewLiquidFarm(pool.Id, sdk.ZeroInt(), sdk.ZeroInt()))
 
-	t1 := lfCoinTotalSupply.ToDec().Mul(queuedFarmingAmt.ToDec()).QuoTruncate(lpCoinTotalStaked.ToDec()).TruncateInt()
-	t2 := lfCoinTotalSupply.Mul(queuedFarmingAmt).Quo(lpCoinTotalStaked)
-	// t3 := lfCoinTotalSupply.Quo(lpCoinTotalStaked).Mul(queuedFarmingAmt)
+	s.farm(pool.Id, s.addr(0), sdk.NewCoin(pool.PoolCoinDenom, sdk.NewInt(50_000_000)), true)
+	s.advanceEpochDays()
+	s.advanceEpochDays()
 
-	fmt.Println("t1: ", t1)
-	fmt.Println("t2: ", t2)
-	// fmt.Println("t3: ", t3)
-}
+	auctionId := s.keeper.GetLastRewardsAuctionId(s.ctx, pool.Id)
+	auction, found := s.keeper.GetRewardsAuction(s.ctx, pool.Id, auctionId)
+	s.Require().True(found)
 
-func (s *KeeperTestSuite) TestCoreCalculation2() {
-	lfCoinTotalSupply := sdk.NewInt(66)
-	queuedFarmingAmt := sdk.NewInt(10)
-	lpCoinTotalStaked := sdk.NewInt(10)
+	s.placeBid(auction.PoolId, s.addr(0), sdk.NewInt64Coin(pool.PoolCoinDenom, 10_000_000), true)
+	s.placeBid(auction.PoolId, s.addr(1), sdk.NewInt64Coin(pool.PoolCoinDenom, 20_000_000), true)
+	s.placeBid(auction.PoolId, s.addr(3), sdk.NewInt64Coin(pool.PoolCoinDenom, 30_000_000), true)
 
-	t1 := lfCoinTotalSupply.Mul(queuedFarmingAmt).Quo(lpCoinTotalStaked)
-	t2 := lfCoinTotalSupply.Quo(lpCoinTotalStaked).Mul(queuedFarmingAmt)
-	fmt.Println("t1: ", t1)
-	fmt.Println("t2: ", t2)
-	fmt.Println("t2: ", lfCoinTotalSupply.Quo(lpCoinTotalStaked))
+	s.advanceEpochDays()
+
+	// stakedCoins := s.app.FarmingKeeper.GetAllStakedCoinsByFarmer(s.ctx, types.LiquidFarmReserveAddress(pool.Id))
+	// fmt.Println("StakedCoins: ", stakedCoins)
+
 }

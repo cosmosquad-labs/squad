@@ -137,10 +137,9 @@ func (s *KeeperTestSuite) createLiquidFarm(liquidFarm types.LiquidFarm) types.Li
 	return liquidFarm
 }
 
-func (s *KeeperTestSuite) createRewardsAuction() {
+func (s *KeeperTestSuite) createRewardsAuction(poolId uint64) {
 	s.T().Helper()
-	err := s.keeper.CreateRewardsAuctions(s.ctx)
-	s.Require().NoError(err)
+	s.keeper.CreateRewardsAuction(s.ctx, poolId)
 }
 
 func (s *KeeperTestSuite) farm(poolId uint64, farmer sdk.AccAddress, farmingCoin sdk.Coin, fund bool) {

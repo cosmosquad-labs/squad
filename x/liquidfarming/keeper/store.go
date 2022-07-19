@@ -31,6 +31,16 @@ func (k Keeper) DeleteBid(ctx sdk.Context, bid types.Bid) {
 	store.Delete(types.GetBidKey(bid.PoolId, bid.GetBidder()))
 }
 
+// GetBidsByPoolId returns all bids by the pool id stored in the store.
+func (k Keeper) GetBidsByPoolId(ctx sdk.Context, poolId uint64) []types.Bid {
+	bids := []types.Bid{}
+	k.IterateBidsByPoolId(ctx, poolId, func(bid types.Bid) (stop bool) {
+		bids = append(bids, bid)
+		return false
+	})
+	return bids
+}
+
 func (k Keeper) GetWinningBid(ctx sdk.Context, poolId uint64, auctionId uint64) (bid types.Bid, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetWinningBidKey(poolId, auctionId))
@@ -128,6 +138,11 @@ func (k Keeper) SetRewardsAuction(ctx sdk.Context, auction types.RewardsAuction)
 	store.Set(types.GetRewardsAuctionKey(auction.PoolId, auction.Id), bz)
 }
 
+func (k Keeper) DeleteRewardsAuction(ctx sdk.Context, auction types.RewardsAuction) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetRewardsAuctionKey(auction.PoolId, auction.Id))
+}
+
 // GetRewardsAuctions returns all auctions in the store.
 func (k Keeper) GetRewardsAuctions(ctx sdk.Context) (auctions []types.RewardsAuction) {
 	k.IterateRewardsAuctions(ctx, func(auction types.RewardsAuction) (stop bool) {
@@ -135,6 +150,22 @@ func (k Keeper) GetRewardsAuctions(ctx sdk.Context) (auctions []types.RewardsAuc
 		return false
 	})
 	return auctions
+}
+
+// IterateBidsByPoolId iterates through all bids by pool id stored in the store and
+// invokes callback function for each item.
+// Stops the iteration when the callback function returns true.
+func (k Keeper) IterateBidsByPoolId(ctx sdk.Context, poolId uint64, cb func(bid types.Bid) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, types.GetBidByPoolIdPrefix(poolId))
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		var bid types.Bid
+		k.cdc.MustUnmarshal(iter.Value(), &bid)
+		if cb(bid) {
+			break
+		}
+	}
 }
 
 // IterateQueuedFarmingsByFarmer iterates through all queued farmings
