@@ -234,17 +234,21 @@ func (k Keeper) MarketOrder(ctx sdk.Context, msg *types.MsgMarketOrder) (types.O
 func (k Keeper) MMOrder(ctx sdk.Context, msg *types.MsgMMOrder) (orders []types.Order, err error) {
 	tickPrec := int(k.GetTickPrecision(ctx))
 
-	if !amm.PriceToDownTick(msg.MinSellPrice, tickPrec).Equal(msg.MinSellPrice) {
-		return nil, sdkerrors.Wrapf(types.ErrPriceNotOnTicks, "min sell price is not on ticks")
+	if msg.SellAmount.IsPositive() {
+		if !amm.PriceToDownTick(msg.MinSellPrice, tickPrec).Equal(msg.MinSellPrice) {
+			return nil, sdkerrors.Wrapf(types.ErrPriceNotOnTicks, "min sell price is not on ticks")
+		}
+		if !amm.PriceToDownTick(msg.MaxSellPrice, tickPrec).Equal(msg.MaxSellPrice) {
+			return nil, sdkerrors.Wrapf(types.ErrPriceNotOnTicks, "max sell price is not on ticks")
+		}
 	}
-	if !amm.PriceToDownTick(msg.MaxSellPrice, tickPrec).Equal(msg.MaxSellPrice) {
-		return nil, sdkerrors.Wrapf(types.ErrPriceNotOnTicks, "max sell price is not on ticks")
-	}
-	if !amm.PriceToDownTick(msg.MinBuyPrice, tickPrec).Equal(msg.MinBuyPrice) {
-		return nil, sdkerrors.Wrapf(types.ErrPriceNotOnTicks, "min buy price is not on ticks")
-	}
-	if !amm.PriceToDownTick(msg.MaxBuyPrice, tickPrec).Equal(msg.MaxBuyPrice) {
-		return nil, sdkerrors.Wrapf(types.ErrPriceNotOnTicks, "max buy price is not on ticks")
+	if msg.BuyAmount.IsPositive() {
+		if !amm.PriceToDownTick(msg.MinBuyPrice, tickPrec).Equal(msg.MinBuyPrice) {
+			return nil, sdkerrors.Wrapf(types.ErrPriceNotOnTicks, "min buy price is not on ticks")
+		}
+		if !amm.PriceToDownTick(msg.MaxBuyPrice, tickPrec).Equal(msg.MaxBuyPrice) {
+			return nil, sdkerrors.Wrapf(types.ErrPriceNotOnTicks, "max buy price is not on ticks")
+		}
 	}
 
 	pair, found := k.GetPair(ctx, msg.PairId)
@@ -260,17 +264,21 @@ func (k Keeper) MMOrder(ctx sdk.Context, msg *types.MsgMMOrder) (orders []types.
 		highestPrice = amm.HighestTick(tickPrec)
 	}
 
-	if msg.MinSellPrice.LT(lowestPrice) || msg.MinSellPrice.GT(highestPrice) {
-		return nil, sdkerrors.Wrapf(types.ErrPriceOutOfRange, "min sell price is out of range [%s, %s]", lowestPrice, highestPrice)
+	if msg.SellAmount.IsPositive() {
+		if msg.MinSellPrice.LT(lowestPrice) || msg.MinSellPrice.GT(highestPrice) {
+			return nil, sdkerrors.Wrapf(types.ErrPriceOutOfRange, "min sell price is out of range [%s, %s]", lowestPrice, highestPrice)
+		}
+		if msg.MaxSellPrice.LT(lowestPrice) || msg.MaxSellPrice.GT(highestPrice) {
+			return nil, sdkerrors.Wrapf(types.ErrPriceOutOfRange, "max sell price is out of range [%s, %s]", lowestPrice, highestPrice)
+		}
 	}
-	if msg.MaxSellPrice.LT(lowestPrice) || msg.MaxSellPrice.GT(highestPrice) {
-		return nil, sdkerrors.Wrapf(types.ErrPriceOutOfRange, "max sell price is out of range [%s, %s]", lowestPrice, highestPrice)
-	}
-	if msg.MinBuyPrice.LT(lowestPrice) || msg.MinBuyPrice.GT(highestPrice) {
-		return nil, sdkerrors.Wrapf(types.ErrPriceOutOfRange, "min buy price is out of range [%s, %s]", lowestPrice, highestPrice)
-	}
-	if msg.MaxBuyPrice.LT(lowestPrice) || msg.MaxBuyPrice.GT(highestPrice) {
-		return nil, sdkerrors.Wrapf(types.ErrPriceOutOfRange, "max buy price is out of range [%s, %s]", lowestPrice, highestPrice)
+	if msg.BuyAmount.IsPositive() {
+		if msg.MinBuyPrice.LT(lowestPrice) || msg.MinBuyPrice.GT(highestPrice) {
+			return nil, sdkerrors.Wrapf(types.ErrPriceOutOfRange, "min buy price is out of range [%s, %s]", lowestPrice, highestPrice)
+		}
+		if msg.MaxBuyPrice.LT(lowestPrice) || msg.MaxBuyPrice.GT(highestPrice) {
+			return nil, sdkerrors.Wrapf(types.ErrPriceOutOfRange, "max buy price is out of range [%s, %s]", lowestPrice, highestPrice)
+		}
 	}
 
 	maxNumTicks := int(k.GetMaxNumMarketMakingOrderTicks(ctx))
@@ -330,7 +338,7 @@ func (k Keeper) MMOrder(ctx sdk.Context, msg *types.MsgMMOrder) (orders []types.
 		lastOrderId++
 		offerCoin := sdk.NewCoin(pair.QuoteCoinDenom, tick.OfferCoinAmount)
 		order := types.NewOrder(
-			lastOrderId, pair, orderer,
+			types.OrderTypeMM, lastOrderId, pair, orderer,
 			offerCoin, tick.Price, tick.Amount, expireAt, ctx.BlockHeight())
 		k.SetOrder(ctx, order)
 		k.SetOrderIndex(ctx, order)
@@ -341,7 +349,7 @@ func (k Keeper) MMOrder(ctx sdk.Context, msg *types.MsgMMOrder) (orders []types.
 		lastOrderId++
 		offerCoin := sdk.NewCoin(pair.BaseCoinDenom, tick.OfferCoinAmount)
 		order := types.NewOrder(
-			lastOrderId, pair, orderer,
+			types.OrderTypeMM, lastOrderId, pair, orderer,
 			offerCoin, tick.Price, tick.Amount, expireAt, ctx.BlockHeight())
 		k.SetOrder(ctx, order)
 		k.SetOrderIndex(ctx, order)

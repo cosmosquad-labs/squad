@@ -526,29 +526,36 @@ func (msg MsgMMOrder) ValidateBasic() error {
 	if msg.PairId == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "pair id must not be 0")
 	}
-	if !msg.MaxSellPrice.IsPositive() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "max sell price must be positive: %s", msg.MaxSellPrice)
+	if msg.SellAmount.IsZero() && msg.BuyAmount.IsZero() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "sell amount and buy amount must not be zero at the same time")
 	}
-	if !msg.MinSellPrice.IsPositive() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "min sell price must be positive: %s", msg.MinSellPrice)
+	if !msg.SellAmount.IsZero() {
+		if msg.SellAmount.LT(amm.MinCoinAmount) {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "sell amount %s is smaller than the min amount %s", msg.SellAmount, amm.MinCoinAmount)
+		}
+		if !msg.MaxSellPrice.IsPositive() {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "max sell price must be positive: %s", msg.MaxSellPrice)
+		}
+		if !msg.MinSellPrice.IsPositive() {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "min sell price must be positive: %s", msg.MinSellPrice)
+		}
+		if msg.MinSellPrice.GT(msg.MaxSellPrice) {
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "max sell price must not be lower than min sell price")
+		}
 	}
-	if msg.MinSellPrice.GT(msg.MaxSellPrice) {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "max sell price must not be lower than min sell price")
-	}
-	if !msg.SellAmount.IsZero() && msg.SellAmount.LT(amm.MinCoinAmount) {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "sell amount %s is smaller than the min amount %s", msg.SellAmount, amm.MinCoinAmount)
-	}
-	if !msg.MinBuyPrice.IsPositive() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "min buy price must be positive: %s", msg.MinBuyPrice)
-	}
-	if !msg.MaxBuyPrice.IsPositive() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "max buy price must be positive: %s", msg.MaxBuyPrice)
-	}
-	if msg.MinBuyPrice.GT(msg.MaxBuyPrice) {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "max buy price must not be lower than min buy price")
-	}
-	if !msg.BuyAmount.IsZero() && msg.BuyAmount.LT(amm.MinCoinAmount) {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "buy amount %s is smaller than the min amount %s", msg.BuyAmount, amm.MinCoinAmount)
+	if !msg.BuyAmount.IsZero() {
+		if msg.BuyAmount.LT(amm.MinCoinAmount) {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "buy amount %s is smaller than the min amount %s", msg.BuyAmount, amm.MinCoinAmount)
+		}
+		if !msg.MinBuyPrice.IsPositive() {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "min buy price must be positive: %s", msg.MinBuyPrice)
+		}
+		if !msg.MaxBuyPrice.IsPositive() {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "max buy price must be positive: %s", msg.MaxBuyPrice)
+		}
+		if msg.MinBuyPrice.GT(msg.MaxBuyPrice) {
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "max buy price must not be lower than min buy price")
+		}
 	}
 	if msg.OrderLifespan < 0 {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "order lifespan must not be negative: %s", msg.OrderLifespan)

@@ -138,6 +138,7 @@ func (req *WithdrawRequest) SetStatus(status RequestStatus) {
 // NewOrderForLimitOrder returns a new Order from MsgLimitOrder.
 func NewOrderForLimitOrder(msg *MsgLimitOrder, id uint64, pair Pair, offerCoin sdk.Coin, price sdk.Dec, expireAt time.Time, msgHeight int64) Order {
 	return Order{
+		Type:               OrderTypeLimit,
 		Id:                 id,
 		PairId:             pair.Id,
 		MsgHeight:          msgHeight,
@@ -158,6 +159,7 @@ func NewOrderForLimitOrder(msg *MsgLimitOrder, id uint64, pair Pair, offerCoin s
 // NewOrderForMarketOrder returns a new Order from MsgMarketOrder.
 func NewOrderForMarketOrder(msg *MsgMarketOrder, id uint64, pair Pair, offerCoin sdk.Coin, price sdk.Dec, expireAt time.Time, msgHeight int64) Order {
 	return Order{
+		Type:               OrderTypeMarket,
 		Id:                 id,
 		PairId:             pair.Id,
 		MsgHeight:          msgHeight,
@@ -176,7 +178,7 @@ func NewOrderForMarketOrder(msg *MsgMarketOrder, id uint64, pair Pair, offerCoin
 }
 
 func NewOrder(
-	id uint64, pair Pair, orderer sdk.AccAddress,
+	typ OrderType, id uint64, pair Pair, orderer sdk.AccAddress,
 	offerCoin sdk.Coin, price sdk.Dec, amt sdk.Int, expireAt time.Time, msgHeight int64) Order {
 	var (
 		dir             OrderDirection
@@ -190,6 +192,7 @@ func NewOrder(
 		demandCoinDenom = pair.BaseCoinDenom
 	}
 	return Order{
+		Type:               typ,
 		Id:                 id,
 		PairId:             pair.Id,
 		MsgHeight:          msgHeight,

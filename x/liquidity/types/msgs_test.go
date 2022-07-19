@@ -693,6 +693,14 @@ func TestMsgMMOrder(t *testing.T) {
 			"",
 		},
 		{
+			"both zero amount",
+			func(msg *types.MsgMMOrder) {
+				msg.SellAmount = sdk.ZeroInt()
+				msg.BuyAmount = sdk.ZeroInt()
+			},
+			"sell amount and buy amount must not be zero at the same time: invalid request",
+		},
+		{
 			"invalid order lifespan",
 			func(msg *types.MsgMMOrder) {
 				msg.OrderLifespan = -1
