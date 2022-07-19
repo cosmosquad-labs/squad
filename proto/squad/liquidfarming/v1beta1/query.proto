@@ -34,11 +34,11 @@ service Query {
   }
   
   rpc Bids(QueryBidsRequest) returns (QueryBidsResponse) {
-    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/auctions/{auction_id}/bids";
+    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/pools/{pool_id}/bids";
   }
   
   rpc Bid(QueryBidRequest) returns (QueryBidResponse) {
-    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/auctions/{auction_id}/bids/{bid_id}";
+    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/pools/{pool_id}/bids/{bid_id}";
   }
   
   rpc RewardsAuctions(QueryRewardsAuctionsRequest) returns (QueryRewardsAuctionsResponse) {
@@ -103,7 +103,7 @@ message QueryQueuedFarmingResponse {
 
 // QueryBidsRequest is request type for the Query/Bids RPC method.
 message QueryBidsRequest {
-  uint64 auction_id = 1;
+  uint64 pool_id = 1;
   string bidder = 2;
   cosmos.base.query.v1beta1.PageRequest pagination = 3;
 }
@@ -116,7 +116,7 @@ message QueryBidsResponse {
 
 // QueryBidRequest is the request type for the Query/Sequence RPC method.
 message QueryBidRequest {
-  uint64 auction_id = 1;
+  uint64 pool_id = 1;
   uint64 bid_id = 2;
 }
 
