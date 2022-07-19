@@ -823,3 +823,47 @@ func TestMsgCancelAllOrders(t *testing.T) {
 		})
 	}
 }
+
+func TestMsgCancelMMOrder(t *testing.T) {
+	for _, tc := range []struct {
+		name        string
+		malleate    func(msg *types.MsgCancelMMOrder)
+		expectedErr string
+	}{
+		{
+			"happy case",
+			func(msg *types.MsgCancelMMOrder) {},
+			"", // empty means no error expected
+		},
+		{
+			"invalid orderer",
+			func(msg *types.MsgCancelMMOrder) {
+				msg.Orderer = "invalidaddr"
+			},
+			"invalid orderer address: decoding bech32 failed: invalid separator index -1: invalid address",
+		},
+		{
+			"invalid pair id",
+			func(msg *types.MsgCancelMMOrder) {
+				msg.PairId = 0
+			},
+			"pair id must not be 0: invalid request",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			msg := types.NewMsgCancelMMOrder(testAddr, 1)
+			tc.malleate(msg)
+			require.Equal(t, types.TypeMsgCancelMMOrder, msg.Type())
+			require.Equal(t, types.RouterKey, msg.Route())
+			err := msg.ValidateBasic()
+			if tc.expectedErr == "" {
+				require.NoError(t, err)
+				signers := msg.GetSigners()
+				require.Len(t, signers, 1)
+				require.Equal(t, msg.GetOrderer(), signers[0])
+			} else {
+				require.EqualError(t, err, tc.expectedErr)
+			}
+		})
+	}
+}

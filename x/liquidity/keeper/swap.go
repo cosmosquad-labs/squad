@@ -254,7 +254,7 @@ func (k Keeper) MMOrder(ctx sdk.Context, msg *types.MsgMMOrder) (orders []types.
 
 	var lowestPrice, highestPrice sdk.Dec
 	if pair.LastPrice != nil {
-		lowestPrice, highestPrice = k.PriceLimits(ctx, *pair.LastPrice)
+		lowestPrice, highestPrice = types.PriceLimits(*pair.LastPrice, k.GetMaxPriceLimitRatio(ctx), tickPrec)
 	} else {
 		lowestPrice = amm.LowestTick(tickPrec)
 		highestPrice = amm.HighestTick(tickPrec)
@@ -313,25 +313,9 @@ func (k Keeper) MMOrder(ctx sdk.Context, msg *types.MsgMMOrder) (orders []types.
 	}
 
 	// First, cancel existing market making orders in the pair from the orderer.
-	index, found := k.GetMMOrderIndex(ctx, orderer, pair.Id)
-	var canceledOrderIds []string
-	if found {
-		for _, orderId := range index.OrderIds {
-			order, found := k.GetOrder(ctx, pair.Id, orderId)
-			if !found {
-				// The order has already been deleted from store.
-				continue
-			}
-			if order.BatchId == pair.CurrentBatchId {
-				return nil, sdkerrors.Wrap(types.ErrSameBatch, "couldn't cancel previously placed orders")
-			}
-			if order.Status.CanBeCanceled() {
-				if err := k.FinishOrder(ctx, order, types.OrderStatusCanceled); err != nil {
-					return nil, err
-				}
-				canceledOrderIds = append(canceledOrderIds, strconv.FormatUint(order.Id, 10))
-			}
-		}
+	canceledOrderIds, err := k.cancelMMOrder(ctx, orderer, pair, true)
+	if err != nil {
+		return nil, err
 	}
 
 	if err := k.bankKeeper.SendCoins(ctx, orderer, pair.GetEscrowAddress(), sdk.NewCoins(offerBaseCoin, offerQuoteCoin)); err != nil {
@@ -376,8 +360,8 @@ func (k Keeper) MMOrder(ctx sdk.Context, msg *types.MsgMMOrder) (orders []types.
 			sdk.NewAttribute(types.AttributeKeyOrderer, msg.Orderer),
 			sdk.NewAttribute(types.AttributeKeyPairId, strconv.FormatUint(msg.PairId, 10)),
 			sdk.NewAttribute(types.AttributeKeyBatchId, strconv.FormatUint(pair.CurrentBatchId, 10)),
-			sdk.NewAttribute(types.AttributeKeyCanceledOrderIds, strings.Join(canceledOrderIds, ",")),
-			// TODO: add more attributes
+			sdk.NewAttribute(types.AttributeKeyOrderIds, types.FormatUint64s(orderIds)),
+			sdk.NewAttribute(types.AttributeKeyCanceledOrderIds, types.FormatUint64s(canceledOrderIds)),
 		),
 	})
 	return
@@ -473,6 +457,56 @@ func (k Keeper) CancelAllOrders(ctx sdk.Context, msg *types.MsgCancelAllOrders) 
 	})
 
 	return nil
+}
+
+func (k Keeper) cancelMMOrder(ctx sdk.Context, orderer sdk.AccAddress, pair types.Pair, skipIfNotFound bool) (canceledOrderIds []uint64, err error) {
+	index, found := k.GetMMOrderIndex(ctx, orderer, pair.Id)
+	if found {
+		for _, orderId := range index.OrderIds {
+			order, found := k.GetOrder(ctx, pair.Id, orderId)
+			if !found {
+				// The order has already been deleted from store.
+				continue
+			}
+			if order.BatchId == pair.CurrentBatchId {
+				return nil, sdkerrors.Wrap(types.ErrSameBatch, "couldn't cancel previously placed orders")
+			}
+			if order.Status.CanBeCanceled() {
+				if err := k.FinishOrder(ctx, order, types.OrderStatusCanceled); err != nil {
+					return nil, err
+				}
+				canceledOrderIds = append(canceledOrderIds, order.Id)
+			}
+		}
+	} else if !skipIfNotFound {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrNotFound, "previous market making orders not found")
+	}
+	return
+}
+
+// CancelMMOrder handles types.MsgCancelMMOrder and cancels previous market making
+// orders.
+func (k Keeper) CancelMMOrder(ctx sdk.Context, msg *types.MsgCancelMMOrder) (canceledOrderIds []uint64, err error) {
+	pair, found := k.GetPair(ctx, msg.PairId)
+	if !found {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrNotFound, "pair %d not found", msg.PairId)
+	}
+
+	canceledOrderIds, err = k.cancelMMOrder(ctx, msg.GetOrderer(), pair, false)
+	if err != nil {
+		return
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeCancelMMOrder,
+			sdk.NewAttribute(types.AttributeKeyOrderer, msg.Orderer),
+			sdk.NewAttribute(types.AttributeKeyPairId, strconv.FormatUint(pair.Id, 10)),
+			sdk.NewAttribute(types.AttributeKeyCanceledOrderIds, types.FormatUint64s(canceledOrderIds)),
+		),
+	})
+
+	return canceledOrderIds, nil
 }
 
 func (k Keeper) ExecuteMatching(ctx sdk.Context, pair types.Pair) error {

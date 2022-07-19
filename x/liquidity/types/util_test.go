@@ -33,13 +33,13 @@ func TestMMOrderTicks(t *testing.T) {
 		[]types.MMOrderTick{
 			{
 				OfferCoinAmount: sdk.NewInt(5402),
-				Price:  utils.ParseDec("100.02"),
-				Amount: sdk.NewInt(54),
+				Price:           utils.ParseDec("100.02"),
+				Amount:          sdk.NewInt(54),
 			},
 			{
 				OfferCoinAmount: sdk.NewInt(5502),
-				Price:  utils.ParseDec("100.03"),
-				Amount: sdk.NewInt(55),
+				Price:           utils.ParseDec("100.03"),
+				Amount:          sdk.NewInt(55),
 			},
 		},
 		types.MMOrderTicks(

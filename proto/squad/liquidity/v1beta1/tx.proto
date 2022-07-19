@@ -40,6 +40,9 @@ service Msg {
 
   // CancelAllOrders defines a method for cancelling all orders
   rpc CancelAllOrders(MsgCancelAllOrders) returns (MsgCancelAllOrdersResponse);
+
+  // CancelMMOrder defines a method for cancelling previously placed market making orders
+  rpc CancelMMOrder(MsgCancelMMOrder) returns (MsgCancelMMOrderResponse);
 }
 
 // MsgCreatePair defines an SDK message for creating a pair.
@@ -250,3 +253,15 @@ message MsgCancelAllOrders {
 
 // MsgCancelAllOrdersResponse defines the Msg/CancelAllOrders response type.
 message MsgCancelAllOrdersResponse {}
+
+// MsgCancelMMOrder defines an SDK message for cancelling all market making orders
+message MsgCancelMMOrder {
+  // orderer specifies the bech32-encoded address that makes an order
+  string orderer = 1;
+
+  // pair_id specifies the pair id to cancel orders
+  uint64 pair_id = 2;
+}
+
+// MsgCancelMMOrderResponse defines the Msg/CancelMMOrder response type.
+message MsgCancelMMOrderResponse {}

@@ -1,6 +1,9 @@
 package types
 
 import (
+	"strconv"
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
@@ -177,4 +180,14 @@ func MMOrderTicks(dir OrderDirection, minPrice, maxPrice sdk.Dec, amt sdk.Int, m
 		})
 	}
 	return
+}
+
+// FormatUint64s returns comma-separated string representation of
+// a slice of uint64.
+func FormatUint64s(us []uint64) (s string) {
+	ss := make([]string, 0, len(us))
+	for _, u := range us {
+		ss = append(ss, strconv.FormatUint(u, 10))
+	}
+	return strings.Join(ss, ",")
 }
