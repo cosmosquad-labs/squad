@@ -129,8 +129,9 @@ type MMOrderTick struct {
 
 // MMOrderTicks returns fairly distributed tick information with given parameters.
 func MMOrderTicks(dir OrderDirection, minPrice, maxPrice sdk.Dec, amt sdk.Int, maxNumTicks, tickPrec int) (ticks []MMOrderTick) {
+	ammDir := amm.OrderDirection(dir)
 	if minPrice.Equal(maxPrice) {
-		return []MMOrderTick{{Price: minPrice, Amount: amt}}
+		return []MMOrderTick{{OfferCoinAmount: amm.OfferCoinAmount(ammDir, minPrice, amt), Price: minPrice, Amount: amt}}
 	}
 	gap := maxPrice.Sub(minPrice).QuoInt64(int64(maxNumTicks - 1))
 	switch dir {
@@ -148,11 +149,11 @@ func MMOrderTicks(dir OrderDirection, minPrice, maxPrice sdk.Dec, amt sdk.Int, m
 		tickAmt := amt.QuoRaw(int64(len(ticks) + 1))
 		for i := range ticks {
 			ticks[i].Amount = tickAmt
-			ticks[i].OfferCoinAmount = amm.OfferCoinAmount(amm.Buy, ticks[i].Price, ticks[i].Amount)
+			ticks[i].OfferCoinAmount = amm.OfferCoinAmount(ammDir, ticks[i].Price, ticks[i].Amount)
 			amt = amt.Sub(tickAmt)
 		}
 		ticks = append(ticks, MMOrderTick{
-			OfferCoinAmount: amm.OfferCoinAmount(amm.Buy, maxPrice, amt),
+			OfferCoinAmount: amm.OfferCoinAmount(ammDir, maxPrice, amt),
 			Price:           maxPrice,
 			Amount:          amt,
 		})
@@ -170,11 +171,11 @@ func MMOrderTicks(dir OrderDirection, minPrice, maxPrice sdk.Dec, amt sdk.Int, m
 		tickAmt := amt.QuoRaw(int64(len(ticks) + 1))
 		for i := range ticks {
 			ticks[i].Amount = tickAmt
-			ticks[i].OfferCoinAmount = amm.OfferCoinAmount(amm.Sell, ticks[i].Price, ticks[i].Amount)
+			ticks[i].OfferCoinAmount = amm.OfferCoinAmount(ammDir, ticks[i].Price, ticks[i].Amount)
 			amt = amt.Sub(tickAmt)
 		}
 		ticks = append(ticks, MMOrderTick{
-			OfferCoinAmount: amm.OfferCoinAmount(amm.Sell, minPrice, amt),
+			OfferCoinAmount: amm.OfferCoinAmount(ammDir, minPrice, amt),
 			Price:           minPrice,
 			Amount:          amt,
 		})
