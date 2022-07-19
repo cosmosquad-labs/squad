@@ -293,7 +293,8 @@ func (k Keeper) MMOrder(ctx sdk.Context, msg *types.MsgMMOrder) (orders []types.
 		}
 	}
 
-	spendable := k.bankKeeper.SpendableCoins(ctx, msg.GetOrderer())
+	orderer := msg.GetOrderer()
+	spendable := k.bankKeeper.SpendableCoins(ctx, orderer)
 	if spendableAmt := spendable.AmountOf(pair.BaseCoinDenom); spendableAmt.LT(offerBaseCoin.Amount) {
 		return nil, sdkerrors.Wrapf(
 			sdkerrors.ErrInsufficientFunds, "%s is smaller than %s",
@@ -311,14 +312,36 @@ func (k Keeper) MMOrder(ctx sdk.Context, msg *types.MsgMMOrder) (orders []types.
 			types.ErrTooLongOrderLifespan, "%s is longer than %s", msg.OrderLifespan, maxOrderLifespan)
 	}
 
-	if err := k.bankKeeper.SendCoins(ctx, msg.GetOrderer(), pair.GetEscrowAddress(), sdk.NewCoins(offerBaseCoin, offerQuoteCoin)); err != nil {
+	// First, cancel existing market making orders in the pair from the orderer.
+	index, found := k.GetMMOrderIndex(ctx, orderer, pair.Id)
+	var canceledOrderIds []string
+	if found {
+		for _, orderId := range index.OrderIds {
+			order, found := k.GetOrder(ctx, pair.Id, orderId)
+			if !found {
+				// The order has already been deleted from store.
+				continue
+			}
+			if order.BatchId == pair.CurrentBatchId {
+				return nil, sdkerrors.Wrap(types.ErrSameBatch, "couldn't cancel previously placed orders")
+			}
+			if order.Status.CanBeCanceled() {
+				if err := k.FinishOrder(ctx, order, types.OrderStatusCanceled); err != nil {
+					return nil, err
+				}
+				canceledOrderIds = append(canceledOrderIds, strconv.FormatUint(order.Id, 10))
+			}
+		}
+	}
+
+	if err := k.bankKeeper.SendCoins(ctx, orderer, pair.GetEscrowAddress(), sdk.NewCoins(offerBaseCoin, offerQuoteCoin)); err != nil {
 		return nil, err
 	}
 
-	orderer := msg.GetOrderer()
 	expireAt := ctx.BlockTime().Add(msg.OrderLifespan)
 	lastOrderId := pair.LastOrderId
 
+	var orderIds []uint64
 	for _, tick := range buyTicks {
 		lastOrderId++
 		offerCoin := sdk.NewCoin(pair.QuoteCoinDenom, tick.OfferCoinAmount)
@@ -328,6 +351,7 @@ func (k Keeper) MMOrder(ctx sdk.Context, msg *types.MsgMMOrder) (orders []types.
 		k.SetOrder(ctx, order)
 		k.SetOrderIndex(ctx, order)
 		orders = append(orders, order)
+		orderIds = append(orderIds, order.Id)
 	}
 	for _, tick := range sellTicks {
 		lastOrderId++
@@ -338,21 +362,24 @@ func (k Keeper) MMOrder(ctx sdk.Context, msg *types.MsgMMOrder) (orders []types.
 		k.SetOrder(ctx, order)
 		k.SetOrderIndex(ctx, order)
 		orders = append(orders, order)
+		orderIds = append(orderIds, order.Id)
 	}
 
 	pair.LastOrderId = lastOrderId
 	k.SetPair(ctx, pair)
 
-	// TODO: emit event?
-	//ctx.EventManager().EmitEvents(sdk.Events{
-	//	sdk.NewEvent(
-	//		types.EventTypeMMOrder,
-	//		sdk.NewAttribute(types.AttributeKeyOrderer, msg.Orderer),
-	//		sdk.NewAttribute(types.AttributeKeyPairId, strconv.FormatUint(msg.PairId, 10)),
-	//		sdk.NewAttribute(types.AttributeKeyBatchId, strconv.FormatUint(pair.CurrentBatchId, 10)),
-	//		// TODO: add more attributes
-	//	),
-	//})
+	k.SetMMOrderIndex(ctx, types.NewMMOrderIndex(orderer, pair.Id, orderIds))
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeMMOrder,
+			sdk.NewAttribute(types.AttributeKeyOrderer, msg.Orderer),
+			sdk.NewAttribute(types.AttributeKeyPairId, strconv.FormatUint(msg.PairId, 10)),
+			sdk.NewAttribute(types.AttributeKeyBatchId, strconv.FormatUint(pair.CurrentBatchId, 10)),
+			sdk.NewAttribute(types.AttributeKeyCanceledOrderIds, strings.Join(canceledOrderIds, ",")),
+			// TODO: add more attributes
+		),
+	})
 	return
 }
 

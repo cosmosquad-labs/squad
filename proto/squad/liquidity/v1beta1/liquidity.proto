@@ -192,6 +192,16 @@ message Order {
   OrderStatus status = 15;
 }
 
+// MMOrderIndex defines an index type to quickly find market making orders
+// from an orderer.
+message MMOrderIndex {
+  string orderer = 1;
+
+  uint64 pair_id = 2;
+
+  repeated uint64 order_ids = 3;
+}
+
 // PoolType enumerates pool types.
 enum PoolType {
   option (gogoproto.goproto_enum_prefix) = false;

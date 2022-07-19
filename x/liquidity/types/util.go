@@ -101,6 +101,22 @@ func PriceLimits(lastPrice, priceLimitRatio sdk.Dec, tickPrec int) (lowestPrice,
 	return
 }
 
+func NewMMOrderIndex(orderer sdk.AccAddress, pairId uint64, orderIds []uint64) MMOrderIndex {
+	return MMOrderIndex{
+		Orderer:  orderer.String(),
+		PairId:   pairId,
+		OrderIds: orderIds,
+	}
+}
+
+func (index MMOrderIndex) GetOrderer() sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(index.Orderer)
+	if err != nil {
+		panic(err)
+	}
+	return addr
+}
+
 // MMOrderTick holds information about each tick's price and amount of an MMOrder.
 type MMOrderTick struct {
 	OfferCoinAmount sdk.Int

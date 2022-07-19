@@ -330,6 +330,17 @@ func (status OrderStatus) CanBeExpired() bool {
 	return status.IsMatchable()
 }
 
+// CanBeCanceled returns true if the OrderStatus is one of:
+// OrderStatusNotExecuted, OrderStatusNotMatched, OrderStatusPartiallyMatched.
+func (status OrderStatus) CanBeCanceled() bool {
+	switch status {
+	case OrderStatusNotExecuted, OrderStatusNotMatched, OrderStatusPartiallyMatched:
+		return true
+	default:
+		return false
+	}
+}
+
 // IsCanceledOrExpired returns true if the OrderStatus is one of:
 // OrderStatusCanceled, OrderStatusExpired.
 func (status OrderStatus) IsCanceledOrExpired() bool {

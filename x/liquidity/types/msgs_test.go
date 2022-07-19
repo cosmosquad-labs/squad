@@ -633,7 +633,7 @@ func TestMsgMMOrder(t *testing.T) {
 				msg.MaxSellPrice = utils.ParseDec("1.1")
 				msg.MinSellPrice = utils.ParseDec("1.2")
 			},
-			"max sell price must be higher than min sell price: invalid request",
+			"max sell price must not be lower than min sell price: invalid request",
 		},
 		{
 			"too small sell amount",
@@ -662,7 +662,7 @@ func TestMsgMMOrder(t *testing.T) {
 				msg.MaxBuyPrice = utils.ParseDec("0.8")
 				msg.MinBuyPrice = utils.ParseDec("0.9")
 			},
-			"max buy price must be higher than min buy price: invalid request",
+			"max buy price must not be lower than min buy price: invalid request",
 		},
 		{
 			"too small buy amount",
@@ -670,6 +670,27 @@ func TestMsgMMOrder(t *testing.T) {
 				msg.BuyAmount = sdk.NewInt(99)
 			},
 			"buy amount 99 is smaller than the min amount 100: invalid request",
+		},
+		{
+			"zero buy amount",
+			func(msg *types.MsgMMOrder) {
+				msg.BuyAmount = sdk.ZeroInt()
+			},
+			"",
+		},
+		{
+			"too small sell amount",
+			func(msg *types.MsgMMOrder) {
+				msg.SellAmount = sdk.NewInt(99)
+			},
+			"sell amount 99 is smaller than the min amount 100: invalid request",
+		},
+		{
+			"zero sell amount",
+			func(msg *types.MsgMMOrder) {
+				msg.SellAmount = sdk.ZeroInt()
+			},
+			"",
 		},
 		{
 			"invalid order lifespan",

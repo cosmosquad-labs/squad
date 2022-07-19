@@ -384,6 +384,50 @@ func (s *KeeperTestSuite) TestMMOrder() {
 	s.Require().EqualValues(2*maxNumTicks, pair.LastOrderId)
 }
 
+func (s *KeeperTestSuite) TestMMOrderCancelPreviousOrders() {
+	pair := s.createPair(s.addr(0), "denom1", "denom2", true)
+	pair.LastPrice = utils.ParseDecP("1.0")
+	s.keeper.SetPair(s.ctx, pair)
+
+	s.mmOrder(
+		s.addr(1), pair.Id,
+		utils.ParseDec("1.1"), utils.ParseDec("1.03"), sdk.NewInt(1000_000000),
+		utils.ParseDec("0.97"), utils.ParseDec("0.9"), sdk.NewInt(1000_000000),
+		10*time.Second, true)
+
+	// Cannot place MM orders again because it's not allowed to cancel previous
+	// orders within same batch.
+	s.fundAddr(s.addr(1), utils.ParseCoins("1000000000denom1,1000000000denom2"))
+	_, err := s.keeper.MMOrder(s.ctx, types.NewMsgMMOrder(
+		s.addr(1), pair.Id,
+		utils.ParseDec("1.1"), utils.ParseDec("1.03"), sdk.NewInt(1000_000000),
+		utils.ParseDec("0.97"), utils.ParseDec("0.9"), sdk.NewInt(1000_000000),
+		10*time.Second))
+	s.Require().ErrorIs(err, types.ErrSameBatch)
+
+	// Now it's OK to cancel previous orders and place new orders.
+	s.nextBlock()
+	s.mmOrder(
+		s.addr(1), pair.Id,
+		utils.ParseDec("1.1"), utils.ParseDec("1.03"), sdk.NewInt(1000_000000),
+		utils.ParseDec("0.97"), utils.ParseDec("0.9"), sdk.NewInt(1000_000000),
+		10*time.Second, true)
+
+	orders := s.keeper.GetAllOrders(s.ctx)
+	maxNumTicks := int(s.keeper.GetMaxNumMarketMakingOrderTicks(s.ctx))
+	s.Require().Len(orders, 2*2*maxNumTicks) // canceled previous orders + new orders
+
+	s.nextBlock()
+
+	orders = s.keeper.GetAllOrders(s.ctx)
+	s.Require().Len(orders, 2*maxNumTicks) // new orders
+	// Check order ids.
+	for _, order := range orders {
+		s.Require().EqualValues(2, order.BatchId)
+		s.Require().GreaterOrEqual(order.Id, uint64(2*maxNumTicks+1))
+	}
+}
+
 func (s *KeeperTestSuite) TestCancelOrder() {
 	pair := s.createPair(s.addr(0), "denom1", "denom2", true)
 
