@@ -282,14 +282,14 @@ func (k Keeper) MMOrder(ctx sdk.Context, msg *types.MsgMMOrder) (orders []types.
 		buyTicks = types.MMOrderTicks(
 			types.OrderDirectionBuy, msg.MinBuyPrice, msg.MaxBuyPrice, msg.BuyAmount, maxNumTicks, tickPrec)
 		for _, tick := range buyTicks {
-			offerQuoteCoin = offerQuoteCoin.AddAmount(amm.OfferCoinAmount(amm.Buy, tick.Price, tick.Amount))
+			offerQuoteCoin = offerQuoteCoin.AddAmount(tick.OfferCoinAmount)
 		}
 	}
 	if msg.SellAmount.IsPositive() {
 		sellTicks = types.MMOrderTicks(
 			types.OrderDirectionSell, msg.MinSellPrice, msg.MaxSellPrice, msg.SellAmount, maxNumTicks, tickPrec)
 		for _, tick := range sellTicks {
-			offerBaseCoin = offerBaseCoin.AddAmount(amm.OfferCoinAmount(amm.Sell, tick.Price, tick.Amount))
+			offerBaseCoin = offerBaseCoin.AddAmount(tick.OfferCoinAmount)
 		}
 	}
 
@@ -310,6 +310,50 @@ func (k Keeper) MMOrder(ctx sdk.Context, msg *types.MsgMMOrder) (orders []types.
 		return nil, sdkerrors.Wrapf(
 			types.ErrTooLongOrderLifespan, "%s is longer than %s", msg.OrderLifespan, maxOrderLifespan)
 	}
+
+	if err := k.bankKeeper.SendCoins(ctx, msg.GetOrderer(), pair.GetEscrowAddress(), sdk.NewCoins(offerBaseCoin, offerQuoteCoin)); err != nil {
+		return nil, err
+	}
+
+	orderer := msg.GetOrderer()
+	expireAt := ctx.BlockTime().Add(msg.OrderLifespan)
+	lastOrderId := pair.LastOrderId
+
+	for _, tick := range buyTicks {
+		lastOrderId++
+		offerCoin := sdk.NewCoin(pair.QuoteCoinDenom, tick.OfferCoinAmount)
+		order := types.NewOrder(
+			lastOrderId, pair, orderer,
+			offerCoin, tick.Price, tick.Amount, expireAt, ctx.BlockHeight())
+		k.SetOrder(ctx, order)
+		k.SetOrderIndex(ctx, order)
+		orders = append(orders, order)
+	}
+	for _, tick := range sellTicks {
+		lastOrderId++
+		offerCoin := sdk.NewCoin(pair.BaseCoinDenom, tick.OfferCoinAmount)
+		order := types.NewOrder(
+			lastOrderId, pair, orderer,
+			offerCoin, tick.Price, tick.Amount, expireAt, ctx.BlockHeight())
+		k.SetOrder(ctx, order)
+		k.SetOrderIndex(ctx, order)
+		orders = append(orders, order)
+	}
+
+	pair.LastOrderId = lastOrderId
+	k.SetPair(ctx, pair)
+
+	// TODO: emit event?
+	//ctx.EventManager().EmitEvents(sdk.Events{
+	//	sdk.NewEvent(
+	//		types.EventTypeMMOrder,
+	//		sdk.NewAttribute(types.AttributeKeyOrderer, msg.Orderer),
+	//		sdk.NewAttribute(types.AttributeKeyPairId, strconv.FormatUint(msg.PairId, 10)),
+	//		sdk.NewAttribute(types.AttributeKeyBatchId, strconv.FormatUint(pair.CurrentBatchId, 10)),
+	//		// TODO: add more attributes
+	//	),
+	//})
+	return
 }
 
 // ValidateMsgCancelOrder validates types.MsgCancelOrder and returns the order.

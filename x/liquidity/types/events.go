@@ -9,6 +9,7 @@ const (
 	EventTypeWithdraw         = "withdraw"
 	EventTypeLimitOrder       = "limit_order"
 	EventTypeMarketOrder      = "market_order"
+	EventTypeMMOrder          = "mm_order"
 	EventTypeCancelOrder      = "cancel_order"
 	EventTypeCancelAllOrders  = "cancel_all_orders"
 	EventTypeDepositResult    = "deposit_result"

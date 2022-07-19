@@ -367,6 +367,23 @@ func (s *KeeperTestSuite) TestMatchWithLowPricePool() {
 	s.Require().Equal(types.OrderStatusNotMatched, order.Status)
 }
 
+func (s *KeeperTestSuite) TestMMOrder() {
+	pair := s.createPair(s.addr(0), "denom1", "denom2", true)
+	pair.LastPrice = utils.ParseDecP("1.0")
+	s.keeper.SetPair(s.ctx, pair)
+
+	orders := s.mmOrder(
+		s.addr(1), pair.Id,
+		utils.ParseDec("1.1"), utils.ParseDec("1.03"), sdk.NewInt(1000_000000),
+		utils.ParseDec("0.97"), utils.ParseDec("0.9"), sdk.NewInt(1000_000000),
+		10*time.Second, true)
+	maxNumTicks := int(s.keeper.GetMaxNumMarketMakingOrderTicks(s.ctx))
+	s.Require().Len(orders, 2*maxNumTicks)
+
+	pair, _ = s.keeper.GetPair(s.ctx, pair.Id)
+	s.Require().EqualValues(2*maxNumTicks, pair.LastOrderId)
+}
+
 func (s *KeeperTestSuite) TestCancelOrder() {
 	pair := s.createPair(s.addr(0), "denom1", "denom2", true)
 

@@ -103,8 +103,9 @@ func PriceLimits(lastPrice, priceLimitRatio sdk.Dec, tickPrec int) (lowestPrice,
 
 // MMOrderTick holds information about each tick's price and amount of an MMOrder.
 type MMOrderTick struct {
-	Price  sdk.Dec
-	Amount sdk.Int
+	OfferCoinAmount sdk.Int
+	Price           sdk.Dec
+	Amount          sdk.Int
 }
 
 // MMOrderTicks returns fairly distributed tick information with given parameters.
@@ -128,11 +129,13 @@ func MMOrderTicks(dir OrderDirection, minPrice, maxPrice sdk.Dec, amt sdk.Int, m
 		tickAmt := amt.QuoRaw(int64(len(ticks) + 1))
 		for i := range ticks {
 			ticks[i].Amount = tickAmt
+			ticks[i].OfferCoinAmount = amm.OfferCoinAmount(amm.Buy, ticks[i].Price, ticks[i].Amount)
 			amt = amt.Sub(tickAmt)
 		}
 		ticks = append(ticks, MMOrderTick{
-			Price:  maxPrice,
-			Amount: amt,
+			OfferCoinAmount: amm.OfferCoinAmount(amm.Buy, maxPrice, amt),
+			Price:           maxPrice,
+			Amount:          amt,
 		})
 	case OrderDirectionSell:
 		var prevP sdk.Dec
@@ -148,11 +151,13 @@ func MMOrderTicks(dir OrderDirection, minPrice, maxPrice sdk.Dec, amt sdk.Int, m
 		tickAmt := amt.QuoRaw(int64(len(ticks) + 1))
 		for i := range ticks {
 			ticks[i].Amount = tickAmt
+			ticks[i].OfferCoinAmount = amm.OfferCoinAmount(amm.Sell, ticks[i].Price, ticks[i].Amount)
 			amt = amt.Sub(tickAmt)
 		}
 		ticks = append(ticks, MMOrderTick{
-			Price:  minPrice,
-			Amount: amt,
+			OfferCoinAmount: amm.OfferCoinAmount(amm.Sell, minPrice, amt),
+			Price:           minPrice,
+			Amount:          amt,
 		})
 	}
 	return

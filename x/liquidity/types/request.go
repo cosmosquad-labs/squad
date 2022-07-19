@@ -175,6 +175,38 @@ func NewOrderForMarketOrder(msg *MsgMarketOrder, id uint64, pair Pair, offerCoin
 	}
 }
 
+func NewOrder(
+	id uint64, pair Pair, orderer sdk.AccAddress,
+	offerCoin sdk.Coin, price sdk.Dec, amt sdk.Int, expireAt time.Time, msgHeight int64) Order {
+	var (
+		dir             OrderDirection
+		demandCoinDenom string
+	)
+	if offerCoin.Denom == pair.BaseCoinDenom {
+		dir = OrderDirectionSell
+		demandCoinDenom = pair.QuoteCoinDenom
+	} else {
+		dir = OrderDirectionBuy
+		demandCoinDenom = pair.BaseCoinDenom
+	}
+	return Order{
+		Id:                 id,
+		PairId:             pair.Id,
+		MsgHeight:          msgHeight,
+		Orderer:            orderer.String(),
+		Direction:          dir,
+		OfferCoin:          offerCoin,
+		RemainingOfferCoin: offerCoin,
+		ReceivedCoin:       sdk.NewCoin(demandCoinDenom, sdk.ZeroInt()),
+		Price:              price,
+		Amount:             amt,
+		OpenAmount:         amt,
+		BatchId:            pair.CurrentBatchId,
+		ExpireAt:           expireAt,
+		Status:             OrderStatusNotExecuted,
+	}
+}
+
 func (order Order) GetOrderer() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(order.Orderer)
 	if err != nil {
