@@ -38,10 +38,18 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
-## v2.0.0
+## v2.1.0
 
 ### Client Breaking Changes
 
+* (x/liquidity) [\#338](https://github.com/cosmosquad-labs/squad/pull/338) Refactor `OrderBooks` query:
+  * `tick_precisions` field has been removed from `QueryOrderBooksRequest`
+  * `tick_precision` field has been removed from `OrderBookResponse` and `price_unit` has been added instead
+  * The order between `sells` and `buys` has been changed
+* (x/liquidity) [\#335](https://github.com/cosmosquad-labs/squad/pull/335) Modify `PoolResponse`:
+  * `balances` field has been modified to contain `base_coin` and `quote_coin` fields
+  * `pool_coin_supply` field has been added
+  * `price` field has been added
 * (x/farming) [\#334](https://github.com/cosmosquad-labs/squad/pull/334) Add `HistoricalRewards` query endpoint:
   * `HistoricalRewards`: `/squad/farming/v1beta1/historical_rewards/{staking_coin_denom}`
 * (x/liquidity) [\#318](https://github.com/cosmosquad-labs/squad/pull/318) Add `OrderBooks` query endpoint:
@@ -53,6 +61,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### CLI Breaking Changes
 
+* (x/liquidity) [\#338](https://github.com/cosmosquad-labs/squad/pull/338) Refactor `order-books` query cmd:
+  * `[tick-precisions]` argument has been removed: `order-books [pair-ids]`
+  * Response structure has been changed
 * (x/farming) [\#334](https://github.com/cosmosquad-labs/squad/pull/334) Add `historical-rewards` query cmd:
   * `historical-rewards [staking-coin-denom]`
 * (x/liquidity) [\#318](https://github.com/cosmosquad-labs/squad/pull/318) Add `create-ranged-pool` tx cmd and `order-books` query cmd:
@@ -65,6 +76,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### State Machine Breaking
 
+* (x/liquidity) [\#340](https://github.com/cosmosquad-labs/squad/pull/340) Add `MaxNumActivePoolsPerPair` global constant
 * (x/liquidity) [\#318](https://github.com/cosmosquad-labs/squad/pull/318) Change `Pool` struct for ranged pools and refactor matching logic
   * Add `type`, `creator`, `min_price` and `max_price` fields to `Pool` struct
   * Refactor matching logic both for fairness of matching and efficiency of pool order placement
