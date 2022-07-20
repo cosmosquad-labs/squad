@@ -159,12 +159,18 @@ message LiquidFarmResponse {
 
   string LFCoinDenom = 3 [(gogoproto.customname) = "LFCoinDenom"];
   
-  cosmos.base.v1beta1.Coin staked_coin = 4 [
+  string minimum_farm_amount = 4
+      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+
+  string minimum_bid_amount = 5
+      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+
+  cosmos.base.v1beta1.Coin staked_coin = 6 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"
   ];
 	
-  cosmos.base.v1beta1.Coin queued_coin = 5 [
+  cosmos.base.v1beta1.Coin queued_coin = 7 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"
   ];
