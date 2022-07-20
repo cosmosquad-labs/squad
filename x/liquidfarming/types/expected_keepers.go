@@ -36,7 +36,8 @@ type FarmingKeeper interface {
 	GetAllQueuedCoinsByFarmer(ctx sdk.Context, farmerAcc sdk.AccAddress) sdk.Coins
 	GetStaking(ctx sdk.Context, stakingCoinDenom string, farmerAcc sdk.AccAddress) (staking farmingtypes.Staking, found bool)
 	GetAllStakedCoinsByFarmer(ctx sdk.Context, farmerAcc sdk.AccAddress) sdk.Coins
-	AllRewards(ctx sdk.Context, farmerAcc sdk.AccAddress) sdk.Coins
+	Rewards(ctx sdk.Context, farmerAcc sdk.AccAddress, stakingCoinDenom string) sdk.Coins
+	GetUnharvestedRewards(ctx sdk.Context, farmerAcc sdk.AccAddress, stakingCoinDenom string) (rewards farmingtypes.UnharvestedRewards, found bool)
 }
 
 // LiquidityKeeper defines the expected interface needed to retrieve liquidity pools.
