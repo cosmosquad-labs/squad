@@ -70,8 +70,8 @@ func MustUnmarshalQueuedFarming(cdc codec.BinaryCodec, value []byte) QueuedFarmi
 	return msg
 }
 
-// LFCoinDenom returns a unique liquid farming coin denom for a LiquidFarm.
-func LFCoinDenom(poolId uint64) string {
+// LiquidFarmCoinDenom returns a unique liquid farming coin denom for a LiquidFarm.
+func LiquidFarmCoinDenom(poolId uint64) string {
 	return fmt.Sprintf("lf%d", poolId)
 }
 

@@ -3,8 +3,8 @@ package types
 // Event types for the farming module.
 const (
 	EventTypeFarm                = "farm"
-	EventTypeCancelQueuedFarming = "cancel_queued_farming"
 	EventTypeUnfarm              = "unfarm"
+	EventTypeCancelQueuedFarming = "cancel_queued_farming"
 	EventTypePlaceBid            = "place_bid"
 	EventTypeRefundBid           = "refund_bid"
 

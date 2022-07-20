@@ -22,12 +22,12 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			res, err := msgServer.Farm(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgCancelQueuedFarming:
-			res, err := msgServer.CancelQueuedFarming(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
 		case *types.MsgUnfarm:
 			res, err := msgServer.Unfarm(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+
+		case *types.MsgCancelQueuedFarming:
+			res, err := msgServer.CancelQueuedFarming(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
 		case *types.MsgPlaceBid:

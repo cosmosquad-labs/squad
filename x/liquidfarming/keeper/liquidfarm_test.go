@@ -72,7 +72,7 @@ func (s *KeeperTestSuite) TestFarm_AfterStaked() {
 	s.Require().Equal(amount1.Add(amount2), totalStakings.Amount)
 
 	// Check minted LFCoin
-	lfCoinDenom := types.LFCoinDenom(pool.Id)
+	lfCoinDenom := types.LiquidFarmCoinDenom(pool.Id)
 	lfCoinBalance := s.getBalance(farmerAcc, lfCoinDenom)
 	s.Require().Equal(sdk.NewCoin(lfCoinDenom, amount1.Add(amount2)), lfCoinBalance)
 
@@ -103,8 +103,8 @@ func (s *KeeperTestSuite) TestFarm_AfterStaked_MultipleFarmers() {
 	queuedFarmings = s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAcc2)
 	s.Require().Len(queuedFarmings, 0)
 
-	s.Require().Equal(amount1, s.getBalance(farmerAcc1, types.LFCoinDenom(pool.Id)).Amount)
-	s.Require().Equal(amount2, s.getBalance(farmerAcc2, types.LFCoinDenom(pool.Id)).Amount)
+	s.Require().Equal(amount1, s.getBalance(farmerAcc1, types.LiquidFarmCoinDenom(pool.Id)).Amount)
+	s.Require().Equal(amount2, s.getBalance(farmerAcc2, types.LiquidFarmCoinDenom(pool.Id)).Amount)
 
 	s.farm(pool.Id, farmerAcc3, sdk.NewCoin(pool.PoolCoinDenom, amount3), true)
 	s.advanceEpochDays()
@@ -113,10 +113,10 @@ func (s *KeeperTestSuite) TestFarm_AfterStaked_MultipleFarmers() {
 	s.Require().Len(queuedFarmings, 0)
 
 	reserveAddr := types.LiquidFarmReserveAddress(pool.Id)
-	lfCoinTotalSupply := s.app.BankKeeper.GetSupply(s.ctx, types.LFCoinDenom(pool.Id)).Amount
+	lfCoinTotalSupply := s.app.BankKeeper.GetSupply(s.ctx, types.LiquidFarmCoinDenom(pool.Id)).Amount
 	lpCoinTotalStaked := s.app.FarmingKeeper.GetAllStakedCoinsByFarmer(s.ctx, reserveAddr).AmountOf(pool.PoolCoinDenom)
 	mintingAmt := lfCoinTotalSupply.Mul(amount3).Quo(lpCoinTotalStaked)
-	s.Require().Equal(mintingAmt, s.getBalance(farmerAcc3, types.LFCoinDenom(pool.Id)).Amount)
+	s.Require().Equal(mintingAmt, s.getBalance(farmerAcc3, types.LiquidFarmCoinDenom(pool.Id)).Amount)
 }
 
 func (s *KeeperTestSuite) TestCancelQueuedFarming_All() {
@@ -256,7 +256,7 @@ func (s *KeeperTestSuite) TestUnfarm_All() {
 	s.Require().Len(queuedFarmings, 0)
 
 	// Check minted LFCoin
-	lfCoinDenom := types.LFCoinDenom(pool.Id)
+	lfCoinDenom := types.LiquidFarmCoinDenom(pool.Id)
 	lfCoinBalance := s.getBalance(farmerAcc, lfCoinDenom)
 	s.Require().Equal(sdk.NewCoin(lfCoinDenom, amount1), lfCoinBalance)
 

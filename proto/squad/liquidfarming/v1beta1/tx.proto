@@ -12,12 +12,12 @@ service Msg {
   // Farm defines a method for farming pool coin for a liquid farm
   rpc Farm(MsgFarm) returns (MsgFarmResponse);
 
-  // CancelQueuedFarming defines a method for canceling the queueud farming
-  rpc CancelQueuedFarming(MsgCancelQueuedFarming) returns (MsgCancelQueuedFarmingResponse);
-  
   // Unfarm defines a method for unfarming amount of LFCoin
   rpc Unfarm(MsgUnfarm) returns (MsgUnfarmResponse);
 
+  // CancelQueuedFarming defines a method for canceling the queueud farming
+  rpc CancelQueuedFarming(MsgCancelQueuedFarming) returns (MsgCancelQueuedFarmingResponse);
+  
   // PlaceBid defines a method for placing a bid for a rewards auction
   rpc PlaceBid(MsgPlaceBid) returns (MsgPlaceBidResponse);
 
@@ -42,23 +42,6 @@ message MsgFarm {
 // MsgFarmResponse defines the MsgFarmResponse response type.
 message MsgFarmResponse {}
 
-// MsgCancelQueuedFarming defines a SDK message for canceling the queued farming.
-message MsgCancelQueuedFarming {
-  option (gogoproto.goproto_getters) = false;
-
-  uint64 pool_id = 1;
-
-  string farmer = 2;
-
-  cosmos.base.v1beta1.Coin unfarming_coin = 3 [
-    (gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"
-  ];
-}
-
-// MsgCancelQueuedFarmingResponse defines the MsgCancelQueuedFarmingResponse response type.
-message MsgCancelQueuedFarmingResponse {}
-
 // MsgUnfarm defines a SDK message for unfarming LFCoin.
 message MsgUnfarm {
   option (gogoproto.goproto_getters) = false;
@@ -76,6 +59,24 @@ message MsgUnfarm {
 
 // MsgUnfarmResponse defines the MsgUnfarmResponse response type.
 message MsgUnfarmResponse {}
+
+
+// MsgCancelQueuedFarming defines a SDK message for canceling the queued farming.
+message MsgCancelQueuedFarming {
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 pool_id = 1;
+
+  string farmer = 2;
+
+  cosmos.base.v1beta1.Coin unfarming_coin = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"
+  ];
+}
+
+// MsgCancelQueuedFarmingResponse defines the MsgCancelQueuedFarmingResponse response type.
+message MsgCancelQueuedFarmingResponse {}
 
 // MsgPlaceBid defines a SDK message for placing a bid for a rewards auction.
 message MsgPlaceBid {

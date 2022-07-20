@@ -7,21 +7,21 @@ import (
 
 var (
 	_ sdk.Msg = (*MsgFarm)(nil)
-	_ sdk.Msg = (*MsgCancelQueuedFarming)(nil)
 	_ sdk.Msg = (*MsgUnfarm)(nil)
+	_ sdk.Msg = (*MsgCancelQueuedFarming)(nil)
 	_ sdk.Msg = (*MsgPlaceBid)(nil)
 )
 
-// Message types for the farming module
+// Message types for the module
 const (
 	TypeMsgFarm                             = "farm"
-	TypeMsgCancelQueuedFarmingQueuedFarming = "cancel_queued_farming"
 	TypeMsgUnfarm                           = "unfarm"
+	TypeMsgCancelQueuedFarmingQueuedFarming = "cancel_queued_farming"
 	TypeMsgPlaceBid                         = "place_bid"
 	TypeMsgRefundBid                        = "refund_bid"
 )
 
-// NewMsgFarm returns a new MsgFarm.
+// NewMsgFarm creates a new MsgFarm
 func NewMsgFarm(poolId uint64, farmer string, farmingCoin sdk.Coin) *MsgFarm {
 	return &MsgFarm{
 		PoolId:      poolId,
@@ -37,6 +37,9 @@ func (msg MsgFarm) Type() string { return TypeMsgFarm }
 func (msg MsgFarm) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Farmer); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid farmer address: %v", err)
+	}
+	if msg.PoolId == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid pool id")
 	}
 	if !msg.FarmingCoin.IsPositive() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "farming coin must be positive")
@@ -67,56 +70,7 @@ func (msg MsgFarm) GetFarmer() sdk.AccAddress {
 	return addr
 }
 
-// NewMsgCancelQueuedFarming returns a new MsgCancelQueuedFarming.
-func NewMsgCancelQueuedFarming(poolId uint64, farmer string, unfarmingCoin sdk.Coin) *MsgCancelQueuedFarming {
-	return &MsgCancelQueuedFarming{
-		PoolId:        poolId,
-		Farmer:        farmer,
-		UnfarmingCoin: unfarmingCoin,
-	}
-}
-
-func (msg MsgCancelQueuedFarming) Route() string { return RouterKey }
-
-func (msg MsgCancelQueuedFarming) Type() string { return TypeMsgCancelQueuedFarmingQueuedFarming }
-
-func (msg MsgCancelQueuedFarming) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Farmer); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid farmer address: %v", err)
-	}
-	if msg.PoolId == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid pool id")
-	}
-	if !msg.UnfarmingCoin.IsPositive() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "unfarming coin must be positive")
-	}
-	if err := msg.UnfarmingCoin.Validate(); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid unfarming coin: %v", err)
-	}
-	return nil
-}
-
-func (msg MsgCancelQueuedFarming) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&msg))
-}
-
-func (msg MsgCancelQueuedFarming) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(msg.Farmer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{addr}
-}
-
-func (msg MsgCancelQueuedFarming) GetFarmer() sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(msg.Farmer)
-	if err != nil {
-		panic(err)
-	}
-	return addr
-}
-
-// NewMsgUnfarm returns a new MsgUnfarm.
+// NewMsgUnfarm creates a new MsgUnfarm
 func NewMsgUnfarm(poolId uint64, farmer string, lfCoin sdk.Coin) *MsgUnfarm {
 	return &MsgUnfarm{
 		PoolId: poolId,
@@ -165,7 +119,56 @@ func (msg MsgUnfarm) GetFarmer() sdk.AccAddress {
 	return addr
 }
 
-// NewMsgPlaceBid returns a new MsgPlaceBid.
+// NewMsgCancelQueuedFarming creates a new MsgCancelQueuedFarming
+func NewMsgCancelQueuedFarming(poolId uint64, farmer string, unfarmingCoin sdk.Coin) *MsgCancelQueuedFarming {
+	return &MsgCancelQueuedFarming{
+		PoolId:        poolId,
+		Farmer:        farmer,
+		UnfarmingCoin: unfarmingCoin,
+	}
+}
+
+func (msg MsgCancelQueuedFarming) Route() string { return RouterKey }
+
+func (msg MsgCancelQueuedFarming) Type() string { return TypeMsgCancelQueuedFarmingQueuedFarming }
+
+func (msg MsgCancelQueuedFarming) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Farmer); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid farmer address: %v", err)
+	}
+	if msg.PoolId == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid pool id")
+	}
+	if !msg.UnfarmingCoin.IsPositive() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "unfarming coin must be positive")
+	}
+	if err := msg.UnfarmingCoin.Validate(); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid unfarming coin: %v", err)
+	}
+	return nil
+}
+
+func (msg MsgCancelQueuedFarming) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&msg))
+}
+
+func (msg MsgCancelQueuedFarming) GetSigners() []sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(msg.Farmer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr}
+}
+
+func (msg MsgCancelQueuedFarming) GetFarmer() sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(msg.Farmer)
+	if err != nil {
+		panic(err)
+	}
+	return addr
+}
+
+// NewMsgPlaceBid creates a new MsgPlaceBid
 func NewMsgPlaceBid(poolId uint64, bidder string, biddingCoin sdk.Coin) *MsgPlaceBid {
 	return &MsgPlaceBid{
 		PoolId:      poolId,
@@ -214,6 +217,7 @@ func (msg MsgPlaceBid) GetBidder() sdk.AccAddress {
 	return addr
 }
 
+// NewMsgRefundBid creates a new MsgRefundBid
 func NewMsgRefundBid(poolId uint64, bidder string) *MsgRefundBid {
 	return &MsgRefundBid{
 		PoolId: poolId,

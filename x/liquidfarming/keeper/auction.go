@@ -6,6 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	farmingtypes "github.com/cosmosquad-labs/squad/v2/x/farming/types"
 	"github.com/cosmosquad-labs/squad/v2/x/liquidfarming/types"
@@ -120,12 +121,66 @@ func (k Keeper) CreateRewardsAuction(ctx sdk.Context, poolId uint64) {
 	nextAuctionId := k.getNextAuctionIdWithUpdate(ctx, poolId)
 	poolCoinDenom := liquiditytypes.PoolCoinDenom(poolId)
 
-	auction := types.NewRewardsAuction(
+	k.SetRewardsAuction(ctx, types.NewRewardsAuction(
 		nextAuctionId,
 		poolId,
 		poolCoinDenom,
 		startTime,
 		endTime,
-	)
+	))
+}
+
+func (k Keeper) TerminateRewardsAuction(ctx sdk.Context, auction types.RewardsAuction) {
+	winningBid, found := k.GetWinningBid(ctx, auction.PoolId, auction.Id)
+	if !found {
+		k.CreateRewardsAuction(ctx, auction.PoolId)
+		return
+	}
+
+	poolId := winningBid.PoolId
+	auctionPayingReserveAddr := auction.GetPayingReserveAddress()
+	liquidFarmReserveAddr := types.LiquidFarmReserveAddress(poolId)
+	poolCoinDenom := liquiditytypes.PoolCoinDenom(poolId)
+	rewards := k.farmingKeeper.Rewards(ctx, liquidFarmReserveAddr, poolCoinDenom)
+
+	// Harvest farming rewards and send them to the auction winner
+	if err := k.farmingKeeper.Harvest(ctx, liquidFarmReserveAddr, []string{poolCoinDenom}); err != nil {
+		panic(err)
+	}
+	if err := k.bankKeeper.SendCoins(ctx, liquidFarmReserveAddr, winningBid.GetBidder(), rewards); err != nil {
+		panic(err)
+	}
+
+	// Refund all at once and delete all bids
+	inputs := []banktypes.Input{}
+	outputs := []banktypes.Output{}
+	for _, bid := range k.GetBidsByPoolId(ctx, poolId) {
+		if bid.Bidder == winningBid.Bidder {
+			continue
+		}
+
+		inputs = append(inputs, banktypes.NewInput(auctionPayingReserveAddr, sdk.NewCoins(bid.Amount)))
+		outputs = append(outputs, banktypes.NewOutput(bid.GetBidder(), sdk.NewCoins(bid.Amount)))
+
+		k.DeleteBid(ctx, bid)
+	}
+	if err := k.bankKeeper.InputOutputCoins(ctx, inputs, outputs); err != nil {
+		panic(err)
+	}
+
+	// Reserve winning bid amount
+	if err := k.bankKeeper.SendCoins(ctx, auctionPayingReserveAddr, liquidFarmReserveAddr, sdk.NewCoins(winningBid.Amount)); err != nil {
+		panic(err)
+	}
+
+	// Stake with the winning bid amount for auto compounding
+	if err := k.farmingKeeper.Stake(ctx, liquidFarmReserveAddr, sdk.NewCoins(winningBid.Amount)); err != nil {
+		panic(err)
+	}
+
+	// Update auction fields
+	auction.SetWinner(winningBid.Bidder)
+	auction.SetRewards(rewards)
+	auction.SetStatus(types.AuctionStatusFinished)
 	k.SetRewardsAuction(ctx, auction)
 }

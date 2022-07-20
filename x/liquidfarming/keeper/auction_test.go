@@ -201,20 +201,20 @@ func (s *KeeperTestSuite) TestAfterAllocateRewards() {
 
 	s.createPrivateFixedAmountPlan(s.addr(0), map[string]string{pool.PoolCoinDenom: "1"}, map[string]int64{"denom3": 1_000_000}, true)
 	s.farm(pool.Id, s.addr(1), sdk.NewCoin(pool.PoolCoinDenom, sdk.NewInt(50_000_000)), true)
-	s.advanceEpochDays() // QueuedCoins to StakedCoins
-	s.advanceEpochDays() // AllocateRewards hook is triggered to create first RewardsAuction
+	s.advanceEpochDays() // move from QueuedCoins to StakedCoins
+	s.advanceEpochDays() // create first RewardsAuction as AllocateRewards hook is triggered
 
 	auctionId := s.keeper.GetLastRewardsAuctionId(s.ctx, pool.Id)
 	auction, found := s.keeper.GetRewardsAuction(s.ctx, pool.Id, auctionId)
 	s.Require().True(found)
+	s.Require().Equal(types.AuctionStatusStarted, auction.Status)
 
 	s.placeBid(auction.PoolId, s.addr(1), sdk.NewInt64Coin(pool.PoolCoinDenom, 10_000_000), true)
 	s.placeBid(auction.PoolId, s.addr(2), sdk.NewInt64Coin(pool.PoolCoinDenom, 20_000_000), true)
 	s.placeBid(auction.PoolId, s.addr(3), sdk.NewInt64Coin(pool.PoolCoinDenom, 30_000_000), true)
+	s.advanceEpochDays() // farming rewards are expected to be accumulated
 
-	// Farming rewards are accumulated
-	s.advanceEpochDays()
-
+	// Check if the state of previous auction is updated
 	auction, found = s.keeper.GetRewardsAuction(s.ctx, auction.PoolId, auction.Id)
 	s.Require().True(found)
 	s.Require().Equal(types.AuctionStatusFinished, auction.Status)
@@ -227,7 +227,7 @@ func (s *KeeperTestSuite) TestAfterAllocateRewards() {
 	// Check winner's balance to see if they received farming rewards
 	s.Require().Equal(sdk.NewInt(1_000_000), s.getBalance(s.addr(3), "denom3").Amount)
 
-	// Check re-staking amount
+	// Check newly staked amount by the liquid farm reserve account
 	queuedCoins := s.app.FarmingKeeper.GetAllQueuedCoinsByFarmer(s.ctx, types.LiquidFarmReserveAddress(pool.Id))
 	s.Require().Equal(sdk.NewInt(30_000_000), queuedCoins.AmountOf(pool.PoolCoinDenom))
 }

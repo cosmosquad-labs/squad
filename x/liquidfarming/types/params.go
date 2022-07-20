@@ -20,12 +20,12 @@ var (
 
 var _ paramtypes.ParamSet = (*Params)(nil)
 
-// ParamKeyTable the param key table for launch module.
+// ParamKeyTable the param key table for launch module
 func ParamKeyTable() paramtypes.KeyTable {
 	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
-// DefaultParams returns a default set of parameters.
+// DefaultParams returns a default set of parameters
 func DefaultParams() Params {
 	return Params{
 		LiquidFarmCreationFee: DefaultLiquidFarmCreationFee,
@@ -34,7 +34,7 @@ func DefaultParams() Params {
 	}
 }
 
-// ParamSetPairs get the params.ParamSet.
+// ParamSetPairs get the params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyLiquidFarmCreationFee, &p.LiquidFarmCreationFee, validateLiquidFarmCreationFee),
@@ -43,7 +43,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	}
 }
 
-// Validate validates the set of parameters.
+// Validate validates the set of parameters
 func (p Params) Validate() error {
 	for _, v := range []struct {
 		value     interface{}

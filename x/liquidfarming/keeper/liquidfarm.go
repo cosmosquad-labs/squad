@@ -95,6 +95,64 @@ func (k Keeper) Farm(ctx sdk.Context, msg *types.MsgFarm) error {
 	return nil
 }
 
+// Unfarm handles types.MsgUnfarm to unfarm LFCoin.
+func (k Keeper) Unfarm(ctx sdk.Context, msg *types.MsgUnfarm) error {
+	for _, lf := range k.GetParams(ctx).LiquidFarms {
+		if msg.PoolId == lf.PoolId {
+			reserveAddr := types.LiquidFarmReserveAddress(lf.PoolId)
+			lfCoinDenom := types.LiquidFarmCoinDenom(lf.PoolId)
+
+			lfCoinBalance := k.bankKeeper.SpendableCoins(ctx, msg.GetFarmer()).AmountOf(lfCoinDenom)
+			if lfCoinBalance.LT(msg.LFCoin.Amount) {
+				return sdkerrors.Wrapf(types.ErrInsufficientUnfarmingAmount, "%s is smaller than %s", lfCoinBalance, msg.LFCoin.Amount)
+			}
+
+			pool, found := k.liquidityKeeper.GetPool(ctx, lf.PoolId)
+			if !found {
+				return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "pool %d not found", lf.PoolId)
+			}
+
+			lfCoinTotalSupply := k.bankKeeper.GetSupply(ctx, lfCoinDenom).Amount
+			lpCoinTotalStaked := k.farmingKeeper.GetAllStakedCoinsByFarmer(ctx, reserveAddr).AmountOf(pool.PoolCoinDenom)
+			unfarmFee := sdk.ZeroInt() // TODO: TBD
+
+			// UnfarmedAmount = TotalStakedLPAmount / TotalSupplyLFAmount * UnfarmingLFAmount * (1 - UnfarmFee)
+			unfarmedAmt := lpCoinTotalStaked.Quo(lfCoinTotalSupply).Mul(msg.LFCoin.Amount).Mul(sdk.OneInt().Sub(unfarmFee))
+			unfarmedCoin := sdk.NewCoin(pool.PoolCoinDenom, unfarmedAmt)
+
+			// Send the unfarming LFCoin to module account and burn them.
+			if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, msg.GetFarmer(), types.ModuleName, sdk.NewCoins(msg.LFCoin)); err != nil {
+				return err
+			}
+			if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(msg.LFCoin)); err != nil {
+				return err
+			}
+
+			// Unstake and release corresponding pool coin to the farmer
+			if err := k.farmingKeeper.Unstake(ctx, reserveAddr, sdk.NewCoins(unfarmedCoin)); err != nil {
+				return err
+			}
+			if err := k.bankKeeper.SendCoins(ctx, reserveAddr, msg.GetFarmer(), sdk.NewCoins(unfarmedCoin)); err != nil {
+				return err
+			}
+
+			ctx.EventManager().EmitEvents(sdk.Events{
+				sdk.NewEvent(
+					types.EventTypeUnfarm,
+					sdk.NewAttribute(types.AttributeKeyPoolId, strconv.FormatUint(msg.PoolId, 10)),
+					sdk.NewAttribute(types.AttributeKeyFarmer, msg.Farmer),
+					sdk.NewAttribute(types.AttributeKeyUnfarmingCoin, msg.LFCoin.String()),
+					sdk.NewAttribute(types.AttributeKeyUnfarmedCoin, unfarmedCoin.String()),
+				),
+			})
+
+			break
+		}
+	}
+
+	return nil
+}
+
 // CancelQueuedFarming handles types.MsgCancelQueuedFarming to cancel the queued farming.
 func (k Keeper) CancelQueuedFarming(ctx sdk.Context, msg *types.MsgCancelQueuedFarming) error {
 	queuedFarmings := k.GetQueuedFarmingsByFarmer(ctx, msg.GetFarmer())
@@ -149,64 +207,6 @@ func (k Keeper) CancelQueuedFarming(ctx sdk.Context, msg *types.MsgCancelQueuedF
 			sdk.NewAttribute(types.AttributeKeyCanceledCoin, canceledCoin.String()),
 		),
 	})
-
-	return nil
-}
-
-// Unfarm handles types.MsgUnfarm to unfarm LFCoin.
-func (k Keeper) Unfarm(ctx sdk.Context, msg *types.MsgUnfarm) error {
-	for _, lf := range k.GetParams(ctx).LiquidFarms {
-		if msg.PoolId == lf.PoolId {
-			reserveAddr := types.LiquidFarmReserveAddress(lf.PoolId)
-			lfCoinDenom := types.LFCoinDenom(lf.PoolId)
-
-			lfCoinBalance := k.bankKeeper.SpendableCoins(ctx, msg.GetFarmer()).AmountOf(lfCoinDenom)
-			if lfCoinBalance.LT(msg.LFCoin.Amount) {
-				return sdkerrors.Wrapf(types.ErrInsufficientUnfarmingAmount, "%s is smaller than %s", lfCoinBalance, msg.LFCoin.Amount)
-			}
-
-			pool, found := k.liquidityKeeper.GetPool(ctx, lf.PoolId)
-			if !found {
-				return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "pool %d not found", lf.PoolId)
-			}
-
-			lfCoinTotalSupply := k.bankKeeper.GetSupply(ctx, lfCoinDenom).Amount
-			lpCoinTotalStaked := k.farmingKeeper.GetAllStakedCoinsByFarmer(ctx, reserveAddr).AmountOf(pool.PoolCoinDenom)
-			unfarmFee := sdk.ZeroInt() // TODO: TBD
-
-			// UnfarmedAmount = TotalStakedLPAmount / TotalSupplyLFAmount * UnfarmingLFAmount * (1 - UnfarmFee)
-			unfarmedAmt := lpCoinTotalStaked.Quo(lfCoinTotalSupply).Mul(msg.LFCoin.Amount).Mul(sdk.OneInt().Sub(unfarmFee))
-			unfarmedCoin := sdk.NewCoin(pool.PoolCoinDenom, unfarmedAmt)
-
-			// Send the unfarming LFCoin to module account and burn them.
-			if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, msg.GetFarmer(), types.ModuleName, sdk.NewCoins(msg.LFCoin)); err != nil {
-				return err
-			}
-			if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(msg.LFCoin)); err != nil {
-				return err
-			}
-
-			// Unstake and release corresponding pool coin to the farmer
-			if err := k.farmingKeeper.Unstake(ctx, reserveAddr, sdk.NewCoins(unfarmedCoin)); err != nil {
-				return err
-			}
-			if err := k.bankKeeper.SendCoins(ctx, reserveAddr, msg.GetFarmer(), sdk.NewCoins(unfarmedCoin)); err != nil {
-				return err
-			}
-
-			ctx.EventManager().EmitEvents(sdk.Events{
-				sdk.NewEvent(
-					types.EventTypeUnfarm,
-					sdk.NewAttribute(types.AttributeKeyPoolId, strconv.FormatUint(msg.PoolId, 10)),
-					sdk.NewAttribute(types.AttributeKeyFarmer, msg.Farmer),
-					sdk.NewAttribute(types.AttributeKeyUnfarmingCoin, msg.LFCoin.String()),
-					sdk.NewAttribute(types.AttributeKeyUnfarmedCoin, unfarmedCoin.String()),
-				),
-			})
-
-			break
-		}
-	}
 
 	return nil
 }

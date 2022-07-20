@@ -48,7 +48,7 @@ func (k Querier) LiquidFarms(c context.Context, req *types.QueryLiquidFarmsReque
 		liquidFarmsRes = append(liquidFarmsRes, types.LiquidFarmResponse{
 			PoolId:                   lf.PoolId,
 			LiquidFarmReserveAddress: reserveAcc.String(),
-			LFCoinDenom:              types.LFCoinDenom(lf.PoolId),
+			LFCoinDenom:              types.LiquidFarmCoinDenom(lf.PoolId),
 			QueuedCoin:               sdk.NewCoin(poolCoinDenom, queuedAmt),
 			StakedCoin:               sdk.NewCoin(poolCoinDenom, stakedAmt),
 		})
@@ -79,7 +79,7 @@ func (k Querier) LiquidFarm(c context.Context, req *types.QueryLiquidFarmRequest
 			liquidFarmRes = types.LiquidFarmResponse{
 				PoolId:                   lf.PoolId,
 				LiquidFarmReserveAddress: reserveAcc.String(),
-				LFCoinDenom:              types.LFCoinDenom(lf.PoolId),
+				LFCoinDenom:              types.LiquidFarmCoinDenom(lf.PoolId),
 				QueuedCoin:               sdk.NewCoin(poolCoinDenom, queuedAmt),
 				StakedCoin:               sdk.NewCoin(poolCoinDenom, stakedAmt),
 			}
