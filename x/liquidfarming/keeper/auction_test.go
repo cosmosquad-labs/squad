@@ -199,21 +199,35 @@ func (s *KeeperTestSuite) TestAfterAllocateRewards() {
 	pool := s.createPool(s.addr(0), pair.Id, utils.ParseCoins("100_000_000denom1, 100_000_000denom2"), true)
 	s.createLiquidFarm(types.NewLiquidFarm(pool.Id, sdk.ZeroInt(), sdk.ZeroInt()))
 
-	s.farm(pool.Id, s.addr(0), sdk.NewCoin(pool.PoolCoinDenom, sdk.NewInt(50_000_000)), true)
+	s.createPrivateFixedAmountPlan(s.addr(0), map[string]string{pool.PoolCoinDenom: "1"}, map[string]int64{"denom3": 1_000_000}, true)
+	s.farm(pool.Id, s.addr(1), sdk.NewCoin(pool.PoolCoinDenom, sdk.NewInt(50_000_000)), true)
 	s.advanceEpochDays() // QueuedCoins to StakedCoins
-	s.advanceEpochDays() // AllocateRewards
+	s.advanceEpochDays() // AllocateRewards hook is triggered to create first RewardsAuction
 
 	auctionId := s.keeper.GetLastRewardsAuctionId(s.ctx, pool.Id)
 	auction, found := s.keeper.GetRewardsAuction(s.ctx, pool.Id, auctionId)
 	s.Require().True(found)
 
-	s.placeBid(auction.PoolId, s.addr(0), sdk.NewInt64Coin(pool.PoolCoinDenom, 10_000_000), true)
-	s.placeBid(auction.PoolId, s.addr(1), sdk.NewInt64Coin(pool.PoolCoinDenom, 20_000_000), true)
-	s.placeBid(auction.PoolId, s.addr(2), sdk.NewInt64Coin(pool.PoolCoinDenom, 30_000_000), true)
+	s.placeBid(auction.PoolId, s.addr(1), sdk.NewInt64Coin(pool.PoolCoinDenom, 10_000_000), true)
+	s.placeBid(auction.PoolId, s.addr(2), sdk.NewInt64Coin(pool.PoolCoinDenom, 20_000_000), true)
+	s.placeBid(auction.PoolId, s.addr(3), sdk.NewInt64Coin(pool.PoolCoinDenom, 30_000_000), true)
 
+	// Farming rewards are accumulated
 	s.advanceEpochDays()
 
-	// stakedCoins := s.app.FarmingKeeper.GetAllStakedCoinsByFarmer(s.ctx, types.LiquidFarmReserveAddress(pool.Id))
-	// fmt.Println("StakedCoins: ", stakedCoins)
+	auction, found = s.keeper.GetRewardsAuction(s.ctx, auction.PoolId, auction.Id)
+	s.Require().True(found)
+	s.Require().Equal(types.AuctionStatusFinished, auction.Status)
 
+	// Check refunded pool coin amount
+	s.Require().Equal(sdk.NewInt(10_000_000), s.getBalance(s.addr(1), pool.PoolCoinDenom).Amount)
+	s.Require().Equal(sdk.NewInt(20_000_000), s.getBalance(s.addr(2), pool.PoolCoinDenom).Amount)
+	s.Require().Equal(sdk.ZeroInt(), s.getBalance(s.addr(3), pool.PoolCoinDenom).Amount)
+
+	// Check winner's balance to see if they received farming rewards
+	s.Require().Equal(sdk.NewInt(1_000_000), s.getBalance(s.addr(3), "denom3").Amount)
+
+	// Check re-staking amount
+	queuedCoins := s.app.FarmingKeeper.GetAllQueuedCoinsByFarmer(s.ctx, types.LiquidFarmReserveAddress(pool.Id))
+	s.Require().Equal(sdk.NewInt(30_000_000), queuedCoins.AmountOf(pool.PoolCoinDenom))
 }

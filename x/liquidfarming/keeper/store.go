@@ -138,11 +138,6 @@ func (k Keeper) SetRewardsAuction(ctx sdk.Context, auction types.RewardsAuction)
 	store.Set(types.GetRewardsAuctionKey(auction.PoolId, auction.Id), bz)
 }
 
-func (k Keeper) DeleteRewardsAuction(ctx sdk.Context, auction types.RewardsAuction) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetRewardsAuctionKey(auction.PoolId, auction.Id))
-}
-
 // GetRewardsAuctions returns all auctions in the store.
 func (k Keeper) GetRewardsAuctions(ctx sdk.Context) (auctions []types.RewardsAuction) {
 	k.IterateRewardsAuctions(ctx, func(auction types.RewardsAuction) (stop bool) {

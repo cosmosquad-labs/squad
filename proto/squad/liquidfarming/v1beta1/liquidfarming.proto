@@ -42,7 +42,12 @@ message RewardsAuction {
 
   AuctionStatus status = 8;
 
-  uint64 winner_bid_id = 9;
+  string winner = 9;
+
+  repeated cosmos.base.v1beta1.Coin rewards = 10 [
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.nullable)     = false
+  ];
 }
 
 // Bid defines ...

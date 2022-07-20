@@ -36,7 +36,8 @@ func NewRewardsAuction(
 		StartTime:             startTime,
 		EndTime:               endTime,
 		Status:                AuctionStatusStarted,
-		WinnerBidId:           0,
+		Winner:                "",
+		Rewards:               sdk.Coins{},
 	}
 }
 
@@ -57,6 +58,18 @@ func (a *RewardsAuction) Validate() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "auction status must be set correctly")
 	}
 	return nil
+}
+
+func (a *RewardsAuction) SetStatus(status AuctionStatus) {
+	a.Status = status
+}
+
+func (a *RewardsAuction) SetWinner(winner string) {
+	a.Winner = winner
+}
+
+func (a *RewardsAuction) SetRewards(rewards sdk.Coins) {
+	a.Rewards = rewards
 }
 
 func (a *RewardsAuction) GetSellingReserveAddress() sdk.AccAddress {

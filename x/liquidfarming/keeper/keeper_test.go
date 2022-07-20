@@ -13,6 +13,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	chain "github.com/cosmosquad-labs/squad/v2/app"
+	utils "github.com/cosmosquad-labs/squad/v2/types"
 	"github.com/cosmosquad-labs/squad/v2/x/farming"
 	farmingtypes "github.com/cosmosquad-labs/squad/v2/x/farming/types"
 	"github.com/cosmosquad-labs/squad/v2/x/liquidfarming/keeper"
@@ -55,22 +56,37 @@ func (s *KeeperTestSuite) fundAddr(addr sdk.AccAddress, amt sdk.Coins) {
 }
 
 func (s *KeeperTestSuite) createPrivateFixedAmountPlan(
-	creator sdk.AccAddress, stakingCoinWeights sdk.DecCoins,
-	startTime, endTime time.Time, epochAmt sdk.Coins) (farmingtypes.PlanI, error) {
+	creatorAcc sdk.AccAddress,
+	stakingCoinWeightsMap map[string]string,
+	epochAmountMap map[string]int64,
+	fund bool,
+) {
+	s.T().Helper()
+	stakingCoinWeights := sdk.NewDecCoins()
+	for denom, weight := range stakingCoinWeightsMap {
+		stakingCoinWeights = stakingCoinWeights.Add(sdk.NewDecCoinFromDec(denom, sdk.MustNewDecFromStr(weight)))
+	}
+
+	epochAmount := sdk.NewCoins()
+	for denom, amount := range epochAmountMap {
+		epochAmount = epochAmount.Add(sdk.NewInt64Coin(denom, amount))
+	}
+
+	if fund {
+		fees := s.app.FarmingKeeper.GetParams(s.ctx).PrivatePlanCreationFee
+		s.fundAddr(creatorAcc, epochAmount.Add(fees...))
+	}
+
 	msg := farmingtypes.NewMsgCreateFixedAmountPlan(
 		fmt.Sprintf("plan%d", s.app.FarmingKeeper.GetGlobalPlanId(s.ctx)+1),
-		creator, stakingCoinWeights,
-		startTime, endTime, epochAmt,
+		creatorAcc,
+		stakingCoinWeights,
+		utils.ParseTime("0001-01-01T00:00:00Z"),
+		utils.ParseTime("9999-12-31T00:00:00Z"),
+		epochAmount,
 	)
-	farmingPoolAcc, err := s.app.FarmingKeeper.DerivePrivatePlanFarmingPoolAcc(s.ctx, msg.Name)
-	if err != nil {
-		return nil, err
-	}
-	plan, err := s.app.FarmingKeeper.CreateFixedAmountPlan(s.ctx, msg, farmingPoolAcc, creator, farmingtypes.PlanTypePrivate)
-	if err != nil {
-		return nil, err
-	}
-	return plan, nil
+	_, err := s.app.FarmingKeeper.CreateFixedAmountPlan(s.ctx, msg, creatorAcc, creatorAcc, farmingtypes.PlanTypePrivate)
+	s.Require().NoError(err)
 }
 
 func (s *KeeperTestSuite) stake(farmerAcc sdk.AccAddress, amt sdk.Coins) {
