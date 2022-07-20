@@ -1,6 +1,9 @@
 package keeper_test
 
 import (
+	"fmt"
+	"math/rand"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -234,4 +237,19 @@ func (s *KeeperTestSuite) TestUnfarm_All() {
 
 	supply := s.app.BankKeeper.GetSupply(s.ctx, lfCoinDenom)
 	s.Require().Equal(sdk.ZeroInt(), supply.Amount)
+}
+
+func (s *KeeperTestSuite) TestMintingCal() {
+	for idx := 0; idx < 100000000; idx++ {
+		fmt.Println(idx)
+		lfCoinTotalSupply := sdk.NewInt(int64(rand.Intn(100000000000)))
+		queuedFarmingAmt := sdk.NewInt(int64(rand.Intn(100000000000)))
+		lpCoinTotalStaked := sdk.NewInt(int64(rand.Intn(100000000000)))
+
+		t1 := lfCoinTotalSupply.ToDec().Mul(queuedFarmingAmt.ToDec()).QuoTruncate(lpCoinTotalStaked.ToDec()).TruncateInt()
+		t2 := lfCoinTotalSupply.Mul(queuedFarmingAmt).Quo(lpCoinTotalStaked)
+		fmt.Println("t1: ", t1)
+		fmt.Println("t2: ", t2)
+		s.Require().Equal(t1, t2)
+	}
 }
