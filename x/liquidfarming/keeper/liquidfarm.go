@@ -15,11 +15,11 @@ import (
 func (k Keeper) Farm(ctx sdk.Context, msg *types.MsgFarm) error {
 	params := k.GetParams(ctx)
 	poolId := uint64(0)
-	minDepositAmt := sdk.ZeroInt()
+	minFarmAmt := sdk.ZeroInt()
 	for _, lf := range params.LiquidFarms {
 		if lf.PoolId == msg.PoolId {
 			poolId = lf.PoolId
-			minDepositAmt = lf.MinimumDepositAmount
+			minFarmAmt = lf.MinimumFarmAmount
 			break
 		}
 	}
@@ -30,8 +30,8 @@ func (k Keeper) Farm(ctx sdk.Context, msg *types.MsgFarm) error {
 	}
 
 	// Check if the farming coin amount exceeds minimum deposit amount
-	if msg.FarmingCoin.Amount.LT(minDepositAmt) {
-		return sdkerrors.Wrapf(types.ErrInsufficientFarmingAmount, "%s is smaller than %s", msg.FarmingCoin, minDepositAmt)
+	if msg.FarmingCoin.Amount.LT(minFarmAmt) {
+		return sdkerrors.Wrapf(types.ErrInsufficientFarmingAmount, "%s is smaller than %s", msg.FarmingCoin, minFarmAmt)
 	}
 
 	// Check that the corresponding pool must exist
@@ -52,7 +52,7 @@ func (k Keeper) Farm(ctx sdk.Context, msg *types.MsgFarm) error {
 	// Check if the depositor has sufficient balance of deposit coin
 	poolCoinBalance := k.bankKeeper.SpendableCoins(ctx, farmerAcc).AmountOf(pool.PoolCoinDenom)
 	if poolCoinBalance.LT(farmingCoin.Amount) {
-		return sdkerrors.Wrapf(types.ErrInsufficientFarmingAmount, "%s is smaller than %s", poolCoinBalance, minDepositAmt)
+		return sdkerrors.Wrapf(types.ErrInsufficientFarmingAmount, "%s is smaller than %s", poolCoinBalance, minFarmAmt)
 	}
 
 	// Reserve farming coins to reserve account
@@ -171,14 +171,11 @@ func (k Keeper) Unfarm(ctx sdk.Context, msg *types.MsgUnfarm) error {
 			}
 
 			lfCoinTotalSupply := k.bankKeeper.GetSupply(ctx, lfCoinDenom).Amount
-			lpCoinTotalStaked, found := k.farmingKeeper.GetTotalStakings(ctx, pool.PoolCoinDenom)
-			if !found {
-				return sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "TODO: describe...") // TODO: can it be not found?
-			}
+			lpCoinTotalStaked := k.farmingKeeper.GetAllStakedCoinsByFarmer(ctx, reserveAddr).AmountOf(pool.PoolCoinDenom)
 			unfarmFee := sdk.ZeroInt() // TODO: TBD
 
 			// UnfarmedAmount = TotalStakedLPAmount / TotalSupplyLFAmount * UnfarmingLFAmount * (1 - UnfarmFee)
-			unfarmedAmt := lpCoinTotalStaked.Amount.Quo(lfCoinTotalSupply).Mul(msg.LFCoin.Amount).Mul(sdk.OneInt().Sub(unfarmFee))
+			unfarmedAmt := lpCoinTotalStaked.Quo(lfCoinTotalSupply).Mul(msg.LFCoin.Amount).Mul(sdk.OneInt().Sub(unfarmFee))
 			unfarmedCoin := sdk.NewCoin(pool.PoolCoinDenom, unfarmedAmt)
 
 			// Send the unfarming LFCoin to module account and burn them.

@@ -17,11 +17,11 @@ const (
 )
 
 // NewLiquidFarm returns a new LiquidFarm.
-func NewLiquidFarm(poolId uint64, minDepositAmt, minBidAmount sdk.Int) LiquidFarm {
+func NewLiquidFarm(poolId uint64, minFarmAmt, minBidAmount sdk.Int) LiquidFarm {
 	return LiquidFarm{
-		PoolId:               poolId,
-		MinimumDepositAmount: minDepositAmt,
-		MinimumBidAmount:     minBidAmount,
+		PoolId:            poolId,
+		MinimumFarmAmount: minFarmAmt,
+		MinimumBidAmount:  minBidAmount,
 	}
 }
 

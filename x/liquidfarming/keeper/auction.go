@@ -12,13 +12,6 @@ import (
 	liquiditytypes "github.com/cosmosquad-labs/squad/v2/x/liquidity/types"
 )
 
-// GetNextAuctionIdWithUpdate increments rewards auction id by one and store it.
-func (k Keeper) GetNextAuctionIdWithUpdate(ctx sdk.Context, poolId uint64) uint64 {
-	id := k.GetLastRewardsAuctionId(ctx, poolId) + 1
-	k.SetRewardsAuctionId(ctx, poolId, id)
-	return id
-}
-
 func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) (types.Bid, error) {
 	auctionId := k.GetLastRewardsAuctionId(ctx, msg.PoolId)
 	auction, found := k.GetRewardsAuction(ctx, msg.PoolId, auctionId)
@@ -78,20 +71,22 @@ func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) (types.Bid, er
 }
 
 func (k Keeper) RefundBid(ctx sdk.Context, msg *types.MsgRefundBid) error {
-	bid, found := k.GetBid(ctx, msg.PoolId, msg.GetBidder())
-	if !found {
-		return sdkerrors.Wrap(sdkerrors.ErrNotFound, "bid not found")
-	}
-
 	auctionId := k.GetLastRewardsAuctionId(ctx, msg.PoolId)
 	auction, found := k.GetRewardsAuction(ctx, msg.PoolId, auctionId)
 	if !found {
-		return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "auction %d not found", auctionId)
+		return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "auction corresponds to pool %d not found", msg.PoolId)
 	}
 
-	_, found = k.GetWinningBid(ctx, msg.PoolId, auctionId)
+	winningBid, found := k.GetWinningBid(ctx, msg.PoolId, auctionId)
 	if found {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "winning bid cannot be refunded")
+		if winningBid.Bidder == msg.Bidder {
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "unable to refund winning bid")
+		}
+	}
+
+	bid, found := k.GetBid(ctx, msg.PoolId, msg.GetBidder())
+	if !found {
+		return sdkerrors.Wrap(sdkerrors.ErrNotFound, "bid not found")
 	}
 
 	if err := k.bankKeeper.SendCoins(ctx, auction.GetPayingReserveAddress(), msg.GetBidder(), sdk.NewCoins(bid.Amount)); err != nil {
@@ -111,40 +106,26 @@ func (k Keeper) RefundBid(ctx sdk.Context, msg *types.MsgRefundBid) error {
 	return nil
 }
 
-func (k Keeper) TerminateRewardsAuction(ctx sdk.Context) error {
-	/*
-		Loop through all existing RewardsAuctions
-		Get winning bidder
-		Harvest and distribute rewards to the winner
-		Set WinningBidId in the RewardsAuction
-		Stake bid amounts (auto-compound)
-	*/
-	// for _, auction := range k.GetRewardsAuctions(ctx) {
-
-	// }
-
-	return nil
+// getNextAuctionIdWithUpdate increments rewards auction id by one and store it.
+func (k Keeper) getNextAuctionIdWithUpdate(ctx sdk.Context, poolId uint64) uint64 {
+	id := k.GetLastRewardsAuctionId(ctx, poolId) + 1
+	k.SetRewardsAuctionId(ctx, poolId, id)
+	return id
 }
 
-// CreateRewardsAuctions ...
-func (k Keeper) CreateRewardsAuctions(ctx sdk.Context) error {
+func (k Keeper) CreateRewardsAuction(ctx sdk.Context, poolId uint64) {
 	currentEpochDays := k.farmingKeeper.GetCurrentEpochDays(ctx)
 	startTime := ctx.BlockTime()
 	endTime := startTime.Add(time.Duration(currentEpochDays) * farmingtypes.Day)
+	nextAuctionId := k.getNextAuctionIdWithUpdate(ctx, poolId)
+	poolCoinDenom := liquiditytypes.PoolCoinDenom(poolId)
 
-	for _, lf := range k.GetParams(ctx).LiquidFarms {
-		auction := types.NewRewardsAuction(
-			k.GetNextAuctionIdWithUpdate(ctx, lf.PoolId),
-			lf.PoolId,
-			liquiditytypes.PoolCoinDenom(lf.PoolId),
-			startTime,
-			endTime,
-		)
-		k.SetRewardsAuction(ctx, auction)
-	}
-	return nil
-}
-
-func (k Keeper) DistributeRewards(ctx sdk.Context) {
-
+	auction := types.NewRewardsAuction(
+		nextAuctionId,
+		poolId,
+		poolCoinDenom,
+		startTime,
+		endTime,
+	)
+	k.SetRewardsAuction(ctx, auction)
 }

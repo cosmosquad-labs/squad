@@ -10,7 +10,6 @@ import (
 	"github.com/cosmosquad-labs/squad/v2/x/liquidfarming/types"
 )
 
-// GetBid returns a bid for the given pool id and bidder address.
 func (k Keeper) GetBid(ctx sdk.Context, poolId uint64, bidder sdk.AccAddress) (bid types.Bid, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetBidKey(poolId, bidder))
@@ -21,11 +20,25 @@ func (k Keeper) GetBid(ctx sdk.Context, poolId uint64, bidder sdk.AccAddress) (b
 	return bid, true
 }
 
-// SetBid stores bid.
 func (k Keeper) SetBid(ctx sdk.Context, bid types.Bid) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&bid)
 	store.Set(types.GetBidKey(bid.PoolId, bid.GetBidder()), bz)
+}
+
+func (k Keeper) DeleteBid(ctx sdk.Context, bid types.Bid) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetBidKey(bid.PoolId, bid.GetBidder()))
+}
+
+// GetBidsByPoolId returns all bids by the pool id stored in the store.
+func (k Keeper) GetBidsByPoolId(ctx sdk.Context, poolId uint64) []types.Bid {
+	bids := []types.Bid{}
+	k.IterateBidsByPoolId(ctx, poolId, func(bid types.Bid) (stop bool) {
+		bids = append(bids, bid)
+		return false
+	})
+	return bids
 }
 
 func (k Keeper) GetWinningBid(ctx sdk.Context, poolId uint64, auctionId uint64) (bid types.Bid, found bool) {
@@ -42,11 +55,6 @@ func (k Keeper) SetWinningBid(ctx sdk.Context, bid types.Bid, auctionId uint64) 
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&bid)
 	store.Set(types.GetWinningBidKey(bid.PoolId, auctionId), bz)
-}
-
-func (k Keeper) DeleteBid(ctx sdk.Context, bid types.Bid) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetBidKey(bid.PoolId, bid.GetBidder()))
 }
 
 // GetLastRewardsAuctionId returns the last rewards auction id.
@@ -130,6 +138,11 @@ func (k Keeper) SetRewardsAuction(ctx sdk.Context, auction types.RewardsAuction)
 	store.Set(types.GetRewardsAuctionKey(auction.PoolId, auction.Id), bz)
 }
 
+func (k Keeper) DeleteRewardsAuction(ctx sdk.Context, auction types.RewardsAuction) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetRewardsAuctionKey(auction.PoolId, auction.Id))
+}
+
 // GetRewardsAuctions returns all auctions in the store.
 func (k Keeper) GetRewardsAuctions(ctx sdk.Context) (auctions []types.RewardsAuction) {
 	k.IterateRewardsAuctions(ctx, func(auction types.RewardsAuction) (stop bool) {
@@ -137,6 +150,22 @@ func (k Keeper) GetRewardsAuctions(ctx sdk.Context) (auctions []types.RewardsAuc
 		return false
 	})
 	return auctions
+}
+
+// IterateBidsByPoolId iterates through all bids by pool id stored in the store and
+// invokes callback function for each item.
+// Stops the iteration when the callback function returns true.
+func (k Keeper) IterateBidsByPoolId(ctx sdk.Context, poolId uint64, cb func(bid types.Bid) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, types.GetBidByPoolIdPrefix(poolId))
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		var bid types.Bid
+		k.cdc.MustUnmarshal(iter.Value(), &bid)
+		if cb(bid) {
+			break
+		}
+	}
 }
 
 // IterateQueuedFarmingsByFarmer iterates through all queued farmings

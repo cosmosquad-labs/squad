@@ -70,8 +70,8 @@ func validateLiquidFarms(i interface{}) error {
 		if liquidFarm.MinimumBidAmount.IsNegative() {
 			return fmt.Errorf("minimum bid amount can't be negative value: %s", liquidFarm.MinimumBidAmount)
 		}
-		if liquidFarm.MinimumDepositAmount.IsNegative() {
-			return fmt.Errorf("minimum deposit amount can't be negative value: %s", liquidFarm.MinimumBidAmount)
+		if liquidFarm.MinimumFarmAmount.IsNegative() {
+			return fmt.Errorf("minimum farm amount can't be negative value: %s", liquidFarm.MinimumFarmAmount)
 		}
 	}
 

@@ -175,7 +175,8 @@ func (k Querier) Pools(c context.Context, req *types.QueryPoolsRequest) (*types.
 		if accumulate {
 			pair := pairGetter(pool.PairId)
 			rx, ry := k.getPoolBalances(ctx, pool, pair)
-			poolsRes = append(poolsRes, types.NewPoolResponse(pool, sdk.NewCoins(rx, ry)))
+			ps := k.GetPoolCoinSupply(ctx, pool)
+			poolsRes = append(poolsRes, types.NewPoolResponse(pool, rx, ry, ps))
 		}
 
 		return true, nil
@@ -205,8 +206,11 @@ func (k Querier) Pool(c context.Context, req *types.QueryPoolRequest) (*types.Qu
 		return nil, status.Errorf(codes.NotFound, "pool %d doesn't exist", req.PoolId)
 	}
 
-	rx, ry := k.GetPoolBalances(ctx, pool)
-	return &types.QueryPoolResponse{Pool: types.NewPoolResponse(pool, sdk.NewCoins(rx, ry))}, nil
+	pair, _ := k.GetPair(ctx, pool.PairId)
+
+	rx, ry := k.getPoolBalances(ctx, pool, pair)
+	ps := k.GetPoolCoinSupply(ctx, pool)
+	return &types.QueryPoolResponse{Pool: types.NewPoolResponse(pool, rx, ry, ps)}, nil
 }
 
 // PoolByReserveAddress queries the specific pool by the reserve account address.
@@ -232,7 +236,8 @@ func (k Querier) PoolByReserveAddress(c context.Context, req *types.QueryPoolByR
 	}
 
 	rx, ry := k.GetPoolBalances(ctx, pool)
-	return &types.QueryPoolResponse{Pool: types.NewPoolResponse(pool, sdk.NewCoins(rx, ry))}, nil
+	ps := k.GetPoolCoinSupply(ctx, pool)
+	return &types.QueryPoolResponse{Pool: types.NewPoolResponse(pool, rx, ry, ps)}, nil
 }
 
 // PoolByPoolCoinDenom queries the specific pool by the pool coin denomination.
@@ -257,7 +262,8 @@ func (k Querier) PoolByPoolCoinDenom(c context.Context, req *types.QueryPoolByPo
 	}
 
 	rx, ry := k.GetPoolBalances(ctx, pool)
-	return &types.QueryPoolResponse{Pool: types.NewPoolResponse(pool, sdk.NewCoins(rx, ry))}, nil
+	ps := k.GetPoolCoinSupply(ctx, pool)
+	return &types.QueryPoolResponse{Pool: types.NewPoolResponse(pool, rx, ry, ps)}, nil
 }
 
 // DepositRequests queries all deposit requests.
@@ -497,10 +503,6 @@ func (k Querier) OrderBooks(c context.Context, req *types.QueryOrderBooksRequest
 		return nil, status.Error(codes.InvalidArgument, "pair ids must not be empty")
 	}
 
-	if len(req.TickPrecisions) == 0 {
-		return nil, status.Error(codes.InvalidArgument, "tick precisions must not be empty")
-	}
-
 	if req.NumTicks == 0 {
 		return nil, status.Error(codes.InvalidArgument, "number of ticks must not be 0")
 	}
@@ -511,14 +513,6 @@ func (k Querier) OrderBooks(c context.Context, req *types.QueryOrderBooksRequest
 			return nil, status.Errorf(codes.InvalidArgument, "duplicate pair id: %d", pairId)
 		}
 		pairIdSet[pairId] = struct{}{}
-	}
-
-	tickPrecSet := map[uint32]struct{}{}
-	for _, tickPrec := range req.TickPrecisions {
-		if _, ok := tickPrecSet[tickPrec]; ok {
-			return nil, status.Errorf(codes.InvalidArgument, "duplicate tick precision: %d", tickPrec)
-		}
-		tickPrecSet[tickPrec] = struct{}{}
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
@@ -561,32 +555,7 @@ func (k Querier) OrderBooks(c context.Context, req *types.QueryOrderBooksRequest
 		ov := ob.MakeView()
 		ov.Match()
 
-		var obs []types.OrderBookResponse
-		basePrice, found := types.OrderBookBasePrice(ov, int(tickPrec))
-		if !found {
-			for _, tickPrec := range req.TickPrecisions {
-				obs = append(obs, types.OrderBookResponse{
-					TickPrecision: tickPrec,
-					Buys:          nil,
-					Sells:         nil,
-				})
-			}
-			pairs = append(pairs, types.OrderBookPairResponse{
-				PairId:     pairId,
-				BasePrice:  sdk.Dec{},
-				OrderBooks: obs,
-			})
-			continue
-		}
-
-		for _, tickPrec := range req.TickPrecisions {
-			obs = append(obs, types.MakeOrderBookResponse(ov, int(tickPrec), int(req.NumTicks)))
-		}
-		pairs = append(pairs, types.OrderBookPairResponse{
-			PairId:     pairId,
-			BasePrice:  basePrice,
-			OrderBooks: obs,
-		})
+		pairs = append(pairs, types.MakeOrderBookPairResponse(pair.Id, ov, lowestPrice, highestPrice, int(tickPrec), int(req.NumTicks)))
 	}
 
 	return &types.QueryOrderBooksResponse{

@@ -137,10 +137,9 @@ func (s *KeeperTestSuite) createLiquidFarm(liquidFarm types.LiquidFarm) types.Li
 	return liquidFarm
 }
 
-func (s *KeeperTestSuite) createRewardsAuction() {
+func (s *KeeperTestSuite) createRewardsAuction(poolId uint64) {
 	s.T().Helper()
-	err := s.keeper.CreateRewardsAuctions(s.ctx)
-	s.Require().NoError(err)
+	s.keeper.CreateRewardsAuction(s.ctx, poolId)
 }
 
 func (s *KeeperTestSuite) farm(poolId uint64, farmer sdk.AccAddress, farmingCoin sdk.Coin, fund bool) {
@@ -170,8 +169,11 @@ func (s *KeeperTestSuite) cancelQueuedFarming(poolId uint64, farmer sdk.AccAddre
 	s.Require().NoError(err)
 }
 
-func (s *KeeperTestSuite) placeBid(poolId uint64, bidder sdk.AccAddress, biddingCoin sdk.Coin) types.Bid {
+func (s *KeeperTestSuite) placeBid(poolId uint64, bidder sdk.AccAddress, biddingCoin sdk.Coin, fund bool) types.Bid {
 	s.T().Helper()
+	if fund {
+		s.fundAddr(bidder, sdk.NewCoins(biddingCoin))
+	}
 
 	bid, err := s.keeper.PlaceBid(s.ctx, types.NewMsgPlaceBid(poolId, bidder.String(), biddingCoin))
 	s.Require().NoError(err)
