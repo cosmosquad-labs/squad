@@ -200,8 +200,8 @@ func (s *KeeperTestSuite) TestAfterAllocateRewards() {
 	s.createLiquidFarm(types.NewLiquidFarm(pool.Id, sdk.ZeroInt(), sdk.ZeroInt()))
 
 	s.farm(pool.Id, s.addr(0), sdk.NewCoin(pool.PoolCoinDenom, sdk.NewInt(50_000_000)), true)
-	s.advanceEpochDays()
-	s.advanceEpochDays()
+	s.advanceEpochDays() // QueuedCoins to StakedCoins
+	s.advanceEpochDays() // AllocateRewards
 
 	auctionId := s.keeper.GetLastRewardsAuctionId(s.ctx, pool.Id)
 	auction, found := s.keeper.GetRewardsAuction(s.ctx, pool.Id, auctionId)
@@ -209,7 +209,7 @@ func (s *KeeperTestSuite) TestAfterAllocateRewards() {
 
 	s.placeBid(auction.PoolId, s.addr(0), sdk.NewInt64Coin(pool.PoolCoinDenom, 10_000_000), true)
 	s.placeBid(auction.PoolId, s.addr(1), sdk.NewInt64Coin(pool.PoolCoinDenom, 20_000_000), true)
-	s.placeBid(auction.PoolId, s.addr(3), sdk.NewInt64Coin(pool.PoolCoinDenom, 30_000_000), true)
+	s.placeBid(auction.PoolId, s.addr(2), sdk.NewInt64Coin(pool.PoolCoinDenom, 30_000_000), true)
 
 	s.advanceEpochDays()
 

@@ -68,30 +68,36 @@ func (h Hooks) AfterAllocateRewards(ctx sdk.Context) {
 		auctionId := h.k.GetLastRewardsAuctionId(ctx, lf.PoolId)
 		auction, found := h.k.GetRewardsAuction(ctx, lf.PoolId, auctionId)
 		if !found {
-			fmt.Println("CreateRewardsAuction")
-			// Create first RewardsAuction
-			h.k.CreateRewardsAuction(ctx, lf.PoolId)
+			h.k.CreateRewardsAuction(ctx, lf.PoolId) // initial
 			continue
 		}
 
+		// Sanity checks
 		if auction.EndTime.Before(ctx.BlockTime()) && auction.Status != types.AuctionStatusStarted {
 			continue
 		}
 
 		winningBid, found := h.k.GetWinningBid(ctx, auction.PoolId, auction.Id)
 		if !found {
-			// TODO: wait for next epoch and rewards will be accumulated
-			fmt.Println("winningBid: ", winningBid)
+			h.k.DeleteAndCreateRewardsAuction(ctx, auction)
+			continue
 		}
-
-		fmt.Println("winningBid: ", winningBid)
 
 		reserveAddr := types.LiquidFarmReserveAddress(winningBid.PoolId)
 		poolCoinDenom := liquiditytypes.PoolCoinDenom(winningBid.PoolId)
-		rewards := h.k.farmingKeeper.AllRewards(ctx, reserveAddr)
 
 		stakedCoins := h.k.farmingKeeper.GetAllStakedCoinsByFarmer(ctx, reserveAddr)
+		rewards := h.k.farmingKeeper.Rewards(ctx, reserveAddr, poolCoinDenom)
+		unharvestedRewards, found := h.k.farmingKeeper.GetUnharvestedRewards(ctx, reserveAddr, poolCoinDenom)
+		if !found {
+			fmt.Println("NOT FOUND")
+		}
 
+		fmt.Println("UnharvestedRewards: ", unharvestedRewards)
+		fmt.Println("Balances: ", h.k.bankKeeper.GetAllBalances(ctx, reserveAddr))
+		fmt.Println("Balances: ", h.k.bankKeeper.GetAllBalances(ctx, farmingtypes.RewardsReserveAcc))
+
+		fmt.Println("winningBid: ", winningBid)
 		fmt.Println("stakedCoins: ", stakedCoins)
 		fmt.Println("rewards: ", rewards)
 
@@ -99,6 +105,8 @@ func (h Hooks) AfterAllocateRewards(ctx sdk.Context) {
 		if err := h.k.farmingKeeper.Harvest(ctx, reserveAddr, []string{poolCoinDenom}); err != nil {
 			panic(err)
 		}
+
+		fmt.Println("Balances (Harvest): ", h.k.bankKeeper.GetAllBalances(ctx, reserveAddr))
 
 		// Distribute
 		if err := h.k.bankKeeper.SendCoins(ctx, reserveAddr, winningBid.GetBidder(), rewards); err != nil {
@@ -113,10 +121,11 @@ func (h Hooks) AfterAllocateRewards(ctx sdk.Context) {
 			h.k.DeleteBid(ctx, bid)
 		}
 
-		// Delete
-		h.k.DeleteRewardsAuction(ctx, auction)
-
-		// Create new RewardsAuction for next epoch
-		h.k.CreateRewardsAuction(ctx, lf.PoolId)
+		h.k.DeleteAndCreateRewardsAuction(ctx, auction)
 	}
+}
+
+func (k Keeper) DeleteAndCreateRewardsAuction(ctx sdk.Context, auction types.RewardsAuction) {
+	k.DeleteRewardsAuction(ctx, auction)
+	k.CreateRewardsAuction(ctx, auction.PoolId)
 }
