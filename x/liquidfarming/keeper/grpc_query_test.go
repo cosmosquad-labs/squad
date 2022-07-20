@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	utils "github.com/cosmosquad-labs/squad/v2/types"
@@ -112,6 +114,59 @@ func (s *KeeperTestSuite) TestGRPCLiquidFarm() {
 	} {
 		s.Run(tc.name, func() {
 			resp, err := s.querier.LiquidFarm(sdk.WrapSDKContext(s.ctx), tc.req)
+			if tc.expectErr {
+				s.Require().Error(err)
+			} else {
+				s.Require().NoError(err)
+				tc.postRun(resp)
+			}
+		})
+	}
+}
+
+func (s *KeeperTestSuite) TestGRPCQueuedFarmings() {
+	pair := s.createPair(s.addr(0), "denom1", "denom2", true)
+	pool := s.createPool(s.addr(0), pair.Id, utils.ParseCoins("100_000_000denom1, 100_000_000denom2"), true)
+	s.createLiquidFarm(types.NewLiquidFarm(pool.Id, sdk.ZeroInt(), sdk.ZeroInt()))
+
+	s.deposit(s.addr(1), pool.Id, utils.ParseCoins("100_000_000denom1, 100_000_000denom2"), true)
+	s.deposit(s.addr(2), pool.Id, utils.ParseCoins("100_000_000denom1, 100_000_000denom2"), true)
+	s.deposit(s.addr(3), pool.Id, utils.ParseCoins("100_000_000denom1, 100_000_000denom2"), true)
+	s.nextBlock()
+
+	amount1, amount2, amount3 := sdk.NewInt(100_000), sdk.NewInt(500_000), sdk.NewInt(100_000_000)
+	s.farm(pool.Id, s.addr(1), sdk.NewCoin(pool.PoolCoinDenom, amount1), true)
+	s.farm(pool.Id, s.addr(2), sdk.NewCoin(pool.PoolCoinDenom, amount2), true)
+	s.farm(pool.Id, s.addr(3), sdk.NewCoin(pool.PoolCoinDenom, amount3), true)
+
+	for _, tc := range []struct {
+		name      string
+		req       *types.QueryQueuedFarmingsRequest
+		expectErr bool
+		postRun   func(*types.QueryQueuedFarmingsResponse)
+	}{
+		{
+			"nil request",
+			nil,
+			true,
+			nil,
+		},
+		{
+			"query all queued farmings",
+			&types.QueryQueuedFarmingsRequest{
+				PoolId: pool.Id,
+			},
+			false,
+			func(resp *types.QueryQueuedFarmingsResponse) {
+				for _, q := range resp.QueuedFarmings {
+					fmt.Println("q: ", q)
+				}
+				s.Require().Len(resp.QueuedFarmings, 3)
+			},
+		},
+	} {
+		s.Run(tc.name, func() {
+			resp, err := s.querier.QueuedFarmings(sdk.WrapSDKContext(s.ctx), tc.req)
 			if tc.expectErr {
 				s.Require().Error(err)
 			} else {

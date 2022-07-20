@@ -31,7 +31,7 @@ func (k Keeper) Farm(ctx sdk.Context, msg *types.MsgFarm) error {
 
 	// Check if the farming coin amount exceeds minimum deposit amount
 	if msg.FarmingCoin.Amount.LT(minFarmAmt) {
-		return sdkerrors.Wrapf(types.ErrInsufficientFarmingAmount, "%s is smaller than %s", msg.FarmingCoin, minFarmAmt)
+		return sdkerrors.Wrapf(types.ErrInsufficientFarmingAmount, "%s is smaller than minimum amount %s", msg.FarmingCoin.Amount, minFarmAmt)
 	}
 
 	// Check that the corresponding pool must exist

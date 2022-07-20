@@ -22,31 +22,27 @@ service Query {
   }
 
   rpc LiquidFarm(QueryLiquidFarmRequest) returns (QueryLiquidFarmResponse) {
-    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/pools/liquidfarms/{pool_id}";
+    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/liquidfarms/{pool_id}";
   }
 
   rpc QueuedFarmings(QueryQueuedFarmingsRequest) returns (QueryQueuedFarmingsResponse) {
     option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/pools/{pool_id}/queued_farmings";
   }
 
-  rpc QueuedFarming(QueryQueuedFarmingRequest) returns (QueryQueuedFarmingResponse) {
-    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/pools/{pool_id}/queued_farmings/{request_id}";
+  rpc QueuedFarmingsByFarmer(QueryQueuedFarmingsByFarmerRequest) returns (QueryQueuedFarmingsByFarmerResponse) {
+    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/pools/{pool_id}/queued_farmings/farmer/{farmer_address}";
   }
   
+  rpc RewardsAuction(QueryRewardsAuctionRequest) returns (QueryRewardsAuctionResponse) {
+    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/pools/{pool_id}/rewards_auction";
+  }
+
   rpc Bids(QueryBidsRequest) returns (QueryBidsResponse) {
     option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/pools/{pool_id}/bids";
   }
   
-  rpc Bid(QueryBidRequest) returns (QueryBidResponse) {
-    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/pools/{pool_id}/bids/{bid_id}";
-  }
-  
-  rpc RewardsAuctions(QueryRewardsAuctionsRequest) returns (QueryRewardsAuctionsResponse) {
-    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/auctions";
-  }
-  
-  rpc RewardsAuction(QueryRewardsAuctionRequest) returns (QueryRewardsAuctionResponse) {
-    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/auctions/{auction_id}";
+  rpc BidByBidder(QueryBidByBidderRequest) returns (QueryBidByBidderResponse) {
+    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/pools/{pool_id}/bids/bidder/{bidder_address}";
   }
 }
 
@@ -90,15 +86,27 @@ message QueryQueuedFarmingsResponse {
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-// QueryQueuedFarmingRequest is request type for the Query/QueuedFarming RPC method.
-message QueryQueuedFarmingRequest {
+// QueryQueuedFarmingsByFarmerRequest is request type for the Query/QueuedFarmingsByFarmer RPC method.
+message QueryQueuedFarmingsByFarmerRequest {
   uint64 pool_id = 1;
-  uint64 request_id = 2;
+  string farmer_address = 2;
 }
 
-// QueryQueuedFarmingResponse is response type for the Query/QueuedFarming RPC method.
-message QueryQueuedFarmingResponse {
+// QueryQueuedFarmingsByFarmerResponse is response type for the Query/QueuedFarmingsByFarmer RPC method.
+message QueryQueuedFarmingsByFarmerResponse {
   QueuedFarming queued_farming = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryRewardsAuctionRequest is request type for the Query/RewardsAuction RPC method.
+message QueryRewardsAuctionRequest {
+  uint64 pool_id = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryRewardsAuctionResponse is response type for the Query/RewardsAuction RPC method.
+message QueryRewardsAuctionResponse {
+  repeated RewardsAuction reward_auctions = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // QueryBidsRequest is request type for the Query/Bids RPC method.
@@ -114,37 +122,15 @@ message QueryBidsResponse {
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-// QueryBidRequest is the request type for the Query/Sequence RPC method.
-message QueryBidRequest {
+// QueryBidByBidderRequest is the request type for the Query/BidByBidder RPC method.
+message QueryBidByBidderRequest {
   uint64 pool_id = 1;
-  uint64 bid_id = 2;
+  string bidder_address = 2;
 }
 
-// QueryBidResponse is response type for the Query/Sequence RPC method.
-message QueryBidResponse {
+// QueryBidByBidderResponse is response type for the Query/BidByBidder RPC method.
+message QueryBidByBidderResponse {
   Bid bid = 1 [ (gogoproto.nullable) = false ];
-}
-
-// QueryRewardsAuctionsRequest is request type for the Query/RewardsAuctions RPC method.
-message QueryRewardsAuctionsRequest {
-  uint64 auction_id = 1;
-  cosmos.base.query.v1beta1.PageRequest pagination = 2;
-}
-
-// QueryRewardsAuctionsResponse is response type for the Query/RewardsAuctions RPC method.
-message QueryRewardsAuctionsResponse {
-  repeated RewardsAuction reward_auctions = 1 [ (gogoproto.nullable) = false ];
-  cosmos.base.query.v1beta1.PageResponse pagination = 2;
-}
-
-// QueryRewardsAuctionRequest is the request type for the Query/RewardsAuction RPC method.
-message QueryRewardsAuctionRequest {
-  uint64 auction_id = 1;
-}
-
-// QueryRewardsAuctionResponse is response type for the Query/RewardsAuction RPC method.
-message QueryRewardsAuctionResponse {
-  RewardsAuction reward_auction = 1 [ (gogoproto.nullable) = false ];
 }
 
 //

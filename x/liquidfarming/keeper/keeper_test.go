@@ -135,7 +135,7 @@ func (s *KeeperTestSuite) createPool(creator sdk.AccAddress, pairId uint64, depo
 	return pool
 }
 
-func (s *KeeperTestSuite) depositLiquidity(depositor sdk.AccAddress, poolId uint64, depositCoins sdk.Coins, fund bool) liquiditytypes.DepositRequest {
+func (s *KeeperTestSuite) deposit(depositor sdk.AccAddress, poolId uint64, depositCoins sdk.Coins, fund bool) liquiditytypes.DepositRequest {
 	s.T().Helper()
 	if fund {
 		s.fundAddr(depositor, depositCoins)
