@@ -318,7 +318,7 @@ func (k Keeper) ClaimIncentives(ctx sdk.Context, mmAddr sdk.AccAddress) error {
 
 func (k Keeper) ValidateDepositReservedAmount(ctx sdk.Context) error {
 	mmCount := 0
-	incentiveCount := 0
+	depositCount := 0
 	var totalAmt sdk.Coins
 	k.IterateMarketMakers(ctx, func(mm types.MarketMaker) (stop bool) {
 		if !mm.Eligible {
@@ -327,12 +327,12 @@ func (k Keeper) ValidateDepositReservedAmount(ctx sdk.Context) error {
 		return false
 	})
 	k.IterateDeposits(ctx, func(id types.Deposit) (stop bool) {
-		incentiveCount += 1
+		depositCount += 1
 		totalAmt = totalAmt.Add(id.Amount...)
 		return false
 	})
-	if mmCount != incentiveCount {
-		return fmt.Errorf("market maker number differs from the actual value; have %d, want %d", mmCount, incentiveCount)
+	if mmCount != depositCount {
+		return fmt.Errorf("market maker number differs from the actual value; have %d, want %d", mmCount, depositCount)
 	}
 
 	reserveBalance := k.bankKeeper.GetAllBalances(ctx, types.DepositReserveAcc)

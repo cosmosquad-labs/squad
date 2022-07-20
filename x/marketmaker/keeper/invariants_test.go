@@ -1,299 +1,172 @@
 package keeper_test
 
-//func (suite *KeeperTestSuite) TestStakingReservedAmountInvariant() {
-//	ctx := suite.ctx
-//	k := suite.keeper
-//	mmAddr := suite.addrs[0]
-//	params := k.GetParams(ctx)
-//
-//	// apply market maker for the unregistered pair 1
-//	err := k.ApplyMarketMaker(ctx, mmAddr, []uint64{1})
-//	id, found := k.GetDeposit(ctx, mmAddr, 1)
-//	suite.True(found)
-//
-//	// Check staked/queued coin amounts.
-//	suite.Require().True(coinsEq(
-//		params.DepositAmount,
-//		k.GetAllStakedCoinsByFarmer(ctx, suite.addrs[0]),
-//	))
-//	suite.Require().True(coinsEq(
-//		sdk.NewCoins(sdk.NewInt64Coin(denom1, 500000)),
-//		k.GetAllQueuedCoinsByFarmer(ctx, suite.addrs[0]),
-//	))
-//
-//	// This is normal state, must not be broken.
-//	_, broken := farmingkeeper.StakingReservedAmountInvariant(k)(ctx)
-//	suite.Require().False(broken)
-//
-//	staking, _ := k.GetStaking(ctx, denom1, suite.addrs[0])
-//
-//	// Staking amount in the store <= balance of staking reserve acc. This should be OK.
-//	staking.Amount = sdk.NewInt(999999)
-//	k.SetStaking(ctx, denom1, suite.addrs[0], staking)
-//	_, broken = farmingkeeper.StakingReservedAmountInvariant(k)(ctx)
-//	suite.Require().False(broken)
-//
-//	// Staking amount in the store > balance of staking reserve acc. This shouldn't be OK.
-//	staking.Amount = sdk.NewInt(1000001)
-//	k.SetStaking(ctx, denom1, suite.addrs[0], staking)
-//	_, broken = farmingkeeper.StakingReservedAmountInvariant(k)(ctx)
-//	suite.Require().True(broken)
-//
-//	// Reset to the original state.
-//	staking.Amount = sdk.NewInt(1000000)
-//	k.SetStaking(ctx, denom1, suite.addrs[0], staking)
-//	_, broken = farmingkeeper.StakingReservedAmountInvariant(k)(ctx)
-//	suite.Require().False(broken)
-//
-//	// Send coins into the staking reserve acc.
-//	// Staking amount in the store <= balance of staking reserve acc. This should be OK.
-//	err := suite.app.BankKeeper.SendCoins(
-//		ctx, suite.addrs[1], types.StakingReserveAcc(denom1), sdk.NewCoins(sdk.NewInt64Coin(denom1, 1)))
-//	suite.Require().NoError(err)
-//	_, broken = farmingkeeper.StakingReservedAmountInvariant(k)(ctx)
-//	suite.Require().False(broken)
-//
-//	// Send coins from staking reserve acc to another acc.
-//	// Staking amount in the store < balance of staking reserve acc. This shouldn't be OK.
-//	err = suite.app.BankKeeper.SendCoins(
-//		ctx, types.StakingReserveAcc(denom1), suite.addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom1, 2)))
-//	suite.Require().NoError(err)
-//	_, broken = farmingkeeper.StakingReservedAmountInvariant(k)(ctx)
-//	suite.Require().True(broken)
-//}
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
-//
-//func (suite *KeeperTestSuite) TestRemainingRewardsAmountInvariant() {
-//	k, ctx := suite.keeper, suite.ctx
-//
-//	suite.CreateFixedAmountPlan(suite.addrs[4], map[string]string{denom1: "1"}, map[string]int64{denom3: 1000000})
-//
-//	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)))
-//	suite.advanceEpochDays()
-//	suite.advanceEpochDays()
-//	suite.advanceEpochDays()
-//
-//	_, broken := farmingkeeper.RemainingRewardsAmountInvariant(k)(ctx)
-//	suite.Require().False(broken)
-//
-//	// Withdrawable rewards amount in the store > balance of rewards reserve acc.
-//	// Should not be OK.
-//	k.SetHistoricalRewards(ctx, denom1, 2, types.HistoricalRewards{
-//		CumulativeUnitRewards: sdk.NewDecCoins(sdk.NewInt64DecCoin(denom3, 3)),
-//	})
-//	_, broken = farmingkeeper.RemainingRewardsAmountInvariant(k)(ctx)
-//	suite.Require().True(broken)
-//
-//	// Withdrawable rewards amount in the store <= balance of rewards reserve acc.
-//	// Should be OK.
-//	k.SetHistoricalRewards(ctx, denom1, 2, types.HistoricalRewards{
-//		CumulativeUnitRewards: sdk.NewDecCoins(sdk.NewInt64DecCoin(denom3, 1)),
-//	})
-//	_, broken = farmingkeeper.RemainingRewardsAmountInvariant(k)(ctx)
-//	suite.Require().False(broken)
-//
-//	// Reset.
-//	k.SetHistoricalRewards(ctx, denom1, 2, types.HistoricalRewards{
-//		CumulativeUnitRewards: sdk.NewDecCoins(sdk.NewInt64DecCoin(denom3, 2)),
-//	})
-//	_, broken = farmingkeeper.RemainingRewardsAmountInvariant(k)(ctx)
-//	suite.Require().False(broken)
-//
-//	// Send coins into the rewards reserve acc.
-//	// Should be OK.
-//	err := suite.app.BankKeeper.SendCoins(
-//		ctx, suite.addrs[1], types.RewardsReserveAcc, sdk.NewCoins(sdk.NewInt64Coin(denom3, 1)))
-//	suite.Require().NoError(err)
-//	_, broken = farmingkeeper.RemainingRewardsAmountInvariant(k)(ctx)
-//	suite.Require().False(broken)
-//
-//	// Send coins from the rewards reserve acc to another acc.
-//	// Should not be OK.
-//	err = suite.app.BankKeeper.SendCoins(
-//		ctx, types.RewardsReserveAcc, suite.addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom3, 2)))
-//	suite.Require().NoError(err)
-//	_, broken = farmingkeeper.RemainingRewardsAmountInvariant(k)(ctx)
-//	suite.Require().True(broken)
-//}
-//
-//func (suite *KeeperTestSuite) TestNonNegativeOutstandingRewardsInvariant() {
-//	k, ctx := suite.keeper, suite.ctx
-//
-//	k.SetOutstandingRewards(ctx, denom1, types.OutstandingRewards{
-//		Rewards: sdk.NewDecCoins(sdk.NewInt64DecCoin(denom3, 1000000)),
-//	})
-//	_, broken := farmingkeeper.NonNegativeOutstandingRewardsInvariant(k)(ctx)
-//	suite.Require().False(broken)
-//
-//	// Zero-amount outstanding rewards
-//	// It's acceptable, and for the initial epoch, the outstanding rewards is set to 0.
-//	k.SetOutstandingRewards(ctx, denom2, types.OutstandingRewards{
-//		Rewards: sdk.DecCoins{},
-//	})
-//	_, broken = farmingkeeper.NonNegativeOutstandingRewardsInvariant(k)(ctx)
-//	suite.Require().False(broken)
-//
-//	// Delete the zero-amount outstanding rewards.
-//	k.DeleteOutstandingRewards(ctx, denom2)
-//
-//	// Negative-amount outstanding rewards
-//	// This should not be OK.
-//	k.SetOutstandingRewards(ctx, denom2, types.OutstandingRewards{
-//		Rewards: sdk.DecCoins{sdk.DecCoin{Denom: denom3, Amount: sdk.NewDec(-1)}},
-//	})
-//	_, broken = farmingkeeper.NonNegativeOutstandingRewardsInvariant(k)(ctx)
-//	suite.Require().True(broken)
-//}
-//
-//func (suite *KeeperTestSuite) TestOutstandingRewardsAmountInvariant() {
-//	k, ctx := suite.keeper, suite.ctx
-//
-//	suite.CreateFixedAmountPlan(suite.addrs[4], map[string]string{denom1: "1"}, map[string]int64{denom3: 1000000})
-//
-//	suite.Stake(suite.addrs[0], sdk.NewCoins(sdk.NewInt64Coin(denom1, 1000000)))
-//	suite.advanceEpochDays()
-//	suite.advanceEpochDays()
-//
-//	_, broken := farmingkeeper.OutstandingRewardsAmountInvariant(k)(ctx)
-//	suite.Require().False(broken)
-//
-//	// Outstanding rewards amount > balance of rewards reserve acc.
-//	// Should not be OK.
-//	k.SetOutstandingRewards(ctx, denom1, types.OutstandingRewards{
-//		Rewards: sdk.NewDecCoins(sdk.NewInt64DecCoin(denom3, 1000001)),
-//	})
-//	_, broken = farmingkeeper.OutstandingRewardsAmountInvariant(k)(ctx)
-//	suite.Require().True(broken)
-//
-//	// Outstanding rewards amount <= balance of rewards reserve acc.
-//	// Should be OK.
-//	k.SetOutstandingRewards(ctx, denom1, types.OutstandingRewards{
-//		Rewards: sdk.NewDecCoins(sdk.NewInt64DecCoin(denom3, 999999)),
-//	})
-//	_, broken = farmingkeeper.OutstandingRewardsAmountInvariant(k)(ctx)
-//	suite.Require().False(broken)
-//
-//	// Reset.
-//	k.SetOutstandingRewards(ctx, denom1, types.OutstandingRewards{
-//		Rewards: sdk.NewDecCoins(sdk.NewInt64DecCoin(denom3, 1000000)),
-//	})
-//	_, broken = farmingkeeper.OutstandingRewardsAmountInvariant(k)(ctx)
-//	suite.Require().False(broken)
-//
-//	// Send coins into the rewards reserve acc. Should be OK.
-//	err := suite.app.BankKeeper.SendCoins(
-//		ctx, suite.addrs[1], types.RewardsReserveAcc, sdk.NewCoins(sdk.NewInt64Coin(denom3, 1)))
-//	suite.Require().NoError(err)
-//	_, broken = farmingkeeper.OutstandingRewardsAmountInvariant(k)(ctx)
-//	suite.Require().False(broken)
-//
-//	// Send coins from the rewards reserve acc to another acc. Should not be OK.
-//	err = suite.app.BankKeeper.SendCoins(
-//		ctx, types.RewardsReserveAcc, suite.addrs[1], sdk.NewCoins(sdk.NewInt64Coin(denom3, 2)))
-//	suite.Require().NoError(err)
-//	_, broken = farmingkeeper.OutstandingRewardsAmountInvariant(k)(ctx)
-//	suite.Require().True(broken)
-//}
-//
-//func (suite *KeeperTestSuite) TestUnharvestedRewardsAmountInvariant() {
-//	k, ctx := suite.keeper, suite.ctx
-//
-//	_, err := suite.createPublicFixedAmountPlan(
-//		suite.addrs[4], suite.addrs[4], parseDecCoins("1denom1"),
-//		sampleStartTime, sampleEndTime, utils.ParseCoins("1000000denom3"))
-//	suite.Require().NoError(err)
-//
-//	suite.Stake(suite.addrs[0], utils.ParseCoins("1000000denom1"))
-//	farming.EndBlocker(suite.ctx, suite.keeper)
-//	suite.advanceEpochDays() // rewards distribution
-//
-//	suite.Stake(suite.addrs[0], utils.ParseCoins("1000000denom1"))
-//	suite.advanceEpochDays() // rewards distribution
-//
-//	suite.Require().True(coinsEq(utils.ParseCoins("1000000denom3"), suite.AllRewards(suite.addrs[0])))
-//	suite.Require().True(coinsEq(utils.ParseCoins("1000000denom3"), suite.allUnharvestedRewards(suite.addrs[0])))
-//
-//	_, broken := farmingkeeper.UnharvestedRewardsAmountInvariant(k)(ctx)
-//	suite.Require().False(broken)
-//
-//	// Unharvested rewards amount > balances of unharvested rewards reserve account.
-//	// Should not be OK.
-//	k.SetUnharvestedRewards(ctx, suite.addrs[0], denom1, types.UnharvestedRewards{
-//		Rewards: utils.ParseCoins("1000001denom3"),
-//	})
-//	_, broken = farmingkeeper.UnharvestedRewardsAmountInvariant(k)(ctx)
-//	suite.Require().True(broken)
-//
-//	// Unharvested rewards amount <= balances of unharvested rewards reserve account.
-//	// Should be OK.
-//	k.SetUnharvestedRewards(ctx, suite.addrs[0], denom1, types.UnharvestedRewards{
-//		Rewards: utils.ParseCoins("999999denom3"),
-//	})
-//	_, broken = farmingkeeper.UnharvestedRewardsAmountInvariant(k)(ctx)
-//	suite.Require().False(broken)
-//
-//	// Reset.
-//	k.SetUnharvestedRewards(ctx, suite.addrs[0], denom1, types.UnharvestedRewards{
-//		Rewards: utils.ParseCoins("1000000denom3"),
-//	})
-//	_, broken = farmingkeeper.UnharvestedRewardsAmountInvariant(k)(ctx)
-//	suite.Require().False(broken)
-//
-//	// Send coins into the unharvested rewards reserve account. Should be OK.
-//	err = suite.app.BankKeeper.SendCoins(
-//		ctx, suite.addrs[1], types.UnharvestedRewardsReserveAcc, utils.ParseCoins("1denom3"))
-//	suite.Require().NoError(err)
-//	_, broken = farmingkeeper.UnharvestedRewardsAmountInvariant(k)(ctx)
-//	suite.Require().False(broken)
-//
-//	// Send coins from the unharvested rewards reserve account to another acc. Should not be OK.
-//	err = suite.app.BankKeeper.SendCoins(
-//		ctx, types.UnharvestedRewardsReserveAcc, suite.addrs[1], utils.ParseCoins("2denom3"))
-//	suite.Require().NoError(err)
-//	_, broken = farmingkeeper.UnharvestedRewardsAmountInvariant(k)(ctx)
-//	suite.Require().True(broken)
-//}
-//
-//func (suite *KeeperTestSuite) TestNonNegativeHistoricalRewardsInvariant() {
-//	k, ctx := suite.keeper, suite.ctx
-//
-//	// This is normal.
-//	k.SetHistoricalRewards(ctx, denom1, 1, types.HistoricalRewards{
-//		CumulativeUnitRewards: sdk.NewDecCoins(sdk.NewInt64DecCoin(denom3, 1000000)),
-//	})
-//	_, broken := farmingkeeper.NonNegativeHistoricalRewardsInvariant(k)(ctx)
-//	suite.Require().False(broken)
-//
-//	// Zero-amount historical rewards
-//	k.SetHistoricalRewards(ctx, denom2, 1, types.HistoricalRewards{
-//		CumulativeUnitRewards: sdk.DecCoins{},
-//	})
-//	_, broken = farmingkeeper.NonNegativeHistoricalRewardsInvariant(k)(ctx)
-//	suite.Require().False(broken)
-//
-//	// Negative-amount historical rewards
-//	k.SetHistoricalRewards(ctx, denom2, 1, types.HistoricalRewards{
-//		CumulativeUnitRewards: sdk.DecCoins{sdk.DecCoin{Denom: denom3, Amount: sdk.NewDec(-1)}},
-//	})
-//	_, broken = farmingkeeper.NonNegativeHistoricalRewardsInvariant(k)(ctx)
-//	suite.Require().True(broken)
-//}
-//
-//func (suite *KeeperTestSuite) TestPositiveTotalStakingsAmountInvariant() {
-//	k, ctx := suite.keeper, suite.ctx
-//
-//	// This is normal.
-//	k.SetTotalStakings(ctx, denom1, types.TotalStakings{Amount: sdk.NewInt(1000000)})
-//	_, broken := farmingkeeper.PositiveTotalStakingsAmountInvariant(k)(ctx)
-//	suite.Require().False(broken)
-//
-//	// Zero-amount total stakings.
-//	k.SetTotalStakings(ctx, denom1, types.TotalStakings{Amount: sdk.ZeroInt()})
-//	_, broken = farmingkeeper.PositiveTotalStakingsAmountInvariant(k)(ctx)
-//	suite.Require().True(broken)
-//
-//	// Negative-amount total stakings.
-//	k.SetTotalStakings(ctx, denom1, types.TotalStakings{Amount: sdk.NewInt(-1)})
-//	_, broken = farmingkeeper.PositiveTotalStakingsAmountInvariant(k)(ctx)
-//	suite.Require().True(broken)
-//}
+	"github.com/cosmosquad-labs/squad/v2/x/marketmaker/keeper"
+	"github.com/cosmosquad-labs/squad/v2/x/marketmaker/types"
+)
+
+func (suite *KeeperTestSuite) TestDepositReservedAmountInvariant() {
+	ctx := suite.ctx
+	k := suite.keeper
+	mmAddr := suite.addrs[0]
+	mmAddr2 := suite.addrs[1]
+	params := k.GetParams(ctx)
+
+	// This is normal state, must not be broken.
+	_, broken := keeper.DepositReservedAmountInvariant(k)(ctx)
+	suite.Require().False(broken)
+
+	// apply market maker
+	err := k.ApplyMarketMaker(ctx, mmAddr, []uint64{1, 2})
+	suite.Require().NoError(err)
+	err = k.ApplyMarketMaker(ctx, mmAddr2, []uint64{3})
+	suite.Require().NoError(err)
+
+	_, found := k.GetDeposit(ctx, mmAddr, 1)
+	suite.True(found)
+
+	_, found = k.GetDeposit(ctx, mmAddr, 2)
+	suite.True(found)
+
+	_, found = k.GetDeposit(ctx, mmAddr2, 3)
+	suite.True(found)
+
+	balanceReserveAcc := suite.app.BankKeeper.GetAllBalances(ctx, types.DepositReserveAcc)
+	suite.Require().EqualValues(params.DepositAmount.Add(params.DepositAmount...).Add(params.DepositAmount...), balanceReserveAcc)
+
+	// This is normal state, must not be broken.
+	_, broken = keeper.DepositReservedAmountInvariant(k)(ctx)
+	suite.Require().False(broken)
+
+	mmPair2, found := k.GetMarketMaker(ctx, mmAddr, 2)
+	suite.True(found)
+
+	// manipulate eligible of the market maker to break invariant
+	mmPair2.Eligible = true
+	k.SetMarketMaker(ctx, mmPair2)
+
+	// broken deposit reserved count invariant
+	_, broken = keeper.DepositReservedAmountInvariant(k)(ctx)
+	suite.Require().True(broken)
+
+	// recovery
+	mmPair2.Eligible = false
+	k.SetMarketMaker(ctx, mmPair2)
+
+	// Send coins from deposit reserve acc to break deposit amount invariant
+	err = suite.app.BankKeeper.SendCoins(
+		ctx, types.DepositReserveAcc, suite.addrs[3], sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 1)))
+	suite.Require().NoError(err)
+
+	// broken deposit reserved amount invariant
+	_, broken = keeper.DepositReservedAmountInvariant(k)(ctx)
+	suite.Require().True(broken)
+
+	// receive coins on deposit reserve acc to recover invariant
+	err = suite.app.BankKeeper.SendCoins(
+		ctx, suite.addrs[3], types.DepositReserveAcc, sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 2)))
+	suite.Require().NoError(err)
+
+	_, broken = keeper.DepositReservedAmountInvariant(k)(ctx)
+	suite.Require().False(broken)
+}
+
+func (suite *KeeperTestSuite) TestIncentiveReservedAmountInvariant() {
+	ctx := suite.ctx
+	k := suite.keeper
+	mmAddr := suite.addrs[0]
+	mmAddr2 := suite.addrs[1]
+
+	// set incentive budget
+	params := k.GetParams(ctx)
+	params.IncentiveBudgetAddress = suite.addrs[5].String()
+	k.SetParams(ctx, params)
+
+	// This is normal state, must not be broken.
+	_, broken := keeper.IncentiveReservedAmountInvariant(k)(ctx)
+	suite.Require().False(broken)
+
+	// apply market maker
+	err := k.ApplyMarketMaker(ctx, mmAddr, []uint64{1, 2})
+	suite.Require().NoError(err)
+	err = k.ApplyMarketMaker(ctx, mmAddr2, []uint64{3})
+	suite.Require().NoError(err)
+
+	// include market maker
+	proposal := types.NewMarketMakerProposal("title", "description", []types.MarketMakerHandle{
+		{mmAddr.String(), 1},
+		{mmAddr.String(), 2},
+		{mmAddr2.String(), 3},
+	}, nil, nil, nil)
+	suite.handleProposal(proposal)
+
+	incentiveAmount := sdk.NewInt(500000000)
+	incentiveCoins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, incentiveAmount))
+
+	// submit incentive distribution proposal
+	proposal = types.NewMarketMakerProposal("title", "description", nil, nil, nil,
+		[]types.IncentiveDistribution{
+			{
+				Address: mmAddr.String(),
+				PairId:  1,
+				Amount:  incentiveCoins,
+			},
+			{
+				Address: mmAddr.String(),
+				PairId:  2,
+				Amount:  incentiveCoins,
+			},
+			{
+				Address: mmAddr2.String(),
+				PairId:  3,
+				Amount:  incentiveCoins,
+			},
+		})
+	suite.handleProposal(proposal)
+
+	balanceReserveAcc := suite.app.BankKeeper.GetAllBalances(ctx, types.ClaimableIncentiveReserveAcc)
+	suite.Require().EqualValues(incentiveCoins.Add(incentiveCoins...).Add(incentiveCoins...), balanceReserveAcc)
+
+	// This is normal state, must not be broken.
+	_, broken = keeper.IncentiveReservedAmountInvariant(k)(ctx)
+	suite.Require().False(broken)
+
+	incentive, found := k.GetIncentive(ctx, mmAddr)
+	suite.True(found)
+	suite.Require().EqualValues(incentiveCoins.Add(incentiveCoins...), incentive.Claimable)
+
+	incentive2, found := k.GetIncentive(ctx, mmAddr2)
+	suite.True(found)
+	suite.Require().EqualValues(incentiveCoins, incentive2.Claimable)
+
+	// manipulate claimable amount of the market maker to break invariant
+	incentive2.Claimable = incentive2.Claimable.Add(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1)))
+	k.SetIncentive(ctx, incentive2)
+
+	// broken incentive reserved invariant
+	_, broken = keeper.IncentiveReservedAmountInvariant(k)(ctx)
+	suite.Require().True(broken)
+
+	// recovery
+	incentive2.Claimable = incentiveCoins
+	k.SetIncentive(ctx, incentive2)
+
+	// Send coins from incentive reserve acc to break deposit amount invariant
+	err = suite.app.BankKeeper.SendCoins(
+		ctx, types.ClaimableIncentiveReserveAcc, suite.addrs[3], sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 1)))
+	suite.Require().NoError(err)
+
+	// broken incentive reserved amount invariant
+	_, broken = keeper.IncentiveReservedAmountInvariant(k)(ctx)
+	suite.Require().True(broken)
+
+	// receive coins on incentive reserve acc to recover invariant
+	err = suite.app.BankKeeper.SendCoins(
+		ctx, suite.addrs[3], types.ClaimableIncentiveReserveAcc, sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 2)))
+	suite.Require().NoError(err)
+
+	_, broken = keeper.IncentiveReservedAmountInvariant(k)(ctx)
+	suite.Require().False(broken)
+}
