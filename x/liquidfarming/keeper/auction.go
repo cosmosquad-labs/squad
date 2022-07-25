@@ -17,32 +17,38 @@ func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) (types.Bid, er
 	auctionId := k.GetLastRewardsAuctionId(ctx, msg.PoolId)
 	auction, found := k.GetRewardsAuction(ctx, msg.PoolId, auctionId)
 	if !found {
-		return types.Bid{}, sdkerrors.Wrapf(sdkerrors.ErrNotFound, "auction %d not found", auctionId)
+		return types.Bid{},
+			sdkerrors.Wrapf(sdkerrors.ErrNotFound, "auction %d not found", auctionId)
 	}
 
 	liquidFarm, found := k.GetLiquidFarm(ctx, msg.PoolId)
 	if !found {
-		return types.Bid{}, sdkerrors.Wrapf(sdkerrors.ErrNotFound, "liquid farm with pool %d not found", msg.PoolId)
+		return types.Bid{},
+			sdkerrors.Wrapf(sdkerrors.ErrNotFound, "liquid farm with pool %d not found", msg.PoolId)
 	}
 
 	balance := k.bankKeeper.SpendableCoins(ctx, msg.GetBidder()).AmountOf(msg.BiddingCoin.Denom)
 	if balance.LT(msg.BiddingCoin.Amount) {
-		return types.Bid{}, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "%s is smaller than %s", balance, msg.BiddingCoin.Amount)
+		return types.Bid{},
+			sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "%s is smaller than %s", balance, msg.BiddingCoin.Amount)
 	}
 
 	if msg.BiddingCoin.Amount.LT(liquidFarm.MinimumBidAmount) {
-		return types.Bid{}, sdkerrors.Wrapf(types.ErrInsufficientBidAmount, "%s is smaller than %s", msg.BiddingCoin.Amount, liquidFarm.MinimumBidAmount)
+		return types.Bid{},
+			sdkerrors.Wrapf(types.ErrInsufficientBidAmount, "%s is smaller than %s", msg.BiddingCoin.Amount, liquidFarm.MinimumBidAmount)
 	}
 
 	_, found = k.GetBid(ctx, auctionId, msg.GetBidder())
 	if found {
-		return types.Bid{}, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "bid already exists by %s; refund bid is required to place new bid", msg.Bidder)
+		return types.Bid{},
+			sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "bid already exists by %s; refund bid is required to place new bid", msg.Bidder)
 	}
 
 	winningBid, found := k.GetWinningBid(ctx, msg.PoolId, auctionId)
 	if found {
 		if winningBid.Amount.IsGTE(msg.BiddingCoin) {
-			return types.Bid{}, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "%s is smaller than winning bid amount %s", msg.BiddingCoin.Amount, winningBid.Amount)
+			return types.Bid{},
+				sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "%s is smaller than winning bid amount %s", msg.BiddingCoin.Amount, winningBid.Amount)
 		}
 	}
 
