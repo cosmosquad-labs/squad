@@ -14,11 +14,11 @@ var (
 
 // Message types for the module
 const (
-	TypeMsgFarm                             = "farm"
-	TypeMsgUnfarm                           = "unfarm"
-	TypeMsgCancelQueuedFarmingQueuedFarming = "cancel_queued_farming"
-	TypeMsgPlaceBid                         = "place_bid"
-	TypeMsgRefundBid                        = "refund_bid"
+	TypeMsgFarm                = "farm"
+	TypeMsgUnfarm              = "unfarm"
+	TypeMsgCancelQueuedFarming = "cancel_queued_farming"
+	TypeMsgPlaceBid            = "place_bid"
+	TypeMsgRefundBid           = "refund_bid"
 )
 
 // NewMsgFarm creates a new MsgFarm
@@ -130,7 +130,7 @@ func NewMsgCancelQueuedFarming(poolId uint64, farmer string, unfarmingCoin sdk.C
 
 func (msg MsgCancelQueuedFarming) Route() string { return RouterKey }
 
-func (msg MsgCancelQueuedFarming) Type() string { return TypeMsgCancelQueuedFarmingQueuedFarming }
+func (msg MsgCancelQueuedFarming) Type() string { return TypeMsgCancelQueuedFarming }
 
 func (msg MsgCancelQueuedFarming) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Farmer); err != nil {
