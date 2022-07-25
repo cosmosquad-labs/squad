@@ -36,7 +36,7 @@ func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) (types.Bid, er
 
 	_, found = k.GetBid(ctx, auctionId, msg.GetBidder())
 	if found {
-		return types.Bid{}, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "bid by %s already exists", msg.Bidder)
+		return types.Bid{}, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "bid already exists by %s; refund bid is required to place new bid", msg.Bidder)
 	}
 
 	winningBid, found := k.GetWinningBid(ctx, msg.PoolId, auctionId)

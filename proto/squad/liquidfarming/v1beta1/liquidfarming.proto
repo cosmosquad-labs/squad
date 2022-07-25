@@ -30,21 +30,19 @@ message RewardsAuction {
 
   string bidding_coin_denom = 3;
 
-  string selling_reserve_address = 4;
-
-  string paying_reserve_address = 5;
+  string paying_reserve_address = 4;
   
-  google.protobuf.Timestamp start_time = 6
+  google.protobuf.Timestamp start_time = 5
       [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
 
-  google.protobuf.Timestamp end_time = 7
+  google.protobuf.Timestamp end_time = 6
       [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
 
-  AuctionStatus status = 8;
+  AuctionStatus status = 7;
 
-  string winner = 9;
+  string winner = 8;
 
-  repeated cosmos.base.v1beta1.Coin rewards = 10 [
+  repeated cosmos.base.v1beta1.Coin rewards = 9 [
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
     (gogoproto.nullable)     = false
   ];

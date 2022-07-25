@@ -36,7 +36,7 @@ var (
 	WinningBidKeyPrefix = []byte{0xeb}
 )
 
-// GetLastRewardsAuctionIdKey returns the store key to retrieve the latest rewards auction id
+// GetLastRewardsAuctionIdKey returns the store key to retrieve the last rewards auction
 // by the given pool id.
 func GetLastRewardsAuctionIdKey(poolId uint64) []byte {
 	return append(LastRewardsAuctionIdKey, sdk.Uint64ToBigEndian(poolId)...)
@@ -97,6 +97,12 @@ func GetBidKey(poolId uint64, bidder sdk.AccAddress) []byte {
 // by the given pool id.
 func GetBidByPoolIdPrefix(poolId uint64) []byte {
 	return append(BidKeyPrefix, sdk.Uint64ToBigEndian(poolId)...)
+}
+
+// GetBidByBidderPrefix returns the prefix to iterate all bids
+// by the given bidder address.
+func GetBidByBidderPrefix(bidder sdk.AccAddress) []byte {
+	return append(BidKeyPrefix, address.MustLengthPrefix(bidder)...)
 }
 
 // GetWinningBidKey returns the store key to retrieve the winning bid

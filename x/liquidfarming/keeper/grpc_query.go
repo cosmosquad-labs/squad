@@ -38,19 +38,21 @@ func (k Querier) LiquidFarms(c context.Context, req *types.QueryLiquidFarmsReque
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
+	params := k.GetParams(ctx)
 
 	liquidFarmsRes := []types.LiquidFarmResponse{}
-	for _, lf := range k.GetParams(ctx).LiquidFarms {
-		reserveAcc := types.LiquidFarmReserveAddress(lf.PoolId)
-		poolCoinDenom := liquiditytypes.PoolCoinDenom(lf.PoolId)
+	for _, liquidFarm := range params.LiquidFarms {
+		reserveAcc := types.LiquidFarmReserveAddress(liquidFarm.PoolId)
+		poolCoinDenom := liquiditytypes.PoolCoinDenom(liquidFarm.PoolId)
 		queuedAmt := k.farmingKeeper.GetAllQueuedCoinsByFarmer(ctx, reserveAcc).AmountOf(poolCoinDenom)
 		stakedAmt := k.farmingKeeper.GetAllStakedCoinsByFarmer(ctx, reserveAcc).AmountOf(poolCoinDenom)
+
 		liquidFarmsRes = append(liquidFarmsRes, types.LiquidFarmResponse{
-			PoolId:                   lf.PoolId,
+			PoolId:                   liquidFarm.PoolId,
 			LiquidFarmReserveAddress: reserveAcc.String(),
-			LFCoinDenom:              types.LiquidFarmCoinDenom(lf.PoolId),
-			MinimumFarmAmount:        lf.MinimumFarmAmount,
-			MinimumBidAmount:         lf.MinimumBidAmount,
+			LFCoinDenom:              types.LiquidFarmCoinDenom(liquidFarm.PoolId),
+			MinimumFarmAmount:        liquidFarm.MinimumFarmAmount,
+			MinimumBidAmount:         liquidFarm.MinimumBidAmount,
 			QueuedCoin:               sdk.NewCoin(poolCoinDenom, queuedAmt),
 			StakedCoin:               sdk.NewCoin(poolCoinDenom, stakedAmt),
 		})
@@ -70,20 +72,22 @@ func (k Querier) LiquidFarm(c context.Context, req *types.QueryLiquidFarmRequest
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
+	params := k.GetParams(ctx)
 
 	liquidFarmRes := types.LiquidFarmResponse{}
-	for _, lf := range k.GetParams(ctx).LiquidFarms {
-		if lf.PoolId == req.PoolId {
-			reserveAcc := types.LiquidFarmReserveAddress(lf.PoolId)
-			poolCoinDenom := liquiditytypes.PoolCoinDenom(lf.PoolId)
+	for _, liquidFarm := range params.LiquidFarms {
+		if liquidFarm.PoolId == req.PoolId {
+			reserveAcc := types.LiquidFarmReserveAddress(liquidFarm.PoolId)
+			poolCoinDenom := liquiditytypes.PoolCoinDenom(liquidFarm.PoolId)
 			queuedAmt := k.farmingKeeper.GetAllQueuedCoinsByFarmer(ctx, reserveAcc).AmountOf(poolCoinDenom)
 			stakedAmt := k.farmingKeeper.GetAllStakedCoinsByFarmer(ctx, reserveAcc).AmountOf(poolCoinDenom)
+
 			liquidFarmRes = types.LiquidFarmResponse{
-				PoolId:                   lf.PoolId,
+				PoolId:                   liquidFarm.PoolId,
 				LiquidFarmReserveAddress: reserveAcc.String(),
-				LFCoinDenom:              types.LiquidFarmCoinDenom(lf.PoolId),
-				MinimumFarmAmount:        lf.MinimumFarmAmount,
-				MinimumBidAmount:         lf.MinimumBidAmount,
+				LFCoinDenom:              types.LiquidFarmCoinDenom(liquidFarm.PoolId),
+				MinimumFarmAmount:        liquidFarm.MinimumFarmAmount,
+				MinimumBidAmount:         liquidFarm.MinimumBidAmount,
 				QueuedCoin:               sdk.NewCoin(poolCoinDenom, queuedAmt),
 				StakedCoin:               sdk.NewCoin(poolCoinDenom, stakedAmt),
 			}
@@ -105,21 +109,21 @@ func (k Querier) QueuedFarmings(c context.Context, req *types.QueryQueuedFarming
 
 	ctx := sdk.UnwrapSDKContext(c)
 	store := ctx.KVStore(k.storeKey)
-	qfsStore := prefix.NewStore(store, types.QueuedFarmingKeyPrefix)
+	qfStore := prefix.NewStore(store, types.QueuedFarmingKeyPrefix)
 
-	var qfs []types.QueuedFarming
-	pageRes, err := query.FilteredPaginate(qfsStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
-		qf, err := types.UnmarshalQueuedFarming(k.cdc, value)
+	var queuedFarmings []types.QueuedFarming
+	pageRes, err := query.FilteredPaginate(qfStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
+		queuedFarming, err := types.UnmarshalQueuedFarming(k.cdc, value)
 		if err != nil {
 			return false, err
 		}
 
-		if qf.PoolId != req.PoolId {
+		if queuedFarming.PoolId != req.PoolId {
 			return false, nil
 		}
 
 		if accumulate {
-			qfs = append(qfs, qf)
+			queuedFarmings = append(queuedFarmings, queuedFarming)
 		}
 
 		return true, nil
@@ -129,7 +133,7 @@ func (k Querier) QueuedFarmings(c context.Context, req *types.QueryQueuedFarming
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &types.QueryQueuedFarmingsResponse{QueuedFarmings: qfs, Pagination: pageRes}, nil
+	return &types.QueryQueuedFarmingsResponse{QueuedFarmings: queuedFarmings, Pagination: pageRes}, nil
 }
 
 // QueuedFarmingsByFarmer queries all queued farmings by the given farmer.
@@ -142,17 +146,87 @@ func (k Querier) QueuedFarmingsByFarmer(c context.Context, req *types.QueryQueue
 		return nil, status.Error(codes.InvalidArgument, "pool id cannot be 0")
 	}
 
-	if req.FarmerAddress != "" {
-		if _, err := sdk.AccAddressFromBech32(req.FarmerAddress); err != nil {
-			return nil, err
-		}
+	if req.FarmerAddress == "" {
+		return nil, status.Error(codes.InvalidArgument, "farmer address cannot be empty")
 	}
 
-	// TODO: not implemented yet
-	// Consider combining this query with QueuedFarmings
-	// ctx := sdk.UnwrapSDKContext(c)
+	farmerAddr, err := sdk.AccAddressFromBech32(req.FarmerAddress)
+	if err != nil {
+		return nil, err
+	}
 
-	return &types.QueryQueuedFarmingsByFarmerResponse{}, nil
+	ctx := sdk.UnwrapSDKContext(c)
+	store := ctx.KVStore(k.storeKey)
+	keyPrefix := types.GetQueuedFarmingsByFarmerPrefix(farmerAddr)
+	qfStore := prefix.NewStore(store, keyPrefix)
+
+	var queuedFarmings []types.QueuedFarming
+	pageRes, err := query.FilteredPaginate(qfStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
+		_, farmingCoinDenom, endTime := types.ParseQueuedFarmingIndexKey(append(keyPrefix, key...))
+
+		queuedFarming, _ := k.GetQueuedFarming(ctx, endTime, farmingCoinDenom, farmerAddr)
+
+		if queuedFarming.PoolId != req.PoolId {
+			return false, nil
+		}
+
+		if accumulate {
+			queuedFarmings = append(queuedFarmings, queuedFarming)
+		}
+
+		return true, nil
+	})
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryQueuedFarmingsByFarmerResponse{QueuedFarmings: queuedFarmings, Pagination: pageRes}, nil
+}
+
+// RewardsAuctions queries all rewards auctions
+func (k Querier) RewardsAuctions(c context.Context, req *types.QueryRewardsAuctionsRequest) (*types.QueryRewardsAuctionsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	if req.PoolId == 0 {
+		return nil, status.Error(codes.InvalidArgument, "pool id cannot be 0")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	store := ctx.KVStore(k.storeKey)
+	auctionStore := prefix.NewStore(store, types.AuctionKeyPrefix)
+
+	// Filter auctions by descending order to show an ongoing auction first
+	pageReq := &query.PageRequest{
+		Reverse: true,
+	}
+	req.Pagination = pageReq
+
+	var auctions []types.RewardsAuction
+	pageRes, err := query.FilteredPaginate(auctionStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
+		auction, err := types.UnmarshalRewardsAuction(k.cdc, value)
+		if err != nil {
+			return false, err
+		}
+
+		if auction.PoolId != req.PoolId {
+			return false, err
+		}
+
+		if accumulate {
+			auctions = append(auctions, auction)
+		}
+
+		return true, nil
+	})
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryRewardsAuctionsResponse{RewardAuctions: auctions, Pagination: pageRes}, nil
 }
 
 // RewardsAuction queries rewards auction
@@ -161,10 +235,22 @@ func (k Querier) RewardsAuction(c context.Context, req *types.QueryRewardsAuctio
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	// ctx := sdk.UnwrapSDKContext(c)
-	// TODO: not implemented yet
+	if req.PoolId == 0 {
+		return nil, status.Error(codes.InvalidArgument, "pool id cannot be 0")
+	}
 
-	return &types.QueryRewardsAuctionResponse{}, nil
+	if req.AuctionId == 0 {
+		return nil, status.Error(codes.InvalidArgument, "auction id cannot be 0")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+
+	auction, found := k.GetRewardsAuction(ctx, req.PoolId, req.AuctionId)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "auction with pool %d and auction %d doesn't exist", req.PoolId, req.AuctionId)
+	}
+
+	return &types.QueryRewardsAuctionResponse{RewardAuction: auction}, nil
 }
 
 // Bids queries all bids.
@@ -178,29 +264,30 @@ func (k Querier) Bids(c context.Context, req *types.QueryBidsRequest) (*types.Qu
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	auctionId := k.GetLastRewardsAuctionId(ctx, req.PoolId)
-	_, found := k.GetRewardsAuction(ctx, req.PoolId, auctionId)
-	if !found {
-		return nil, status.Errorf(codes.NotFound, "auction that corresponds to pool %d not found", req.PoolId)
-	}
+	store := ctx.KVStore(k.storeKey)
+	bidStore := prefix.NewStore(store, types.BidKeyPrefix)
 
 	var bids []types.Bid
-	// store := ctx.KVStore(k.storeKey)
+	pageRes, err := query.FilteredPaginate(bidStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
+		bid, err := types.UnmarshalBid(k.cdc, value)
+		if err != nil {
+			return false, err
+		}
 
-	var pageRes *query.PageResponse
-	// var err error
+		if bid.PoolId != req.PoolId {
+			return false, nil
+		}
 
-	return &types.QueryBidsResponse{Bids: bids, Pagination: pageRes}, nil
-}
+		if accumulate {
+			bids = append(bids, bid)
+		}
 
-// BidByBidder queries the specific bid.
-func (k Querier) BidByBidder(c context.Context, req *types.QueryBidByBidderRequest) (*types.QueryBidByBidderResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
+		return true, nil
+	})
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	// ctx := sdk.UnwrapSDKContext(c)
-	// TODO: not implemented yet
-
-	return &types.QueryBidByBidderResponse{}, nil
+	return &types.QueryBidsResponse{Bids: bids, Pagination: pageRes}, nil
 }

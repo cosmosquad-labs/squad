@@ -13,9 +13,8 @@ import (
 )
 
 const (
-	SellingReserveAddressPrefix string = "SellingReserveAddress"
-	PayingReserveAddressPrefix  string = "PayingReserveAddress"
-	ModuleAddressNameSplitter   string = "|"
+	PayingReserveAddressPrefix string = "PayingReserveAddress"
+	ModuleAddressNameSplitter  string = "|"
 
 	// The module uses the address type of 32 bytes length, but it can always be changed depending on Cosmos SDK's direction.
 	ReserveAddressType = farmingtypes.AddressType32Bytes
@@ -30,16 +29,15 @@ func NewRewardsAuction(
 	endTime time.Time,
 ) RewardsAuction {
 	return RewardsAuction{
-		Id:                    id,
-		PoolId:                poolId,
-		BiddingCoinDenom:      biddingCoinDenom,
-		SellingReserveAddress: SellingReserveAddress(poolId).String(),
-		PayingReserveAddress:  PayingReserveAddress(poolId).String(),
-		StartTime:             startTime,
-		EndTime:               endTime,
-		Status:                AuctionStatusStarted,
-		Winner:                "",
-		Rewards:               sdk.Coins{},
+		Id:                   id,
+		PoolId:               poolId,
+		BiddingCoinDenom:     biddingCoinDenom,
+		PayingReserveAddress: PayingReserveAddress(poolId).String(),
+		StartTime:            startTime,
+		EndTime:              endTime,
+		Status:               AuctionStatusStarted,
+		Winner:               "",
+		Rewards:              sdk.Coins{},
 	}
 }
 
@@ -47,9 +45,6 @@ func NewRewardsAuction(
 func (a *RewardsAuction) Validate() error {
 	if a.BiddingCoinDenom == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "bidding coin denom cannot be empty")
-	}
-	if _, err := sdk.AccAddressFromBech32(a.SellingReserveAddress); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid selling reserve address: %v", err)
 	}
 	if _, err := sdk.AccAddressFromBech32(a.PayingReserveAddress); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid paying reserve address: %v", err)
@@ -76,15 +71,6 @@ func (a *RewardsAuction) SetWinner(winner string) {
 // SetRewards sets auction rewards.
 func (a *RewardsAuction) SetRewards(rewards sdk.Coins) {
 	a.Rewards = rewards
-}
-
-// GetSellingReserveAddress returns the selling reserve address in the form of sdk.AccAddress.
-func (a RewardsAuction) GetSellingReserveAddress() sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(a.SellingReserveAddress)
-	if err != nil {
-		panic(err)
-	}
-	return addr
 }
 
 // GetPayingReserveAddress returns the paying reserve address in the form of sdk.AccAddress.
@@ -136,14 +122,10 @@ func UnmarshalRewardsAuction(cdc codec.BinaryCodec, value []byte) (auction Rewar
 	return auction, err
 }
 
-// SellingReserveAddress creates new selling reserve address in the form of sdk.AccAddress
-// with the given pool id.
-func SellingReserveAddress(poolId uint64) sdk.AccAddress {
-	return farmingtypes.DeriveAddress(
-		ReserveAddressType,
-		ModuleName,
-		strings.Join([]string{SellingReserveAddressPrefix, strconv.FormatUint(poolId, 10)}, ModuleAddressNameSplitter),
-	)
+// UnmarshalBid unmarshals bid from a store value.
+func UnmarshalBid(cdc codec.BinaryCodec, value []byte) (bid Bid, err error) {
+	err = cdc.Unmarshal(value, &bid)
+	return bid, err
 }
 
 // PayingReserveAddress creates the paying reserve address in the form of sdk.AccAddress

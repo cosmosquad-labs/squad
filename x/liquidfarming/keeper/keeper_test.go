@@ -197,6 +197,13 @@ func (s *KeeperTestSuite) placeBid(poolId uint64, bidder sdk.AccAddress, bidding
 	return bid
 }
 
+func (s *KeeperTestSuite) refundBid(poolId uint64, bidder sdk.AccAddress) {
+	s.T().Helper()
+
+	err := s.keeper.RefundBid(s.ctx, types.NewMsgRefundBid(poolId, bidder.String()))
+	s.Require().NoError(err)
+}
+
 //
 // Below are helper functions to write test code easily
 //
