@@ -31,6 +31,7 @@ func GetTxCmd() *cobra.Command {
 		NewCancelQueuedFarmingCmd(),
 		NewUnfarmCmd(),
 		NewPlaceBidCmd(),
+		NewRefundBidCmd(),
 	)
 
 	return cmd
@@ -210,6 +211,46 @@ $ %s tx %s place-bid 1 100000lf1 --from mykey
 				poolId,
 				clientCtx.GetFromAddress().String(),
 				amount,
+			)
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// NewRefundBidCmd implements the refund bid command handler.
+func NewRefundBidCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "refund-bid [pool-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Refund a bid",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Refund a bid.
+			
+Example:
+$ %s tx %s refund-bid 1 --from mykey
+`,
+				version.AppName, types.ModuleName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			poolId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("failed to parse pool id: %w", err)
+			}
+
+			msg := types.NewMsgRefundBid(
+				poolId,
+				clientCtx.GetFromAddress().String(),
 			)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)

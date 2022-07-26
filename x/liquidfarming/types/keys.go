@@ -25,7 +25,7 @@ const (
 
 // keys for the store prefixes
 var (
-	LastRewardsAuctionIdKey = []byte{0xe1} // key to retrieve the latest auction id
+	LastRewardsAuctionIdKey = []byte{0xe1} // key to retrieve the latest rewards auction id
 
 	QueuedFarmingKeyPrefix      = []byte{0xe4}
 	QueuedFarmingIndexKeyPrefix = []byte{0xe5}
@@ -36,12 +36,14 @@ var (
 	WinningBidKeyPrefix = []byte{0xeb}
 )
 
-// GetLastRewardsAuctionIdKey returns the store key to retrieve the latest rewards auction id.
+// GetLastRewardsAuctionIdKey returns the store key to retrieve the last rewards auction
+// by the given pool id.
 func GetLastRewardsAuctionIdKey(poolId uint64) []byte {
 	return append(LastRewardsAuctionIdKey, sdk.Uint64ToBigEndian(poolId)...)
 }
 
-// GetQueuedFarmingKey returns a key for a queued farming.
+// GetQueuedFarmingKey returns the store key to retrieve queued farming object
+// by the given end time, farming coin denom, and farmer address.
 func GetQueuedFarmingKey(endTime time.Time, farmingCoinDenom string, farmerAcc sdk.AccAddress) []byte {
 	return append(append(append(QueuedFarmingKeyPrefix,
 		LengthPrefixTimeBytes(endTime)...),
@@ -49,7 +51,8 @@ func GetQueuedFarmingKey(endTime time.Time, farmingCoinDenom string, farmerAcc s
 		farmerAcc...)
 }
 
-// GetQueuedFarmingIndexKey returns an indexing key for a queued farming.
+// GetQueuedFarmingIndexKey returns the index key to retrieve queued farming object
+// by the given farmer address, farming coin denom, and end time.
 func GetQueuedFarmingIndexKey(farmerAcc sdk.AccAddress, farmingCoinDenom string, endTime time.Time) []byte {
 	return append(append(append(QueuedFarmingIndexKeyPrefix,
 		address.MustLengthPrefix(farmerAcc)...),
@@ -57,49 +60,58 @@ func GetQueuedFarmingIndexKey(farmerAcc sdk.AccAddress, farmingCoinDenom string,
 		sdk.FormatTimeBytes(endTime)...)
 }
 
-// GetQueuedFarmingsByFarmerAndDenomPrefix returns a key prefix used to
-// iterate queued farmings by farmer address and farming coin denom.
+// GetQueuedFarmingsByFarmerPrefix returns the index key prefix to iterate queued farming objects
+// by the given farmer address.
+func GetQueuedFarmingsByFarmerPrefix(farmerAcc sdk.AccAddress) []byte {
+	return append(QueuedFarmingIndexKeyPrefix, address.MustLengthPrefix(farmerAcc)...)
+}
+
+// GetQueuedFarmingsByFarmerAndDenomPrefix returns the index key prefix to iterate queued farming objects
+// by the given farmer address and farming coin denom.
 func GetQueuedFarmingsByFarmerAndDenomPrefix(farmerAcc sdk.AccAddress, farmingCoinDenom string) []byte {
 	return append(append(QueuedFarmingIndexKeyPrefix,
 		address.MustLengthPrefix(farmerAcc)...),
 		LengthPrefixString(farmingCoinDenom)...)
 }
 
-// GetQueuedFarmingsByFarmerPrefix returns a key prefix used to iterate
-// queued farmings by a farmer.
-func GetQueuedFarmingsByFarmerPrefix(farmerAcc sdk.AccAddress) []byte {
-	return append(QueuedFarmingIndexKeyPrefix, address.MustLengthPrefix(farmerAcc)...)
-}
-
-// GetQueuedFarmingEndBytes returns end bytes for iteration of queued farmings.
-// The returned end bytes should be used directly, not through
-// sdk.InclusiveEndBytes.
-// The range this end bytes form includes queued farmings with same endTime.
+// GetQueuedFarmingEndBytes returns end time bytes to iterate queued farming objects
+// by the given end time.
+// By adding 1 to the given end time, the returned end bytes are inclusive of the endTime.
 func GetQueuedFarmingEndBytes(endTime time.Time) []byte {
 	return append(QueuedFarmingKeyPrefix, LengthPrefixTimeBytes(endTime.Add(1))...)
 }
 
-// GetRewardsAuctionKey returns the store key to retrieve rewards auction object.
+// GetRewardsAuctionKey returns the store key to retrieve rewards auction object
+// by the given pool id and auction id.
 func GetRewardsAuctionKey(poolId, auctionId uint64) []byte {
 	return append(append(AuctionKeyPrefix, sdk.Uint64ToBigEndian(poolId)...), sdk.Uint64ToBigEndian(auctionId)...)
 }
 
-// GetBidKey returns the store key to retrieve the bid by .
+// GetBidKey returns the store key to retrieve the bid
+// by the given pool id and bidder address.
 func GetBidKey(poolId uint64, bidder sdk.AccAddress) []byte {
 	return append(append(BidKeyPrefix, sdk.Uint64ToBigEndian(poolId)...), address.MustLengthPrefix(bidder)...)
 }
 
-// GetBidByPoolIdPrefix returns the prefix to iterate all bids by the pool id.
+// GetBidByPoolIdPrefix returns the prefix to iterate all bids
+// by the given pool id.
 func GetBidByPoolIdPrefix(poolId uint64) []byte {
 	return append(BidKeyPrefix, sdk.Uint64ToBigEndian(poolId)...)
 }
 
-// GetWinningBidKey returns the store key to retrieve the winning bid.
+// GetBidByBidderPrefix returns the prefix to iterate all bids
+// by the given bidder address.
+func GetBidByBidderPrefix(bidder sdk.AccAddress) []byte {
+	return append(BidKeyPrefix, address.MustLengthPrefix(bidder)...)
+}
+
+// GetWinningBidKey returns the store key to retrieve the winning bid
+// by the given pool id and auction id.
 func GetWinningBidKey(poolId uint64, auctionId uint64) []byte {
 	return append(append(WinningBidKeyPrefix, sdk.Uint64ToBigEndian(poolId)...), sdk.Uint64ToBigEndian(auctionId)...)
 }
 
-// ParseQueuedFarmingKey parses a queued farming key.
+// ParseQueuedFarmingKey parses a queued farming key bytes.
 func ParseQueuedFarmingKey(key []byte) (endTime time.Time, farmingCoinDenom string, farmerAcc sdk.AccAddress) {
 	if !bytes.HasPrefix(key, QueuedFarmingKeyPrefix) {
 		panic("key does not have proper prefix")
@@ -116,7 +128,7 @@ func ParseQueuedFarmingKey(key []byte) (endTime time.Time, farmingCoinDenom stri
 	return
 }
 
-// ParseQueuedFarmingIndexKey parses a queued farming index key.
+// ParseQueuedFarmingIndexKey parses a queued farming index key bytes.
 func ParseQueuedFarmingIndexKey(key []byte) (farmerAcc sdk.AccAddress, farmingCoinDenom string, endTime time.Time) {
 	if !bytes.HasPrefix(key, QueuedFarmingIndexKeyPrefix) {
 		panic("key does not have proper prefix")

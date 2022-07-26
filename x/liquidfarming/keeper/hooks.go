@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -33,7 +32,7 @@ func (h Hooks) AfterStaked(ctx sdk.Context, stakingAcc sdk.AccAddress, stakingCo
 			remainingAmt := newStakingAmt
 			if newStakingAmt.GTE(queuedFarming.Amount) {
 				remainingAmt = remainingAmt.Sub(queuedFarming.Amount)
-				lfCoinTotalSupply := h.k.bankKeeper.GetSupply(ctx, types.LFCoinDenom(poolId)).Amount
+				lfCoinTotalSupply := h.k.bankKeeper.GetSupply(ctx, types.LiquidFarmCoinDenom(poolId)).Amount
 				lpCoinTotalStaked := h.k.farmingKeeper.GetAllStakedCoinsByFarmer(ctx, reserveAddr).AmountOf(poolCoinDenom)
 				if lfCoinTotalSupply.IsZero() || lpCoinTotalStaked.IsZero() {
 					// Initial minting amount
@@ -42,7 +41,7 @@ func (h Hooks) AfterStaked(ctx sdk.Context, stakingAcc sdk.AccAddress, stakingCo
 					// Minting Amount = TotalSupplyLFCoin * LPCoinFarmed / TotalStakedLPCoin
 					mintingAmt = lfCoinTotalSupply.Mul(queuedFarming.Amount).Quo(lpCoinTotalStaked)
 				}
-				mintingCoins := sdk.NewCoins(sdk.NewCoin(types.LFCoinDenom(poolId), mintingAmt))
+				mintingCoins := sdk.NewCoins(sdk.NewCoin(types.LiquidFarmCoinDenom(poolId), mintingAmt))
 
 				if err := h.k.bankKeeper.MintCoins(ctx, types.ModuleName, mintingCoins); err != nil {
 					panic(err)
@@ -65,67 +64,16 @@ func (h Hooks) AfterStaked(ctx sdk.Context, stakingAcc sdk.AccAddress, stakingCo
 
 func (h Hooks) AfterAllocateRewards(ctx sdk.Context) {
 	for _, lf := range h.k.GetParams(ctx).LiquidFarms {
-		auctionId := h.k.GetLastRewardsAuctionId(ctx, lf.PoolId)
-		auction, found := h.k.GetRewardsAuction(ctx, lf.PoolId, auctionId)
+		poolId := lf.PoolId
+		auctionId := h.k.GetLastRewardsAuctionId(ctx, poolId)
+
+		auction, found := h.k.GetRewardsAuction(ctx, poolId, auctionId)
 		if !found {
-			h.k.CreateRewardsAuction(ctx, lf.PoolId) // initial
+			h.k.CreateRewardsAuction(ctx, poolId)
 			continue
 		}
 
-		// Sanity checks
-		if auction.EndTime.Before(ctx.BlockTime()) && auction.Status != types.AuctionStatusStarted {
-			continue
-		}
-
-		winningBid, found := h.k.GetWinningBid(ctx, auction.PoolId, auction.Id)
-		if !found {
-			h.k.DeleteAndCreateRewardsAuction(ctx, auction)
-			continue
-		}
-
-		reserveAddr := types.LiquidFarmReserveAddress(winningBid.PoolId)
-		poolCoinDenom := liquiditytypes.PoolCoinDenom(winningBid.PoolId)
-
-		stakedCoins := h.k.farmingKeeper.GetAllStakedCoinsByFarmer(ctx, reserveAddr)
-		rewards := h.k.farmingKeeper.Rewards(ctx, reserveAddr, poolCoinDenom)
-		unharvestedRewards, found := h.k.farmingKeeper.GetUnharvestedRewards(ctx, reserveAddr, poolCoinDenom)
-		if !found {
-			fmt.Println("NOT FOUND")
-		}
-
-		fmt.Println("UnharvestedRewards: ", unharvestedRewards)
-		fmt.Println("Balances: ", h.k.bankKeeper.GetAllBalances(ctx, reserveAddr))
-		fmt.Println("Balances: ", h.k.bankKeeper.GetAllBalances(ctx, farmingtypes.RewardsReserveAcc))
-
-		fmt.Println("winningBid: ", winningBid)
-		fmt.Println("stakedCoins: ", stakedCoins)
-		fmt.Println("rewards: ", rewards)
-
-		// Harvest
-		if err := h.k.farmingKeeper.Harvest(ctx, reserveAddr, []string{poolCoinDenom}); err != nil {
-			panic(err)
-		}
-
-		fmt.Println("Balances (Harvest): ", h.k.bankKeeper.GetAllBalances(ctx, reserveAddr))
-
-		// Distribute
-		if err := h.k.bankKeeper.SendCoins(ctx, reserveAddr, winningBid.GetBidder(), rewards); err != nil {
-			panic(err)
-		}
-
-		// Refund existing bids by the pool id
-		for _, bid := range h.k.GetBidsByPoolId(ctx, winningBid.PoolId) {
-			if err := h.k.bankKeeper.SendCoins(ctx, auction.GetPayingReserveAddress(), bid.GetBidder(), sdk.NewCoins(bid.Amount)); err != nil {
-				panic(err)
-			}
-			h.k.DeleteBid(ctx, bid)
-		}
-
-		h.k.DeleteAndCreateRewardsAuction(ctx, auction)
+		h.k.TerminateRewardsAuction(ctx, auction)
+		h.k.CreateRewardsAuction(ctx, poolId)
 	}
-}
-
-func (k Keeper) DeleteAndCreateRewardsAuction(ctx sdk.Context, auction types.RewardsAuction) {
-	k.DeleteRewardsAuction(ctx, auction)
-	k.CreateRewardsAuction(ctx, auction.PoolId)
 }
