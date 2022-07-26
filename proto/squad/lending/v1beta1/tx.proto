@@ -2,10 +2,26 @@ syntax = "proto3";
 package squad.lending.v1beta1;
 
 import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
 import "squad/lending/v1beta1/lending.proto";
 
 option go_package                      = "github.com/cosmosquad-labs/squad/x/lending/types";
 option (gogoproto.goproto_getters_all) = false;
 
 // Msg defines the Msg service.
-service Msg {}
+service Msg {
+  // Lend defines a method for lending assets.
+  rpc Lend(MsgLend) returns (MsgLendResponse);
+}
+
+// MsgLend defines an SDK message for lending assets.
+message MsgLend {
+  // lender specifies the bech32-encoded address of the lender.
+  string lender = 1;
+
+  // coin specifies the lending asset(coin).
+  cosmos.base.v1beta1.Coin coin = 2 [(gogoproto.nullable) = false];
+}
+
+// MsgLendResponse defines the Msg/Lend response type.
+message MsgLendResponse {}

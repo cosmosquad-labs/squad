@@ -1,6 +1,12 @@
 package keeper
 
-import "github.com/cosmosquad-labs/squad/v2/x/lending/types"
+import (
+	"context"
+
+	"github.com/cosmosquad-labs/squad/v2/x/lending/types"
+)
+
+var _ types.MsgServer = msgServer{}
 
 type msgServer struct {
 	Keeper
@@ -12,4 +18,10 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 	return &msgServer{Keeper: keeper}
 }
 
-var _ types.MsgServer = msgServer{}
+// Lend defines a method for lending assets.
+func (m msgServer) Lend(goCtx context.Context, msg *types.MsgLend) (*types.MsgLendResponse, error) {
+	//ctx := sdk.UnwrapSDKContext(goCtx)
+	// TODO: not implemented
+
+	return &types.MsgLendResponse{}, nil
+}
