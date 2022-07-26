@@ -97,7 +97,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	farmingparams "github.com/cosmosquad-labs/squad/v2/app/params"
-	"github.com/cosmosquad-labs/squad/v2/app/upgrades/mainnet/v2.0.0"
+	v2_0_0 "github.com/cosmosquad-labs/squad/v2/app/upgrades/mainnet/v2.0.0"
 	"github.com/cosmosquad-labs/squad/v2/x/claim"
 	claimkeeper "github.com/cosmosquad-labs/squad/v2/x/claim/keeper"
 	claimtypes "github.com/cosmosquad-labs/squad/v2/x/claim/types"
@@ -105,6 +105,9 @@ import (
 	farmingclient "github.com/cosmosquad-labs/squad/v2/x/farming/client"
 	farmingkeeper "github.com/cosmosquad-labs/squad/v2/x/farming/keeper"
 	farmingtypes "github.com/cosmosquad-labs/squad/v2/x/farming/types"
+	"github.com/cosmosquad-labs/squad/v2/x/lending"
+	lendingkeeper "github.com/cosmosquad-labs/squad/v2/x/lending/keeper"
+	lendingtypes "github.com/cosmosquad-labs/squad/v2/x/lending/types"
 	"github.com/cosmosquad-labs/squad/v2/x/liquidity"
 	liquiditykeeper "github.com/cosmosquad-labs/squad/v2/x/liquidity/keeper"
 	liquiditytypes "github.com/cosmosquad-labs/squad/v2/x/liquidity/types"
@@ -158,6 +161,7 @@ var (
 		liquidity.AppModuleBasic{},
 		liquidstaking.AppModuleBasic{},
 		claim.AppModuleBasic{},
+		lending.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -173,6 +177,7 @@ var (
 		liquiditytypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
 		liquidstakingtypes.ModuleName:  {authtypes.Minter, authtypes.Burner},
 		claimtypes.ModuleName:          nil,
+		lendingtypes.ModuleName:        {authtypes.Minter, authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 	}
 )
@@ -221,6 +226,7 @@ type App struct {
 	LiquidityKeeper     liquiditykeeper.Keeper
 	LiquidStakingKeeper liquidstakingkeeper.Keeper
 	ClaimKeeper         claimkeeper.Keeper
+	LendingKeeper       lendingkeeper.Keeper
 
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
@@ -288,6 +294,7 @@ func NewApp(
 		liquiditytypes.StoreKey,
 		liquidstakingtypes.StoreKey,
 		claimtypes.StoreKey,
+		lendingtypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -428,6 +435,13 @@ func NewApp(
 		app.AccountKeeper,
 		app.BankKeeper,
 	)
+	app.LendingKeeper = lendingkeeper.NewKeeper(
+		appCodec,
+		keys[lendingtypes.StoreKey],
+		app.GetSubspace(lendingtypes.ModuleName),
+		app.AccountKeeper,
+		app.BankKeeper,
+	)
 
 	// register the proposal types
 	govRouter := govtypes.NewRouter()
@@ -537,6 +551,7 @@ func NewApp(
 		farming.NewAppModule(appCodec, app.FarmingKeeper, app.AccountKeeper, app.BankKeeper),
 		liquidstaking.NewAppModule(appCodec, app.LiquidStakingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GovKeeper),
 		claim.NewAppModule(appCodec, app.ClaimKeeper, app.AccountKeeper, app.BankKeeper, app.DistrKeeper, app.GovKeeper, app.LiquidityKeeper, app.LiquidStakingKeeper),
+		lending.NewAppModule(appCodec, app.LendingKeeper, app.AccountKeeper, app.BankKeeper),
 		app.transferModule,
 	)
 
@@ -570,6 +585,7 @@ func NewApp(
 		ibctransfertypes.ModuleName,
 		farmingtypes.ModuleName,
 		claimtypes.ModuleName,
+		lendingtypes.ModuleName,
 	)
 	app.mm.SetOrderEndBlockers(
 		// EndBlocker of crisis module called AssertInvariants
@@ -598,6 +614,7 @@ func NewApp(
 		ibctransfertypes.ModuleName,
 		claimtypes.ModuleName,
 		budgettypes.ModuleName,
+		lendingtypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -625,6 +642,7 @@ func NewApp(
 		liquiditytypes.ModuleName,
 		liquidstakingtypes.ModuleName,
 		claimtypes.ModuleName,
+		lendingtypes.ModuleName,
 
 		// empty logic modules
 		paramstypes.ModuleName,
@@ -664,6 +682,7 @@ func NewApp(
 		liquidity.NewAppModule(appCodec, app.LiquidityKeeper, app.AccountKeeper, app.BankKeeper),
 		liquidstaking.NewAppModule(appCodec, app.LiquidStakingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GovKeeper),
 		claim.NewAppModule(appCodec, app.ClaimKeeper, app.AccountKeeper, app.BankKeeper, app.DistrKeeper, app.GovKeeper, app.LiquidityKeeper, app.LiquidStakingKeeper),
+		lending.NewAppModule(appCodec, app.LendingKeeper, app.AccountKeeper, app.BankKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		app.transferModule,
 	)
@@ -868,6 +887,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(farmingtypes.ModuleName)
 	paramsKeeper.Subspace(liquiditytypes.ModuleName)
 	paramsKeeper.Subspace(liquidstakingtypes.ModuleName)
+	paramsKeeper.Subspace(lendingtypes.ModuleName)
 
 	return paramsKeeper
 }

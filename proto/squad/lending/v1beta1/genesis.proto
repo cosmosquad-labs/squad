@@ -1,0 +1,13 @@
+syntax = "proto3";
+package squad.lending.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "squad/lending/v1beta1/lending.proto";
+
+option go_package                      = "github.com/cosmosquad-labs/squad/x/lending/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// GenesisState defines the lending module's genesis state.
+message GenesisState {
+  Params params = 1 [(gogoproto.nullable) = false];
+}

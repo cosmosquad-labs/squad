@@ -1,0 +1,10 @@
+syntax = "proto3";
+package squad.lending.v1beta1;
+
+import "gogoproto/gogo.proto";
+
+option go_package                      = "github.com/cosmosquad-labs/squad/x/lending/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// Params defines the parameters for the lending module.
+message Params {}
