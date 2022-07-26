@@ -1,14 +1,16 @@
 package cli
 
 import (
-	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
 	"github.com/cosmosquad-labs/squad/v2/x/liquidfarming/types"
@@ -29,7 +31,6 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 		NewQueryLiquidFarmsCmd(),
 		NewQueryLiquidFarmCmd(),
 		NewQueryQueuedFarmingsCmd(),
-		NewQueryQueuedFarmingCmd(),
 		NewQueryRewardsAuctionsCmd(),
 		NewQueryRewardsAuctionCmd(),
 		NewQueryBidsCmd(),
@@ -59,7 +60,7 @@ $ %s query %s params
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			resp, err := queryClient.Params(context.Background(), &types.QueryParamsRequest{})
+			resp, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
 			if err != nil {
 				return err
 			}
@@ -75,32 +76,38 @@ $ %s query %s params
 
 func NewQueryLiquidFarmsCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "params",
+		Use:   "liquidfarms",
 		Args:  cobra.NoArgs,
-		Short: "Query the current liquidfarming parameters information",
+		Short: "Query for all liquidfarms",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query values set as liquidfarming parameters.
+			fmt.Sprintf(`Query for all liquidfarms on a network.
+
 Example:
-$ %s query %s params
+$ %s query %s liquidfarms
 `,
 				version.AppName, types.ModuleName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// clientCtx, err := client.GetClientQueryContext(cmd)
-			// if err != nil {
-			// 	return err
-			// }
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 
-			// queryClient := types.NewQueryClient(clientCtx)
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
 
-			// resp, err := queryClient.Params(context.Background(), &types.QueryParamsRequest{})
-			// if err != nil {
-			// 	return err
-			// }
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.LiquidFarms(cmd.Context(), &types.QueryLiquidFarmsRequest{
+				Pagination: pageReq,
+			})
+			if err != nil {
+				return err
+			}
 
-			// return clientCtx.PrintProto(&resp.Params)
-			return nil
+			return clientCtx.PrintProto(res)
 		},
 	}
 
@@ -111,32 +118,38 @@ $ %s query %s params
 
 func NewQueryLiquidFarmCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "params",
-		Args:  cobra.NoArgs,
-		Short: "Query the current liquidfarming parameters information",
+		Use:   "liquidfarm [pool-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query the specific liquidfarm",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query values set as liquidfarming parameters.
+			fmt.Sprintf(`Query the specific liquidfarm on a network.
+
 Example:
-$ %s query %s params
+$ %s query %s liquidfarm 1
 `,
 				version.AppName, types.ModuleName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// clientCtx, err := client.GetClientQueryContext(cmd)
-			// if err != nil {
-			// 	return err
-			// }
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 
-			// queryClient := types.NewQueryClient(clientCtx)
+			poolId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("failed to parse pool id: %w", err)
+			}
 
-			// resp, err := queryClient.Params(context.Background(), &types.QueryParamsRequest{})
-			// if err != nil {
-			// 	return err
-			// }
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.LiquidFarm(cmd.Context(), &types.QueryLiquidFarmRequest{
+				PoolId: poolId,
+			})
+			if err != nil {
+				return err
+			}
 
-			// return clientCtx.PrintProto(&resp.Params)
-			return nil
+			return clientCtx.PrintProto(res)
 		},
 	}
 
@@ -146,72 +159,63 @@ $ %s query %s params
 }
 
 func NewQueryQueuedFarmingsCmd() *cobra.Command {
+	bech32PrefixAccAddr := sdk.GetConfig().GetBech32AccountAddrPrefix()
+
 	cmd := &cobra.Command{
-		Use:   "params",
-		Args:  cobra.NoArgs,
-		Short: "Query the current liquidfarming parameters information",
+		Use:   "queued-farmings [pool-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query all queued farmings for the liquidfarm",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query values set as liquidfarming parameters.
+			fmt.Sprintf(`Query all queued farmings for the liquidfarm on a network.
+
 Example:
-$ %s query %s params
+$ %s query %s queued-farmings
+$ %s query %s queued-farmings --farmer %s1zaavvzxez0elundtn32qnk9lkm8kmcszzsv80v
 `,
 				version.AppName, types.ModuleName,
+				version.AppName, types.ModuleName, bech32PrefixAccAddr,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// clientCtx, err := client.GetClientQueryContext(cmd)
-			// if err != nil {
-			// 	return err
-			// }
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 
-			// queryClient := types.NewQueryClient(clientCtx)
+			poolId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("failed to parse pool id: %w", err)
+			}
 
-			// resp, err := queryClient.Params(context.Background(), &types.QueryParamsRequest{})
-			// if err != nil {
-			// 	return err
-			// }
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
 
-			// return clientCtx.PrintProto(&resp.Params)
-			return nil
+			var res proto.Message
+			queryClient := types.NewQueryClient(clientCtx)
+			farmerAddr, _ := cmd.Flags().GetString(FlagFarmer)
+			if farmerAddr == "" {
+				res, err = queryClient.QueuedFarmings(cmd.Context(), &types.QueryQueuedFarmingsRequest{
+					PoolId:     poolId,
+					Pagination: pageReq,
+				})
+			} else {
+				res, err = queryClient.QueuedFarmingsByFarmer(cmd.Context(), &types.QueryQueuedFarmingsByFarmerRequest{
+					PoolId:        poolId,
+					FarmerAddress: farmerAddr,
+					Pagination:    pageReq,
+				})
+			}
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
 		},
 	}
 
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
-}
-
-func NewQueryQueuedFarmingCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "params",
-		Args:  cobra.NoArgs,
-		Short: "Query the current liquidfarming parameters information",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query values set as liquidfarming parameters.
-Example:
-$ %s query %s params
-`,
-				version.AppName, types.ModuleName,
-			),
-		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			// clientCtx, err := client.GetClientQueryContext(cmd)
-			// if err != nil {
-			// 	return err
-			// }
-
-			// queryClient := types.NewQueryClient(clientCtx)
-
-			// resp, err := queryClient.Params(context.Background(), &types.QueryParamsRequest{})
-			// if err != nil {
-			// 	return err
-			// }
-
-			// return clientCtx.PrintProto(&resp.Params)
-			return nil
-		},
-	}
-
+	cmd.Flags().AddFlagSet(flagSetQueuedFarmings())
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
@@ -219,32 +223,45 @@ $ %s query %s params
 
 func NewQueryRewardsAuctionsCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "params",
+		Use:   "rewards-auctions",
 		Args:  cobra.NoArgs,
-		Short: "Query the current liquidfarming parameters information",
+		Short: "Query all rewards auctions for the liquidfarm",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query values set as liquidfarming parameters.
+			fmt.Sprintf(`Query all rewards auctions for the liquidfarm on a network.
+
 Example:
-$ %s query %s params
+$ %s query %s rewards-auctions
 `,
 				version.AppName, types.ModuleName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// clientCtx, err := client.GetClientQueryContext(cmd)
-			// if err != nil {
-			// 	return err
-			// }
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 
-			// queryClient := types.NewQueryClient(clientCtx)
+			poolId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("failed to parse pool id: %w", err)
+			}
 
-			// resp, err := queryClient.Params(context.Background(), &types.QueryParamsRequest{})
-			// if err != nil {
-			// 	return err
-			// }
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
 
-			// return clientCtx.PrintProto(&resp.Params)
-			return nil
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.RewardsAuctions(cmd.Context(), &types.QueryRewardsAuctionsRequest{
+				PoolId:     poolId,
+				Pagination: pageReq,
+			})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
 		},
 	}
 
@@ -255,32 +272,45 @@ $ %s query %s params
 
 func NewQueryRewardsAuctionCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "params",
-		Args:  cobra.NoArgs,
-		Short: "Query the current liquidfarming parameters information",
+		Use:   "reward-auction [pool-id] [auction-id]",
+		Args:  cobra.ExactArgs(2),
+		Short: "Query the specific reward auction",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query values set as liquidfarming parameters.
+			fmt.Sprintf(`Query the specific reward auction on a network.
+
 Example:
-$ %s query %s params
+$ %s query %s reward-auction 1 1
 `,
 				version.AppName, types.ModuleName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// clientCtx, err := client.GetClientQueryContext(cmd)
-			// if err != nil {
-			// 	return err
-			// }
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 
-			// queryClient := types.NewQueryClient(clientCtx)
+			poolId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("failed to parse pool id: %w", err)
+			}
 
-			// resp, err := queryClient.Params(context.Background(), &types.QueryParamsRequest{})
-			// if err != nil {
-			// 	return err
-			// }
+			auctionId, err := strconv.ParseUint(args[1], 10, 64)
+			if err != nil {
+				return fmt.Errorf("failed to auction pool id: %w", err)
+			}
 
-			// return clientCtx.PrintProto(&resp.Params)
-			return nil
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.RewardsAuction(cmd.Context(), &types.QueryRewardsAuctionRequest{
+				PoolId:    poolId,
+				AuctionId: auctionId,
+			})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
 		},
 	}
 
@@ -291,32 +321,45 @@ $ %s query %s params
 
 func NewQueryBidsCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "params",
-		Args:  cobra.NoArgs,
-		Short: "Query the current liquidfarming parameters information",
+		Use:   "bids [pool-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query all bids for the rewards auction",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query values set as liquidfarming parameters.
+			fmt.Sprintf(`Query all bids for the rewards auction on a network.
+
 Example:
-$ %s query %s params
+$ %s query %s bids
 `,
 				version.AppName, types.ModuleName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// clientCtx, err := client.GetClientQueryContext(cmd)
-			// if err != nil {
-			// 	return err
-			// }
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 
-			// queryClient := types.NewQueryClient(clientCtx)
+			poolId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("failed to parse pool id: %w", err)
+			}
 
-			// resp, err := queryClient.Params(context.Background(), &types.QueryParamsRequest{})
-			// if err != nil {
-			// 	return err
-			// }
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
 
-			// return clientCtx.PrintProto(&resp.Params)
-			return nil
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.Bids(cmd.Context(), &types.QueryBidsRequest{
+				PoolId:     poolId,
+				Pagination: pageReq,
+			})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
 		},
 	}
 
