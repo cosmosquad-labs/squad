@@ -44,7 +44,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (x/liquidity) [\#341](https://github.com/cosmosquad-labs/squad/pull/341) Enable detailed configuration for order book responses
 
-## v2.1.0
+### Bug Fixes
+* (x/liquidstaking) [\#342](https://github.com/cosmosquad-labs/squad/pull/342) fix: calculation bug of liquidstaking voting_power endpoint
+
+## [v2.1.0] - 2022-07-18
 
 ### Client Breaking Changes
 
@@ -133,6 +136,7 @@ Running a full node will encounter wrong app hash issue if it doesn't upgrade to
   * `x/vesting` feat: periodic vesting msg
   * `x/bank` feat: Add dynamic blockedAddrs
 
-[Unreleased]: https://github.com/cosmosquad-labs/squad/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/cosmosquad-labs/squad/compare/v2.1.0...HEAD
 [v1.0.0]: https://github.com/cosmosquad-labs/squad/releases/tag/v1.0.0
 [v1.1.0]: https://github.com/cosmosquad-labs/squad/releases/tag/v1.1.0
+[v2.1.0]: https://github.com/cosmosquad-labs/squad/releases/tag/v2.1.0
