@@ -19,6 +19,9 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case *types.MsgLend:
 			res, err := msgServer.Lend(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
+		case *types.MsgWithdraw:
+			res, err := msgServer.Withdraw(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", types.ModuleName, msg)
 		}
