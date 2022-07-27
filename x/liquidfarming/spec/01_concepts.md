@@ -41,6 +41,11 @@ $$LPCoinUnfarm = \frac{LPCoinTotalStaked}{LFCoinTotalSupply} \times LFCoinBurn \
 ## Farming Rewards and Auction
 
 On behalf of users, the module stakes their pool coins and claims farming rewards for every epoch.
-In order to exchange the rewards coin(s) into the pool coin to be additionally staked for farming, the module creates an auction.
-Once the module claims the rewards, the module creates an auction to exchange the claimed rewards coin(s) into the pool coin to be additionally staked for farming.
-The auction 
+In order to exchange the rewards coin(s) into the pool coin to be additionally staked for farming, the module creates an auction to sell the rewards that will be received at the end of the epoch. Note that the exact amount of the rewards being auctioned is not determined when the auction is created, but will be determined when the auction ends.
+The amount of the rewards depends on the total amount of staked pool coins and the `liquidfarming` module’s staked pool coin, which can be varied during the epoch.
+Therefore, a bidder to place a bid for the auction should be aware of this uncertainty of the rewards amount.
+
+## Bidding for Auction and Winning Bid
+
+A bidder can place a bid with the pool coin, which is the paying coin of the auction. A bidder only can place a single bid per auction of a liquid farm.
+The bid amount of the pool coin must be higher than the current winning bid amount that is the highest bid amount of the auction. The bidder placing the bid with the highest amount of the pool coin becomes the winner of the auction and will takes all the accumulated rewards amount at the end of the auction.
