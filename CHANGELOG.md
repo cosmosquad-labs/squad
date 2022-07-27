@@ -42,7 +42,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
-* (x/liquidity) [\#341](https://github.com/cosmosquad-labs/squad/pull/341) Enable detailed configuration for order book responses
+* (x/liquidity) [\#344](https://github.com/cosmosquad-labs/squad/pull/344), [\#341](https://github.com/cosmosquad-labs/squad/pull/341) Enable detailed configuration for order book responses
 
 ### Bug Fixes
 * (x/liquidstaking) [\#342](https://github.com/cosmosquad-labs/squad/pull/342) fix: calculation bug of liquidstaking voting_power endpoint
