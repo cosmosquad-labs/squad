@@ -13,9 +13,6 @@ service Msg {
   // Lend defines a method for lending assets.
   rpc Lend(MsgLend) returns (MsgLendResponse);
 
-  // Redeem defines a method for redeeming l-token for later withdrawal of lent assets.
-  rpc Redeem(MsgRedeem) returns (MsgRedeemResponse);
-
   // Withdraw defines a method for withdrawing lent assets.
   rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
 }
@@ -31,18 +28,6 @@ message MsgLend {
 
 // MsgLendResponse defines the Msg/Lend response type.
 message MsgLendResponse {}
-
-// MsgRedeem defines an SDK message for redeeming l-token for later withdrawal of lent assets.
-message MsgRedeem {
-  // lender specifies the bech32-encoded address of the lender.
-  string lender = 1;
-
-  // coin specifies the l-token to redeem.
-  cosmos.base.v1beta1.Coin coin = 2 [(gogoproto.nullable) = false];
-}
-
-// MsgRedeemResponse defines the Msg/Redeem response type.
-message MsgRedeemResponse {}
 
 // MsgLend defines an SDK message for withdrawing lent assets.
 message MsgWithdraw {

@@ -26,14 +26,6 @@ func (m msgServer) Lend(goCtx context.Context, msg *types.MsgLend) (*types.MsgLe
 	return &types.MsgLendResponse{}, nil
 }
 
-// Redeem defines a method for redeeming l-token for later withdrawal of lent
-// assets.
-func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.MsgRedeemResponse, error) {
-	// TODO: not implemented
-
-	return &types.MsgRedeemResponse{}, nil
-}
-
 // Withdraw defines a method for withdrawing lent assets.
 func (m msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*types.MsgWithdrawResponse, error) {
 	// TODO: not implemented
