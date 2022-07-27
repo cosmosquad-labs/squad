@@ -77,13 +77,3 @@ func (k Keeper) GetLiquidFarm(ctx sdk.Context, poolId uint64) (liquidFarm types.
 	}
 	return types.LiquidFarm{}, false
 }
-
-type LiquidFarmResponse struct {
-	PoolId                   uint64
-	LiquidFarmReserveAddress string
-	LFCoinDenom              string
-	MinimumFarmAmount        sdk.Int
-	MinimumBidAmount         sdk.Int
-	StakedCoin               sdk.Coin
-	QueuedCoin               sdk.Coin
-}

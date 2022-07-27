@@ -2,16 +2,13 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	farmingtypes "github.com/cosmosquad-labs/squad/v2/x/farming/types"
 	liquiditytypes "github.com/cosmosquad-labs/squad/v2/x/liquidity/types"
 )
 
 // AccountKeeper defines the expected interface needed for the module.
 type AccountKeeper interface {
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
 	GetModuleAddress(name string) sdk.AccAddress
 }
 
@@ -36,10 +33,8 @@ type FarmingKeeper interface {
 	Harvest(ctx sdk.Context, farmerAcc sdk.AccAddress, stakingCoinDenoms []string) error
 	GetCurrentEpochDays(ctx sdk.Context) uint32
 	GetAllQueuedCoinsByFarmer(ctx sdk.Context, farmerAcc sdk.AccAddress) sdk.Coins
-	GetStaking(ctx sdk.Context, stakingCoinDenom string, farmerAcc sdk.AccAddress) (staking farmingtypes.Staking, found bool)
 	GetAllStakedCoinsByFarmer(ctx sdk.Context, farmerAcc sdk.AccAddress) sdk.Coins
 	Rewards(ctx sdk.Context, farmerAcc sdk.AccAddress, stakingCoinDenom string) sdk.Coins
-	GetUnharvestedRewards(ctx sdk.Context, farmerAcc sdk.AccAddress, stakingCoinDenom string) (rewards farmingtypes.UnharvestedRewards, found bool)
 }
 
 // LiquidityKeeper defines the expected interface needed for the module.
