@@ -196,7 +196,7 @@ func (k Querier) RewardsAuctions(c context.Context, req *types.QueryRewardsAucti
 
 	ctx := sdk.UnwrapSDKContext(c)
 	store := ctx.KVStore(k.storeKey)
-	auctionStore := prefix.NewStore(store, types.AuctionKeyPrefix)
+	auctionStore := prefix.NewStore(store, types.RewardsAuctionKeyPrefix)
 
 	// Filter auctions by descending order to show an ongoing auction first
 	pageReq := &query.PageRequest{

@@ -23,7 +23,7 @@ func (k Keeper) ValidateMsgPlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) err
 
 	liquidFarm, found := k.GetLiquidFarm(ctx, msg.PoolId)
 	if !found {
-		return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "liquid farm with pool %d not found", msg.PoolId)
+		return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "liquid farm by pool %d not found", msg.PoolId)
 	}
 
 	balance := k.bankKeeper.SpendableCoins(ctx, msg.GetBidder()).AmountOf(msg.BiddingCoin.Denom)
@@ -32,12 +32,12 @@ func (k Keeper) ValidateMsgPlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) err
 	}
 
 	if msg.BiddingCoin.Amount.LT(liquidFarm.MinimumBidAmount) {
-		return sdkerrors.Wrapf(types.ErrInsufficientBidAmount, "%s is smaller than %s", msg.BiddingCoin.Amount, liquidFarm.MinimumBidAmount)
+		return sdkerrors.Wrapf(types.ErrSmallerThanMinimumAmount, "%s is smaller than %s", msg.BiddingCoin.Amount, liquidFarm.MinimumBidAmount)
 	}
 
 	_, found = k.GetBid(ctx, auctionId, msg.GetBidder())
 	if found {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "bid already exists by %s; refund bid is required to place new bid", msg.Bidder)
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "refund bid to place new bid")
 	}
 
 	return nil
@@ -83,7 +83,7 @@ func (k Keeper) RefundBid(ctx sdk.Context, msg *types.MsgRefundBid) error {
 	auctionId := k.GetLastRewardsAuctionId(ctx, msg.PoolId)
 	auction, found := k.GetRewardsAuction(ctx, msg.PoolId, auctionId)
 	if !found {
-		return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "auction corresponds to pool %d not found", msg.PoolId)
+		return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "auction by pool %d not found", msg.PoolId)
 	}
 
 	winningBid, found := k.GetWinningBid(ctx, msg.PoolId, auctionId)

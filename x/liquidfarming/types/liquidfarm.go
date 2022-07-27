@@ -40,36 +40,6 @@ func (l LiquidFarm) MarshalYAML() (interface{}, error) {
 	return string(bz), err
 }
 
-// MarshalQueuedFarming returns the QueuedFarming bytes. Panics if fails.
-func MarshalQueuedFarming(cdc codec.BinaryCodec, msg QueuedFarming) ([]byte, error) {
-	return cdc.Marshal(&msg)
-}
-
-// UnmarshalQueuedFarming returns the QueuedFarming from bytes.
-func UnmarshalQueuedFarming(cdc codec.BinaryCodec, value []byte) (msg QueuedFarming, err error) {
-	err = cdc.Unmarshal(value, &msg)
-	return msg, err
-}
-
-// MustMarshalQueuedFarming returns the QueuedFarming bytes. Panics if fails.
-func MustMarshalQueuedFarming(cdc codec.BinaryCodec, msg QueuedFarming) []byte {
-	bz, err := MarshalQueuedFarming(cdc, msg)
-	if err != nil {
-		panic(err)
-	}
-	return bz
-}
-
-// MustUnmarshalQueuedFarming returns the QueuedFarming from bytes.
-// It throws panic if it fails.
-func MustUnmarshalQueuedFarming(cdc codec.BinaryCodec, value []byte) QueuedFarming {
-	msg, err := UnmarshalQueuedFarming(cdc, value)
-	if err != nil {
-		panic(err)
-	}
-	return msg
-}
-
 // LiquidFarmCoinDenom returns a unique liquid farming coin denom for a LiquidFarm.
 func LiquidFarmCoinDenom(poolId uint64) string {
 	return fmt.Sprintf("lf%d", poolId)
@@ -82,4 +52,15 @@ func LiquidFarmReserveAddress(poolId uint64) sdk.AccAddress {
 		ModuleName,
 		strings.Join([]string{LiquidFarmReserveAccPrefix, strconv.FormatUint(poolId, 10)}, ModuleAddressNameSplitter),
 	)
+}
+
+// MarshalQueuedFarming returns the QueuedFarming bytes. Panics if fails.
+func MarshalQueuedFarming(cdc codec.BinaryCodec, msg QueuedFarming) ([]byte, error) {
+	return cdc.Marshal(&msg)
+}
+
+// UnmarshalQueuedFarming returns the QueuedFarming from bytes.
+func UnmarshalQueuedFarming(cdc codec.BinaryCodec, value []byte) (msg QueuedFarming, err error) {
+	err = cdc.Unmarshal(value, &msg)
+	return msg, err
 }

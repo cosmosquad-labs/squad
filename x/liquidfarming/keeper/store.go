@@ -221,7 +221,7 @@ func (k Keeper) IterateQueuedFarmingsByFarmerAndDenomReverse(ctx sdk.Context, fa
 // Stops iteration when callback returns true.
 func (k Keeper) IterateRewardsAuctions(ctx sdk.Context, cb func(auction types.RewardsAuction) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.AuctionKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, types.RewardsAuctionKeyPrefix)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		auction := types.MustUnmarshalRewardsAuction(k.cdc, iterator.Value())

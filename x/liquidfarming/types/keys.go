@@ -30,7 +30,7 @@ var (
 	QueuedFarmingKeyPrefix      = []byte{0xe4}
 	QueuedFarmingIndexKeyPrefix = []byte{0xe5}
 
-	AuctionKeyPrefix = []byte{0xe7}
+	RewardsAuctionKeyPrefix = []byte{0xe7}
 
 	BidKeyPrefix        = []byte{0xea}
 	WinningBidKeyPrefix = []byte{0xeb}
@@ -84,7 +84,7 @@ func GetQueuedFarmingEndBytes(endTime time.Time) []byte {
 // GetRewardsAuctionKey returns the store key to retrieve rewards auction object
 // by the given pool id and auction id.
 func GetRewardsAuctionKey(poolId, auctionId uint64) []byte {
-	return append(append(AuctionKeyPrefix, sdk.Uint64ToBigEndian(poolId)...), sdk.Uint64ToBigEndian(auctionId)...)
+	return append(append(RewardsAuctionKeyPrefix, sdk.Uint64ToBigEndian(poolId)...), sdk.Uint64ToBigEndian(auctionId)...)
 }
 
 // GetBidKey returns the store key to retrieve the bid

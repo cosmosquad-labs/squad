@@ -8,8 +8,7 @@ import (
 
 // x/liquidfarming module sentinel errors
 var (
-	ErrInsufficientFarmingAmount   = sdkerrors.Register(ModuleName, 2, "insufficient farming coin amount")
+	ErrSmallerThanMinimumAmount    = sdkerrors.Register(ModuleName, 2, "smaller than minimum amount")
 	ErrInsufficientUnfarmingAmount = sdkerrors.Register(ModuleName, 3, "insufficient unfarming amount")
-	ErrInsufficientBidAmount       = sdkerrors.Register(ModuleName, 4, "insufficient bid amount")
-	ErrInvalidAuctionStatus        = sdkerrors.Register(ModuleName, 5, "invalid auction status")
+	ErrInvalidAuctionStatus        = sdkerrors.Register(ModuleName, 4, "invalid auction status")
 )
