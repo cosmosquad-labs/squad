@@ -14,9 +14,9 @@ A synthetic version of the farming coin is called as LFCoin in the module and th
 
 ```go
 type MsgFarm struct {
-	PoolId      uint64    	// target pool id
-	Farmer      string		// the bech32-encoded address that farms coin
-	FarmingCoin sdk.Coin	// farming amount of pool coin
+	PoolId      uint64   // target pool id
+	Farmer      string   // the bech32-encoded address that farms coin
+	FarmingCoin sdk.Coin // farming amount of pool coin
 }
 ```
 
@@ -35,9 +35,9 @@ A farmer is allowed to cancel their farming coin amount before they are staked t
 
 ```go
 type MsgCancelQueuedFarming struct {
-	PoolId           uint64 	// target pool id
-	Farmer           string		// the bech32-encoded address that cancels queued farming
-	UnfarmingCoin    sdk.Coin	// cancel amount of pool coin
+	PoolId        uint64   // target pool id
+	Farmer        string   // the bech32-encoded address that cancels queued farming
+	UnfarmingCoin sdk.Coin // cancel amount of pool coin
 }
 ```
 
@@ -54,9 +54,9 @@ The module burns LFCoin amounts and releases the corresponding amount of pool co
 
 ```go
 type MsgUnfarm struct {
-	PoolId     uint64   // target deposit request id
-	Farmer     string   // the bech32-encoded address that unfarms liquid farm coin
-	LFCoin     sdk.Coin // withdrawing amount of LF coin
+	PoolId uint64   // target deposit request id
+	Farmer string   // the bech32-encoded address that unfarms liquid farm coin
+	LFCoin sdk.Coin // withdrawing amount of LF coin
 }
 ```
 
@@ -67,20 +67,20 @@ Validity checks are performed for `MsgUnfarm` message. The transaction that is t
 - The unfarming coin denom is not the same as the pool coin denom of the pool with `PoolId`
 - The farmer has insufficient spendable balances for the unfarming amount
 
-## MsgUnfarmWithdraw
+## MsgUnfarmAndWithdraw
 
 Unfarm LFCoin to liquid unfarm and withdraw the pool coin from the pool. 
 The module burns LFCoin amounts at the current burn rate, withdraw the corresponding amount of pool coins from the pool, and then releases the withdrawn coins to a farmer.
 
 ```go
-type MsgUnfarmWithdraw struct {
-	PoolId     uint64   // target pool id
-	Farmer     string   // the bech32-encoded address that unfarms liquid farm coin and withdraws 
-	LFCoin     sdk.Coin // withdrawing amount of LF coin
+type MsgUnfarmAndWithdraw struct {
+	PoolId uint64   // target pool id
+	Farmer string   // the bech32-encoded address that unfarms liquid farm coin and withdraws
+	LFCoin sdk.Coin // withdrawing amount of LF coin
 }
 ```
 
-Validity checks are performed for `MsgUnfarmWithdraw` message. The transaction that is triggered with the `MsgUnfarmWithdraw` message fails if:
+Validity checks are performed for `MsgUnfarmAndWithdraw` message. The transaction that is triggered with the `MsgUnfarmAndWithdraw` message fails if:
 
 - The target liquid farm with the pool id does not exist
 - The amount of LF coins is not positive
@@ -94,9 +94,9 @@ Anyone can place a bid for an auction where the bidder placing with the highest 
 
 ```go
 type MsgPlaceBid struct {
-	PoolId          uint64    	// target pool id
-	Bidder          string		// the bech32-encoded address that places a bid
-	BiddingCoin     sdk.Coin	// bidding amount of pool coin
+	PoolId      uint64   // target pool id
+	Bidder      string   // the bech32-encoded address that places a bid
+	BiddingCoin sdk.Coin // bidding amount of pool coin
 }
 ```
 
@@ -111,8 +111,8 @@ Refund the bid that is not winning for the auction.
 
 ```go
 type MsgRefundBid struct {
-	BidId     string
-	Bidder    sdk.Coin
+	BidId  uint64 // target bid id
+	Bidder string // the bech32-encoded address that refunds a bid
 }
 ```
 
