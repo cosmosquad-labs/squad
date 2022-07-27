@@ -149,6 +149,13 @@ func (k Keeper) Unfarm(ctx sdk.Context, msg *types.MsgUnfarm) error {
 	return nil
 }
 
+// UnfarmAndWithdraw handles types.MsgUnfarmAndWithdraw to unfarm LFCoin and withdraw pool coin from the pool.
+func (k Keeper) UnfarmAndWithdraw(ctx sdk.Context, msg *types.MsgUnfarmAndWithdraw) error {
+	// TODO: not implemented yet
+
+	return nil
+}
+
 // CancelQueuedFarming handles types.MsgCancelQueuedFarming to cancel queued farming.
 func (k Keeper) CancelQueuedFarming(ctx sdk.Context, msg *types.MsgCancelQueuedFarming) error {
 	queuedFarmings := k.GetQueuedFarmingsByFarmer(ctx, msg.GetFarmer())

@@ -8,6 +8,7 @@ import (
 var (
 	_ sdk.Msg = (*MsgFarm)(nil)
 	_ sdk.Msg = (*MsgUnfarm)(nil)
+	_ sdk.Msg = (*MsgUnfarmAndWithdraw)(nil)
 	_ sdk.Msg = (*MsgCancelQueuedFarming)(nil)
 	_ sdk.Msg = (*MsgPlaceBid)(nil)
 )
@@ -16,6 +17,7 @@ var (
 const (
 	TypeMsgFarm                = "farm"
 	TypeMsgUnfarm              = "unfarm"
+	TypeMsgUnfarmAndWithdraw   = "unfarm_and_withdraw"
 	TypeMsgCancelQueuedFarming = "cancel_queued_farming"
 	TypeMsgPlaceBid            = "place_bid"
 	TypeMsgRefundBid           = "refund_bid"
@@ -112,6 +114,55 @@ func (msg MsgUnfarm) GetSigners() []sdk.AccAddress {
 }
 
 func (msg MsgUnfarm) GetFarmer() sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(msg.Farmer)
+	if err != nil {
+		panic(err)
+	}
+	return addr
+}
+
+// NewMsgUnfarmAndWithdraw creates a new MsgUnfarmAndWithdraw
+func NewMsgUnfarmAndWithdraw(poolId uint64, farmer string, lfCoin sdk.Coin) *MsgUnfarmAndWithdraw {
+	return &MsgUnfarmAndWithdraw{
+		PoolId: poolId,
+		Farmer: farmer,
+		LFCoin: lfCoin,
+	}
+}
+
+func (msg MsgUnfarmAndWithdraw) Route() string { return RouterKey }
+
+func (msg MsgUnfarmAndWithdraw) Type() string { return TypeMsgUnfarmAndWithdraw }
+
+func (msg MsgUnfarmAndWithdraw) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Farmer); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid farmer address: %v", err)
+	}
+	if msg.PoolId == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid pool id")
+	}
+	if !msg.LFCoin.IsPositive() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "liquid farming coin must be positive")
+	}
+	if err := msg.LFCoin.Validate(); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid liquid farming coin: %v", err)
+	}
+	return nil
+}
+
+func (msg MsgUnfarmAndWithdraw) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&msg))
+}
+
+func (msg MsgUnfarmAndWithdraw) GetSigners() []sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(msg.Farmer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr}
+}
+
+func (msg MsgUnfarmAndWithdraw) GetFarmer() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.Farmer)
 	if err != nil {
 		panic(err)

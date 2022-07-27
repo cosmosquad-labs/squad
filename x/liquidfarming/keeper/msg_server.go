@@ -53,6 +53,17 @@ func (m msgServer) Unfarm(goCtx context.Context, msg *types.MsgUnfarm) (*types.M
 	return &types.MsgUnfarmResponse{}, nil
 }
 
+// UnfarmAndWithdraw defines a method for unfarming LFCoin and withdraw pool coin from the pool.
+func (m msgServer) UnfarmAndWithdraw(goCtx context.Context, msg *types.MsgUnfarmAndWithdraw) (*types.MsgUnfarmAndWithdrawResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if err := m.Keeper.UnfarmAndWithdraw(ctx, msg); err != nil {
+		return nil, err
+	}
+
+	return &types.MsgUnfarmAndWithdrawResponse{}, nil
+}
+
 // PlaceBid defines a method for placing a bid for a rewards auction.
 func (m msgServer) PlaceBid(goCtx context.Context, msg *types.MsgPlaceBid) (*types.MsgPlaceBidResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
