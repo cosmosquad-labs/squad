@@ -2,8 +2,9 @@
 
 # Hooks
 
-The `Liquidfarming` module has the events triggered by the hooks from `farming` module.
 The `Liquidfarming` module uses the following hooks registered in `farming` module.
+
+## AfterAllocateRewards Hook
 
 ```go
 AfterAllocateRewards(ctx sdk.Context)
@@ -17,6 +18,7 @@ When `AfterAllocateRewards` hook is delivered, the following operations are perf
   - the pool coins from the others not winner in the paying reserve address is refunded to each bidder’s account.
 - A new auction is created.
 
+## AfterStaked Hook
 
 ```go
 AfterStaked(
