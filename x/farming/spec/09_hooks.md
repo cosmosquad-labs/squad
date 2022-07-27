@@ -9,3 +9,12 @@ The following hooks can be registered:
 ```go
 AfterAllocateRewards(ctx sdk.Context)
 ```
+
+```go
+AfterStaked(
+    ctx sdk.Context, 
+    farmer sdk.AccAddress, 
+    stakingCoinDenom string, 
+    stakingAmt sdk.Int,
+)
+```
