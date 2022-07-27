@@ -16,15 +16,14 @@ func (k Keeper) Farm(ctx sdk.Context, msg *types.MsgFarm) error {
 	params := k.GetParams(ctx)
 	poolId := uint64(0)
 	minFarmAmt := sdk.ZeroInt()
-	for _, lf := range params.LiquidFarms {
-		if lf.PoolId == msg.PoolId {
-			poolId = lf.PoolId
-			minFarmAmt = lf.MinimumFarmAmount
+	for _, liquidFarm := range params.LiquidFarms {
+		if liquidFarm.PoolId == msg.PoolId {
+			poolId = liquidFarm.PoolId
+			minFarmAmt = liquidFarm.MinimumFarmAmount
 			break
 		}
 	}
 
-	// Check if liquid farm that corresponds to the pool id exists
 	if poolId == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrNotFound, "liquid farm not found")
 	}
@@ -97,19 +96,19 @@ func (k Keeper) Farm(ctx sdk.Context, msg *types.MsgFarm) error {
 
 // Unfarm handles types.MsgUnfarm to unfarm LFCoin.
 func (k Keeper) Unfarm(ctx sdk.Context, msg *types.MsgUnfarm) error {
-	for _, lf := range k.GetParams(ctx).LiquidFarms {
-		if msg.PoolId == lf.PoolId {
-			reserveAddr := types.LiquidFarmReserveAddress(lf.PoolId)
-			lfCoinDenom := types.LiquidFarmCoinDenom(lf.PoolId)
+	for _, liquidFarm := range k.GetParams(ctx).LiquidFarms {
+		if msg.PoolId == liquidFarm.PoolId {
+			reserveAddr := types.LiquidFarmReserveAddress(liquidFarm.PoolId)
+			lfCoinDenom := types.LiquidFarmCoinDenom(liquidFarm.PoolId)
 
 			lfCoinBalance := k.bankKeeper.SpendableCoins(ctx, msg.GetFarmer()).AmountOf(lfCoinDenom)
 			if lfCoinBalance.LT(msg.LFCoin.Amount) {
 				return sdkerrors.Wrapf(types.ErrInsufficientUnfarmingAmount, "%s is smaller than %s", lfCoinBalance, msg.LFCoin.Amount)
 			}
 
-			pool, found := k.liquidityKeeper.GetPool(ctx, lf.PoolId)
+			pool, found := k.liquidityKeeper.GetPool(ctx, liquidFarm.PoolId)
 			if !found {
-				return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "pool %d not found", lf.PoolId)
+				return sdkerrors.Wrapf(sdkerrors.ErrNotFound, "pool %d not found", liquidFarm.PoolId)
 			}
 
 			lfCoinTotalSupply := k.bankKeeper.GetSupply(ctx, lfCoinDenom).Amount

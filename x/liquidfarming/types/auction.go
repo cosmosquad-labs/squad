@@ -55,7 +55,7 @@ func (a *RewardsAuction) Validate() error {
 	if !a.EndTime.After(a.StartTime) {
 		return fmt.Errorf("end time must be set after the start time")
 	}
-	if a.Status != AuctionStatusStarted || a.Status != AuctionStatusFinished {
+	if a.Status != AuctionStatusStarted && a.Status != AuctionStatusFinished {
 		return fmt.Errorf("invalid auction status")
 	}
 	return nil

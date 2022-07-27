@@ -73,15 +73,13 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	})
 
 	poolIds := []uint64{}
-	for i, liquidFarm := range params.LiquidFarms {
-		poolIds[i] = liquidFarm.PoolId
+	for _, liquidFarm := range params.LiquidFarms {
+		poolIds = append(poolIds, liquidFarm.PoolId)
 	}
 
-	allBids := []types.Bid{}
+	bids := []types.Bid{}
 	winningBidRecords := []types.WinningBidRecord{}
 	for _, poolId := range poolIds {
-		allBids = append(allBids, k.GetBidsByPoolId(ctx, poolId)...)
-
 		auctionId := k.GetLastRewardsAuctionId(ctx, poolId)
 		winningBid, found := k.GetWinningBid(ctx, poolId, auctionId)
 		if found {
@@ -90,13 +88,14 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 				WinningBid: winningBid,
 			})
 		}
+		bids = append(bids, k.GetBidsByPoolId(ctx, poolId)...)
 	}
 
 	return &types.GenesisState{
 		Params:               params,
 		QueuedFarmingRecords: queuedFarmingRecords,
 		RewardsAuctions:      rewardsAuctions,
-		Bids:                 allBids,
+		Bids:                 bids,
 		WinningBidRecords:    winningBidRecords,
 	}
 }

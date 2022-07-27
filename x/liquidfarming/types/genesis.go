@@ -40,13 +40,13 @@ func (gs GenesisState) Validate() error {
 
 	for _, auction := range gs.RewardsAuctions {
 		if err := auction.Validate(); err != nil {
-			return fmt.Errorf("invalid rewards auction: %w", err)
+			return err
 		}
 	}
 
 	for _, bid := range gs.Bids {
 		if err := bid.Validate(); err != nil {
-			return fmt.Errorf("invalid bid: %w", err)
+			return err
 		}
 	}
 

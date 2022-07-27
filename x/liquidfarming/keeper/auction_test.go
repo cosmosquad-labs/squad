@@ -194,15 +194,15 @@ func (s *KeeperTestSuite) TestRefundBid() {
 }
 
 func (s *KeeperTestSuite) TestAfterAllocateRewards() {
-	s.ctx = s.ctx.WithBlockTime(utils.ParseTime("2022-07-01T00:00:00Z"))
 	pair := s.createPair(s.addr(0), "denom1", "denom2", true)
 	pool := s.createPool(s.addr(0), pair.Id, utils.ParseCoins("100_000_000denom1, 100_000_000denom2"), true)
+
 	s.createLiquidFarm(types.NewLiquidFarm(pool.Id, sdk.ZeroInt(), sdk.ZeroInt()))
 
 	s.createPrivateFixedAmountPlan(s.addr(0), map[string]string{pool.PoolCoinDenom: "1"}, map[string]int64{"denom3": 1_000_000}, true)
 	s.farm(pool.Id, s.addr(1), sdk.NewCoin(pool.PoolCoinDenom, sdk.NewInt(50_000_000)), true)
-	s.advanceEpochDays() // move from QueuedCoins to StakedCoins
-	s.advanceEpochDays() // create first RewardsAuction as AllocateRewards hook is triggered
+	s.advanceEpochDays() // advance epoch to move from QueuedCoins to StakedCoins
+	s.advanceEpochDays() // trigger AllocateRewards hook to create the first RewardsAuction
 
 	auctionId := s.keeper.GetLastRewardsAuctionId(s.ctx, pool.Id)
 	auction, found := s.keeper.GetRewardsAuction(s.ctx, pool.Id, auctionId)
@@ -230,4 +230,27 @@ func (s *KeeperTestSuite) TestAfterAllocateRewards() {
 	// Check newly staked amount by the liquid farm reserve account
 	queuedCoins := s.app.FarmingKeeper.GetAllQueuedCoinsByFarmer(s.ctx, types.LiquidFarmReserveAddress(pool.Id))
 	s.Require().Equal(sdk.NewInt(30_000_000), queuedCoins.AmountOf(pool.PoolCoinDenom))
+}
+
+func (s *KeeperTestSuite) TestAfterAllocateRewards_NoBid() {
+	pair := s.createPair(s.addr(0), "denom1", "denom2", true)
+	pool := s.createPool(s.addr(0), pair.Id, utils.ParseCoins("100_000_000denom1, 100_000_000denom2"), true)
+
+	s.createLiquidFarm(types.NewLiquidFarm(pool.Id, sdk.ZeroInt(), sdk.ZeroInt()))
+
+	s.createPrivateFixedAmountPlan(s.addr(0), map[string]string{pool.PoolCoinDenom: "1"}, map[string]int64{"denom3": 1_000_000}, true)
+	s.farm(pool.Id, s.addr(1), sdk.NewCoin(pool.PoolCoinDenom, sdk.NewInt(50_000_000)), true)
+	s.advanceEpochDays() // advance epoch to move from QueuedCoins to StakedCoins
+	s.advanceEpochDays() // trigger AllocateRewards hook to create the first RewardsAuction
+
+	auctionId := s.keeper.GetLastRewardsAuctionId(s.ctx, pool.Id)
+	auction, found := s.keeper.GetRewardsAuction(s.ctx, pool.Id, auctionId)
+	s.Require().True(found)
+	s.Require().Equal(types.AuctionStatusStarted, auction.Status)
+
+	s.advanceEpochDays() // finish the ongoing rewards auction
+
+	auction, found = s.keeper.GetRewardsAuction(s.ctx, auction.PoolId, auction.Id)
+	s.Require().True(found)
+	s.Require().Equal(types.AuctionStatusFinished, auction.Status)
 }
