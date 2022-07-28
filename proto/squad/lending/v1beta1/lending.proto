@@ -7,4 +7,36 @@ option go_package                      = "github.com/cosmosquad-labs/squad/x/len
 option (gogoproto.goproto_getters_all) = false;
 
 // Params defines the parameters for the lending module.
-message Params {}
+message Params {
+  repeated LendingAssetParam lending_asset_params = 1 [(gogoproto.nullable) = false];
+}
+
+message LendingAssetParam {
+  string denom = 1;
+
+  string min_interest_rate = 2
+      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+
+  string max_interest_rate = 3
+      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+
+  uint32 utilization_ratio_power = 4;
+}
+
+// LendingAsset holds information about a single lending asset.
+message LendingAsset {
+  string denom = 1;
+
+  string bond_denom = 2;
+
+  string reserve_address = 3;
+
+  string total_lent_amount = 4
+      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+
+  string total_borrowed_amount = 5
+      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+
+  string accrued_interest_amount = 6
+      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+}

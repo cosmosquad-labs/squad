@@ -5,6 +5,7 @@ package types
 
 import (
 	fmt "fmt"
+	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	io "io"
@@ -25,6 +26,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Params defines the parameters for the lending module.
 type Params struct {
+	LendingAssetParams []LendingAssetParam `protobuf:"bytes,1,rep,name=lending_asset_params,json=lendingAssetParams,proto3" json:"lending_asset_params"`
 }
 
 func (m *Params) Reset()         { *m = Params{} }
@@ -60,8 +62,93 @@ func (m *Params) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Params proto.InternalMessageInfo
 
+type LendingAssetParam struct {
+	Denom                 string                                 `protobuf:"bytes,1,opt,name=denom,proto3" json:"denom,omitempty"`
+	MinInterestRate       github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,2,opt,name=min_interest_rate,json=minInterestRate,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"min_interest_rate"`
+	MaxInterestRate       github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,3,opt,name=max_interest_rate,json=maxInterestRate,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"max_interest_rate"`
+	UtilizationRatioPower uint32                                 `protobuf:"varint,4,opt,name=utilization_ratio_power,json=utilizationRatioPower,proto3" json:"utilization_ratio_power,omitempty"`
+}
+
+func (m *LendingAssetParam) Reset()         { *m = LendingAssetParam{} }
+func (m *LendingAssetParam) String() string { return proto.CompactTextString(m) }
+func (*LendingAssetParam) ProtoMessage()    {}
+func (*LendingAssetParam) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ff99e1e44df007c0, []int{1}
+}
+func (m *LendingAssetParam) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *LendingAssetParam) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_LendingAssetParam.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *LendingAssetParam) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LendingAssetParam.Merge(m, src)
+}
+func (m *LendingAssetParam) XXX_Size() int {
+	return m.Size()
+}
+func (m *LendingAssetParam) XXX_DiscardUnknown() {
+	xxx_messageInfo_LendingAssetParam.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_LendingAssetParam proto.InternalMessageInfo
+
+// LendingAsset holds information about a single lending asset.
+type LendingAsset struct {
+	Denom                 string                                 `protobuf:"bytes,1,opt,name=denom,proto3" json:"denom,omitempty"`
+	BondDenom             string                                 `protobuf:"bytes,2,opt,name=bond_denom,json=bondDenom,proto3" json:"bond_denom,omitempty"`
+	ReserveAddress        string                                 `protobuf:"bytes,3,opt,name=reserve_address,json=reserveAddress,proto3" json:"reserve_address,omitempty"`
+	TotalLentAmount       github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,4,opt,name=total_lent_amount,json=totalLentAmount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"total_lent_amount"`
+	TotalBorrowedAmount   github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,5,opt,name=total_borrowed_amount,json=totalBorrowedAmount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"total_borrowed_amount"`
+	AccruedInterestAmount github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,6,opt,name=accrued_interest_amount,json=accruedInterestAmount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"accrued_interest_amount"`
+}
+
+func (m *LendingAsset) Reset()         { *m = LendingAsset{} }
+func (m *LendingAsset) String() string { return proto.CompactTextString(m) }
+func (*LendingAsset) ProtoMessage()    {}
+func (*LendingAsset) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ff99e1e44df007c0, []int{2}
+}
+func (m *LendingAsset) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *LendingAsset) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_LendingAsset.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *LendingAsset) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LendingAsset.Merge(m, src)
+}
+func (m *LendingAsset) XXX_Size() int {
+	return m.Size()
+}
+func (m *LendingAsset) XXX_DiscardUnknown() {
+	xxx_messageInfo_LendingAsset.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_LendingAsset proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*Params)(nil), "squad.lending.v1beta1.Params")
+	proto.RegisterType((*LendingAssetParam)(nil), "squad.lending.v1beta1.LendingAssetParam")
+	proto.RegisterType((*LendingAsset)(nil), "squad.lending.v1beta1.LendingAsset")
 }
 
 func init() {
@@ -69,17 +156,37 @@ func init() {
 }
 
 var fileDescriptor_ff99e1e44df007c0 = []byte{
-	// 160 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x52, 0x2e, 0x2e, 0x2c, 0x4d,
-	0x4c, 0xd1, 0xcf, 0x49, 0xcd, 0x4b, 0xc9, 0xcc, 0x4b, 0xd7, 0x2f, 0x33, 0x4c, 0x4a, 0x2d, 0x49,
-	0x34, 0x84, 0xf1, 0xf5, 0x0a, 0x8a, 0xf2, 0x4b, 0xf2, 0x85, 0x44, 0xc1, 0x8a, 0xf4, 0x60, 0x82,
-	0x50, 0x45, 0x52, 0x22, 0xe9, 0xf9, 0xe9, 0xf9, 0x60, 0x15, 0xfa, 0x20, 0x16, 0x44, 0xb1, 0x12,
-	0x07, 0x17, 0x5b, 0x40, 0x62, 0x51, 0x62, 0x6e, 0xb1, 0x93, 0xdf, 0x89, 0x87, 0x72, 0x0c, 0x27,
-	0x1e, 0xc9, 0x31, 0x5e, 0x78, 0x24, 0xc7, 0xf8, 0xe0, 0x91, 0x1c, 0xe3, 0x84, 0xc7, 0x72, 0x0c,
-	0x17, 0x1e, 0xcb, 0x31, 0xdc, 0x78, 0x2c, 0xc7, 0x10, 0x65, 0x90, 0x9e, 0x59, 0x92, 0x51, 0x9a,
-	0xa4, 0x97, 0x9c, 0x9f, 0xab, 0x9f, 0x9c, 0x5f, 0x9c, 0x9b, 0x0f, 0xb6, 0x44, 0x37, 0x27, 0x31,
-	0xa9, 0x58, 0x1f, 0xe2, 0xa8, 0x0a, 0xb8, 0xb3, 0x4a, 0x2a, 0x0b, 0x52, 0x8b, 0x93, 0xd8, 0xc0,
-	0x16, 0x18, 0x03, 0x02, 0x00, 0x00, 0xff, 0xff, 0x9d, 0xbc, 0x1c, 0xdd, 0xb4, 0x00, 0x00, 0x00,
+	// 472 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x93, 0xcd, 0x6e, 0xd3, 0x40,
+	0x10, 0xc7, 0xe3, 0xa6, 0x8d, 0xd4, 0xe5, 0x23, 0xaa, 0x49, 0xd4, 0x08, 0x09, 0x37, 0x0a, 0x12,
+	0xe4, 0x52, 0x9b, 0x82, 0xc4, 0x3d, 0x51, 0x2f, 0x95, 0x2a, 0x54, 0xed, 0xb1, 0x97, 0x65, 0xed,
+	0x1d, 0xc2, 0x82, 0xbd, 0x1b, 0x76, 0xd7, 0x6d, 0xe0, 0x29, 0x38, 0x70, 0xe1, 0x8d, 0x72, 0xec,
+	0x11, 0x71, 0xa8, 0x20, 0x79, 0x11, 0xb4, 0x1f, 0x81, 0xd2, 0xc2, 0xa1, 0xb9, 0xd8, 0x9e, 0x99,
+	0xff, 0xfe, 0xc6, 0xfb, 0x1f, 0x0d, 0x7a, 0xac, 0x3f, 0xd4, 0x94, 0x65, 0x25, 0x08, 0xc6, 0xc5,
+	0x24, 0x3b, 0x3b, 0xc8, 0xc1, 0xd0, 0x83, 0x55, 0x9c, 0x4e, 0x95, 0x34, 0x32, 0xee, 0x3a, 0x51,
+	0xba, 0x4a, 0x06, 0xd1, 0xc3, 0xce, 0x44, 0x4e, 0xa4, 0x53, 0x64, 0xf6, 0xcb, 0x8b, 0x07, 0xef,
+	0x50, 0xeb, 0x84, 0x2a, 0x5a, 0xe9, 0xf8, 0x35, 0xea, 0x84, 0x23, 0x84, 0x6a, 0x0d, 0x86, 0x4c,
+	0x5d, 0xbe, 0x17, 0xf5, 0x9b, 0xc3, 0x3b, 0xcf, 0x87, 0xe9, 0x3f, 0xa9, 0xe9, 0xb1, 0x8f, 0x47,
+	0xf6, 0x84, 0x03, 0x8d, 0x37, 0xe7, 0x97, 0x7b, 0x0d, 0x1c, 0x97, 0xd7, 0x0b, 0x7a, 0xf0, 0x75,
+	0x03, 0xed, 0xdc, 0xd0, 0xc7, 0x1d, 0xb4, 0xc5, 0x40, 0xc8, 0xaa, 0x17, 0xf5, 0xa3, 0xe1, 0x36,
+	0xf6, 0x41, 0x7c, 0x8a, 0x76, 0x2a, 0x2e, 0x08, 0x17, 0x06, 0x14, 0x68, 0x43, 0x14, 0x35, 0xd0,
+	0xdb, 0xb0, 0x8a, 0x71, 0x6a, 0x1b, 0x7c, 0xbf, 0xdc, 0x7b, 0x32, 0xe1, 0xe6, 0x6d, 0x9d, 0xa7,
+	0x85, 0xac, 0xb2, 0x42, 0xea, 0x4a, 0xea, 0xf0, 0xda, 0xd7, 0xec, 0x7d, 0x66, 0x3e, 0x4e, 0x41,
+	0xa7, 0x87, 0x50, 0xe0, 0x76, 0xc5, 0xc5, 0x51, 0xe0, 0x60, 0x6a, 0xc0, 0xb1, 0xe9, 0xec, 0x1a,
+	0xbb, 0xb9, 0x26, 0x9b, 0xce, 0xfe, 0x62, 0xbf, 0x44, 0xbb, 0xb5, 0xe1, 0x25, 0xff, 0x44, 0x0d,
+	0x97, 0xc2, 0xa2, 0xb9, 0x24, 0x53, 0x79, 0x0e, 0xaa, 0xb7, 0xd9, 0x8f, 0x86, 0xf7, 0x70, 0xf7,
+	0x4a, 0x19, 0xdb, 0xe7, 0x89, 0x2d, 0x0e, 0xbe, 0x34, 0xd1, 0xdd, 0xab, 0xde, 0xfc, 0xc7, 0x96,
+	0x47, 0x08, 0xe5, 0x52, 0x30, 0xe2, 0x4b, 0xce, 0x0f, 0xbc, 0x6d, 0x33, 0x87, 0xae, 0xfc, 0x14,
+	0xb5, 0x15, 0x68, 0x50, 0x67, 0x40, 0x28, 0x63, 0x0a, 0xb4, 0xf6, 0xf7, 0xc2, 0xf7, 0x43, 0x7a,
+	0xe4, 0xb3, 0xd6, 0x02, 0x23, 0x0d, 0x2d, 0x49, 0x09, 0xc2, 0x10, 0x5a, 0xc9, 0x5a, 0x18, 0xf7,
+	0x83, 0xb7, 0xb3, 0xe0, 0x48, 0x18, 0xdc, 0x76, 0xa0, 0x63, 0x10, 0x66, 0xe4, 0x30, 0x71, 0x8e,
+	0xba, 0x9e, 0x9d, 0x4b, 0xa5, 0xe4, 0x39, 0xb0, 0x15, 0x7f, 0x6b, 0x2d, 0xfe, 0x03, 0x07, 0x1b,
+	0x07, 0x56, 0xe8, 0xf1, 0x06, 0xed, 0xd2, 0xa2, 0x50, 0x35, 0xb0, 0x3f, 0x63, 0x0c, 0x5d, 0x5a,
+	0x6b, 0x0d, 0xb2, 0x1b, 0x70, 0xab, 0x61, 0xfa, 0x3e, 0xe3, 0x57, 0xf3, 0x9f, 0x49, 0x63, 0xbe,
+	0x48, 0xa2, 0x8b, 0x45, 0x12, 0xfd, 0x58, 0x24, 0xd1, 0xe7, 0x65, 0xd2, 0xb8, 0x58, 0x26, 0x8d,
+	0x6f, 0xcb, 0xa4, 0x71, 0xfa, 0xec, 0x06, 0xdc, 0xee, 0xc8, 0x7e, 0x49, 0x73, 0x9d, 0xf9, 0x4d,
+	0x9d, 0xfd, 0xde, 0x55, 0xd7, 0x2a, 0x6f, 0xb9, 0xad, 0x7b, 0xf1, 0x2b, 0x00, 0x00, 0xff, 0xff,
+	0x00, 0x88, 0xa1, 0x22, 0xc9, 0x03, 0x00, 0x00,
 }
 
 func (m *Params) Marshal() (dAtA []byte, err error) {
@@ -102,6 +209,149 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.LendingAssetParams) > 0 {
+		for iNdEx := len(m.LendingAssetParams) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.LendingAssetParams[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintLending(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *LendingAssetParam) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *LendingAssetParam) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *LendingAssetParam) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.UtilizationRatioPower != 0 {
+		i = encodeVarintLending(dAtA, i, uint64(m.UtilizationRatioPower))
+		i--
+		dAtA[i] = 0x20
+	}
+	{
+		size := m.MaxInterestRate.Size()
+		i -= size
+		if _, err := m.MaxInterestRate.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintLending(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	{
+		size := m.MinInterestRate.Size()
+		i -= size
+		if _, err := m.MinInterestRate.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintLending(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	if len(m.Denom) > 0 {
+		i -= len(m.Denom)
+		copy(dAtA[i:], m.Denom)
+		i = encodeVarintLending(dAtA, i, uint64(len(m.Denom)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *LendingAsset) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *LendingAsset) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *LendingAsset) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size := m.AccruedInterestAmount.Size()
+		i -= size
+		if _, err := m.AccruedInterestAmount.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintLending(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x32
+	{
+		size := m.TotalBorrowedAmount.Size()
+		i -= size
+		if _, err := m.TotalBorrowedAmount.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintLending(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x2a
+	{
+		size := m.TotalLentAmount.Size()
+		i -= size
+		if _, err := m.TotalLentAmount.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintLending(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x22
+	if len(m.ReserveAddress) > 0 {
+		i -= len(m.ReserveAddress)
+		copy(dAtA[i:], m.ReserveAddress)
+		i = encodeVarintLending(dAtA, i, uint64(len(m.ReserveAddress)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.BondDenom) > 0 {
+		i -= len(m.BondDenom)
+		copy(dAtA[i:], m.BondDenom)
+		i = encodeVarintLending(dAtA, i, uint64(len(m.BondDenom)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Denom) > 0 {
+		i -= len(m.Denom)
+		copy(dAtA[i:], m.Denom)
+		i = encodeVarintLending(dAtA, i, uint64(len(m.Denom)))
+		i--
+		dAtA[i] = 0xa
+	}
 	return len(dAtA) - i, nil
 }
 
@@ -122,6 +372,59 @@ func (m *Params) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if len(m.LendingAssetParams) > 0 {
+		for _, e := range m.LendingAssetParams {
+			l = e.Size()
+			n += 1 + l + sovLending(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *LendingAssetParam) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Denom)
+	if l > 0 {
+		n += 1 + l + sovLending(uint64(l))
+	}
+	l = m.MinInterestRate.Size()
+	n += 1 + l + sovLending(uint64(l))
+	l = m.MaxInterestRate.Size()
+	n += 1 + l + sovLending(uint64(l))
+	if m.UtilizationRatioPower != 0 {
+		n += 1 + sovLending(uint64(m.UtilizationRatioPower))
+	}
+	return n
+}
+
+func (m *LendingAsset) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Denom)
+	if l > 0 {
+		n += 1 + l + sovLending(uint64(l))
+	}
+	l = len(m.BondDenom)
+	if l > 0 {
+		n += 1 + l + sovLending(uint64(l))
+	}
+	l = len(m.ReserveAddress)
+	if l > 0 {
+		n += 1 + l + sovLending(uint64(l))
+	}
+	l = m.TotalLentAmount.Size()
+	n += 1 + l + sovLending(uint64(l))
+	l = m.TotalBorrowedAmount.Size()
+	n += 1 + l + sovLending(uint64(l))
+	l = m.AccruedInterestAmount.Size()
+	n += 1 + l + sovLending(uint64(l))
 	return n
 }
 
@@ -160,6 +463,457 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: Params: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LendingAssetParams", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowLending
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthLending
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthLending
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.LendingAssetParams = append(m.LendingAssetParams, LendingAssetParam{})
+			if err := m.LendingAssetParams[len(m.LendingAssetParams)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipLending(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthLending
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *LendingAssetParam) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowLending
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: LendingAssetParam: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: LendingAssetParam: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Denom", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowLending
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthLending
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthLending
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Denom = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MinInterestRate", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowLending
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthLending
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthLending
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.MinInterestRate.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MaxInterestRate", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowLending
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthLending
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthLending
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.MaxInterestRate.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UtilizationRatioPower", wireType)
+			}
+			m.UtilizationRatioPower = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowLending
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.UtilizationRatioPower |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipLending(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthLending
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *LendingAsset) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowLending
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: LendingAsset: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: LendingAsset: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Denom", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowLending
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthLending
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthLending
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Denom = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BondDenom", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowLending
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthLending
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthLending
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BondDenom = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ReserveAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowLending
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthLending
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthLending
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ReserveAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TotalLentAmount", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowLending
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthLending
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthLending
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.TotalLentAmount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TotalBorrowedAmount", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowLending
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthLending
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthLending
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.TotalBorrowedAmount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AccruedInterestAmount", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowLending
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthLending
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthLending
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.AccruedInterestAmount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipLending(dAtA[iNdEx:])
