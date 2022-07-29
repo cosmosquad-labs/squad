@@ -174,7 +174,7 @@ func (s *KeeperTestSuite) unfarm(poolId uint64, farmer sdk.AccAddress, lfCoin sd
 		s.fundAddr(farmer, sdk.NewCoins(lfCoin))
 	}
 
-	err := s.keeper.Unfarm(s.ctx, types.NewMsgUnfarm(poolId, farmer.String(), lfCoin))
+	_, err := s.keeper.Unfarm(s.ctx, poolId, farmer, lfCoin)
 	s.Require().NoError(err)
 }
 

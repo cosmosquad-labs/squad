@@ -40,4 +40,5 @@ type FarmingKeeper interface {
 // LiquidityKeeper defines the expected interface needed for the module.
 type LiquidityKeeper interface {
 	GetPool(ctx sdk.Context, id uint64) (pool liquiditytypes.Pool, found bool)
+	Withdraw(ctx sdk.Context, msg *liquiditytypes.MsgWithdraw) (liquiditytypes.WithdrawRequest, error)
 }

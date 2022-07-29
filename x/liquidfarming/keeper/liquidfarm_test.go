@@ -11,9 +11,9 @@ import (
 )
 
 func (s *KeeperTestSuite) TestFarm() {
-	farmerAcc := s.addr(0)
+	farmerAddr := s.addr(0)
 
-	s.createPair(farmerAcc, "denom1", "denom2", true)
+	s.createPair(farmerAddr, "denom1", "denom2", true)
 	s.createPool(s.addr(0), 1, utils.ParseCoins("100_000_000denom1, 100_000_000denom2"), true)
 	s.createLiquidFarm(types.NewLiquidFarm(1, sdk.ZeroInt(), sdk.ZeroInt()))
 	s.Require().Len(s.keeper.GetParams(s.ctx).LiquidFarms, 1)
@@ -23,13 +23,13 @@ func (s *KeeperTestSuite) TestFarm() {
 
 	amount1, amount2, amount3 := sdk.NewInt(100000000), sdk.NewInt(200000000), sdk.NewInt(300000000)
 
-	s.farm(pool.Id, farmerAcc, sdk.NewCoin(pool.PoolCoinDenom, amount1), true)
+	s.farm(pool.Id, farmerAddr, sdk.NewCoin(pool.PoolCoinDenom, amount1), true)
 	s.nextBlock()
 
-	s.farm(pool.Id, farmerAcc, sdk.NewCoin(pool.PoolCoinDenom, amount2), true)
+	s.farm(pool.Id, farmerAddr, sdk.NewCoin(pool.PoolCoinDenom, amount2), true)
 	s.nextBlock()
 
-	s.farm(pool.Id, farmerAcc, sdk.NewCoin(pool.PoolCoinDenom, amount3), true)
+	s.farm(pool.Id, farmerAddr, sdk.NewCoin(pool.PoolCoinDenom, amount3), true)
 	s.nextBlock()
 
 	// Check if the liquid farm reserve account staked in the farming module
@@ -38,7 +38,7 @@ func (s *KeeperTestSuite) TestFarm() {
 	s.Require().Equal(amount1.Add(amount2).Add(amount3), queuedCoins.AmountOf(pool.PoolCoinDenom))
 
 	// Check queued farmings farmed by the farmer
-	queuedFarmings := s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAcc)
+	queuedFarmings := s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAddr)
 	s.Require().Len(queuedFarmings, 3)
 }
 
@@ -51,10 +51,10 @@ func (s *KeeperTestSuite) TestFarm_AfterStaked() {
 	pool, found := s.app.LiquidityKeeper.GetPool(s.ctx, 1)
 	s.Require().True(found)
 
-	farmerAcc := s.addr(1)
+	farmerAddr := s.addr(1)
 	amount1, amount2 := sdk.NewInt(100_000_000), sdk.NewInt(400_000_000)
 
-	s.farm(pool.Id, farmerAcc, sdk.NewCoin(pool.PoolCoinDenom, amount1), true)
+	s.farm(pool.Id, farmerAddr, sdk.NewCoin(pool.PoolCoinDenom, amount1), true)
 	s.nextBlock()
 	s.advanceEpochDays()
 
@@ -63,7 +63,7 @@ func (s *KeeperTestSuite) TestFarm_AfterStaked() {
 	s.Require().True(found)
 	s.Require().Equal(amount1, totalStakings.Amount)
 
-	s.farm(pool.Id, farmerAcc, sdk.NewCoin(pool.PoolCoinDenom, amount2), true)
+	s.farm(pool.Id, farmerAddr, sdk.NewCoin(pool.PoolCoinDenom, amount2), true)
 	s.advanceEpochDays()
 
 	// Staked amount must be 500 (amount1 + amount2)
@@ -73,11 +73,11 @@ func (s *KeeperTestSuite) TestFarm_AfterStaked() {
 
 	// Check minted LFCoin
 	lfCoinDenom := types.LiquidFarmCoinDenom(pool.Id)
-	lfCoinBalance := s.getBalance(farmerAcc, lfCoinDenom)
+	lfCoinBalance := s.getBalance(farmerAddr, lfCoinDenom)
 	s.Require().Equal(sdk.NewCoin(lfCoinDenom, amount1.Add(amount2)), lfCoinBalance)
 
 	// Queued farmings must be deleted
-	queuedFarmings := s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAcc)
+	queuedFarmings := s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAddr)
 	s.Require().Len(queuedFarmings, 0)
 }
 
@@ -89,34 +89,34 @@ func (s *KeeperTestSuite) TestFarm_AfterStaked_MultipleFarmers() {
 	pool, found := s.app.LiquidityKeeper.GetPool(s.ctx, 1)
 	s.Require().True(found)
 
-	farmerAcc1, farmerAcc2, farmerAcc3 := s.addr(1), s.addr(2), s.addr(3)
+	farmerAddr1, farmerAddr2, farmerAddr3 := s.addr(1), s.addr(2), s.addr(3)
 	amount1, amount2, amount3 := sdk.NewInt(100000000), sdk.NewInt(200000000), sdk.NewInt(666)
 
 	// Multiple farmers farm in the same block
-	s.farm(pool.Id, farmerAcc1, sdk.NewCoin(pool.PoolCoinDenom, amount1), true)
-	s.farm(pool.Id, farmerAcc2, sdk.NewCoin(pool.PoolCoinDenom, amount2), true)
+	s.farm(pool.Id, farmerAddr1, sdk.NewCoin(pool.PoolCoinDenom, amount1), true)
+	s.farm(pool.Id, farmerAddr2, sdk.NewCoin(pool.PoolCoinDenom, amount2), true)
 	s.advanceEpochDays()
 
-	queuedFarmings := s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAcc1)
+	queuedFarmings := s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAddr1)
 	s.Require().Len(queuedFarmings, 0)
 
-	queuedFarmings = s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAcc2)
+	queuedFarmings = s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAddr2)
 	s.Require().Len(queuedFarmings, 0)
 
-	s.Require().Equal(amount1, s.getBalance(farmerAcc1, types.LiquidFarmCoinDenom(pool.Id)).Amount)
-	s.Require().Equal(amount2, s.getBalance(farmerAcc2, types.LiquidFarmCoinDenom(pool.Id)).Amount)
+	s.Require().Equal(amount1, s.getBalance(farmerAddr1, types.LiquidFarmCoinDenom(pool.Id)).Amount)
+	s.Require().Equal(amount2, s.getBalance(farmerAddr2, types.LiquidFarmCoinDenom(pool.Id)).Amount)
 
-	s.farm(pool.Id, farmerAcc3, sdk.NewCoin(pool.PoolCoinDenom, amount3), true)
+	s.farm(pool.Id, farmerAddr3, sdk.NewCoin(pool.PoolCoinDenom, amount3), true)
 	s.advanceEpochDays()
 
-	queuedFarmings = s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAcc3)
+	queuedFarmings = s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAddr3)
 	s.Require().Len(queuedFarmings, 0)
 
 	reserveAddr := types.LiquidFarmReserveAddress(pool.Id)
 	lfCoinTotalSupply := s.app.BankKeeper.GetSupply(s.ctx, types.LiquidFarmCoinDenom(pool.Id)).Amount
 	lpCoinTotalStaked := s.app.FarmingKeeper.GetAllStakedCoinsByFarmer(s.ctx, reserveAddr).AmountOf(pool.PoolCoinDenom)
 	mintingAmt := lfCoinTotalSupply.Mul(amount3).Quo(lpCoinTotalStaked)
-	s.Require().Equal(mintingAmt, s.getBalance(farmerAcc3, types.LiquidFarmCoinDenom(pool.Id)).Amount)
+	s.Require().Equal(mintingAmt, s.getBalance(farmerAddr3, types.LiquidFarmCoinDenom(pool.Id)).Amount)
 }
 
 func (s *KeeperTestSuite) TestCancelQueuedFarming_All() {
@@ -128,27 +128,27 @@ func (s *KeeperTestSuite) TestCancelQueuedFarming_All() {
 	pool, found := s.app.LiquidityKeeper.GetPool(s.ctx, 1)
 	s.Require().True(found)
 
-	farmerAcc := s.addr(1)
+	farmerAddr := s.addr(1)
 
-	s.farm(pool.Id, farmerAcc, sdk.NewCoin(pool.PoolCoinDenom, sdk.NewInt(500_000_000)), true)
+	s.farm(pool.Id, farmerAddr, sdk.NewCoin(pool.PoolCoinDenom, sdk.NewInt(500_000_000)), true)
 	s.nextBlock()
 
-	s.farm(pool.Id, farmerAcc, sdk.NewCoin(pool.PoolCoinDenom, sdk.NewInt(500_000_000)), true)
+	s.farm(pool.Id, farmerAddr, sdk.NewCoin(pool.PoolCoinDenom, sdk.NewInt(500_000_000)), true)
 	s.nextBlock()
 
-	queuedFarmings := s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAcc)
+	queuedFarmings := s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAddr)
 	s.Require().Len(queuedFarmings, 2)
 
 	// Cancel all amounts
 	unfarmingCoin := sdk.NewInt64Coin(pool.PoolCoinDenom, 1_000_000_000)
-	s.cancelQueuedFarming(pool.Id, farmerAcc, unfarmingCoin)
+	s.cancelQueuedFarming(pool.Id, farmerAddr, unfarmingCoin)
 
 	// QueuedFarmings must be deleted
-	queuedFarmings = s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAcc)
+	queuedFarmings = s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAddr)
 	s.Require().Len(queuedFarmings, 0)
 
 	// Unfarming amount must be returned to the farmer
-	balance := s.getBalance(farmerAcc, pool.PoolCoinDenom)
+	balance := s.getBalance(farmerAddr, pool.PoolCoinDenom)
 	s.Require().Equal(unfarmingCoin, balance)
 }
 
@@ -161,29 +161,29 @@ func (s *KeeperTestSuite) TestCancelQueuedFarming_Partial() {
 	pool, found := s.app.LiquidityKeeper.GetPool(s.ctx, 1)
 	s.Require().True(found)
 
-	farmerAcc := s.addr(1)
+	farmerAddr := s.addr(1)
 
 	// Farm 1000 in total (400, 300, 400)
 	amount1, amount2, amount3 := sdk.NewInt(400_000_000), sdk.NewInt(300_000_000), sdk.NewInt(300_000_000)
 
-	s.farm(pool.Id, farmerAcc, sdk.NewCoin(pool.PoolCoinDenom, amount1), true)
+	s.farm(pool.Id, farmerAddr, sdk.NewCoin(pool.PoolCoinDenom, amount1), true)
 	s.nextBlock()
 
-	s.farm(pool.Id, farmerAcc, sdk.NewCoin(pool.PoolCoinDenom, amount2), true)
+	s.farm(pool.Id, farmerAddr, sdk.NewCoin(pool.PoolCoinDenom, amount2), true)
 	s.nextBlock()
 
-	s.farm(pool.Id, farmerAcc, sdk.NewCoin(pool.PoolCoinDenom, amount3), true)
+	s.farm(pool.Id, farmerAddr, sdk.NewCoin(pool.PoolCoinDenom, amount3), true)
 	s.nextBlock()
 
-	queuedFarmings := s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAcc)
+	queuedFarmings := s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAddr)
 	s.Require().Len(queuedFarmings, 3)
 
 	// Cancel partial amounts
 	unfarmingCoin := sdk.NewInt64Coin(pool.PoolCoinDenom, 650_000_000)
-	s.cancelQueuedFarming(pool.Id, farmerAcc, unfarmingCoin)
+	s.cancelQueuedFarming(pool.Id, farmerAddr, unfarmingCoin)
 
 	// Two queuedFarmings must be deleted and the last one must be in store
-	queuedFarmings = s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAcc)
+	queuedFarmings = s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAddr)
 	s.Require().Len(queuedFarmings, 1)
 
 	// Check the remaining queued coin
@@ -191,7 +191,7 @@ func (s *KeeperTestSuite) TestCancelQueuedFarming_Partial() {
 	s.Require().Equal(total.Sub(unfarmingCoin.Amount), queuedFarmings[0].Amount)
 
 	// Unfarming amount must be returned to the farmer
-	balance := s.getBalance(farmerAcc, pool.PoolCoinDenom)
+	balance := s.getBalance(farmerAddr, pool.PoolCoinDenom)
 	s.Require().Equal(unfarmingCoin, balance)
 }
 
@@ -204,28 +204,28 @@ func (s *KeeperTestSuite) TestCancelQueuedFarming_Exceed() {
 	pool, found := s.app.LiquidityKeeper.GetPool(s.ctx, 1)
 	s.Require().True(found)
 
-	farmerAcc := s.addr(1)
+	farmerAddr := s.addr(1)
 
 	// Farm 1000 in total (400, 300, 400)
 	amount1, amount2, amount3 := sdk.NewInt(400_000_000), sdk.NewInt(300_000_000), sdk.NewInt(300_000_000)
 
-	s.farm(pool.Id, farmerAcc, sdk.NewCoin(pool.PoolCoinDenom, amount1), true)
+	s.farm(pool.Id, farmerAddr, sdk.NewCoin(pool.PoolCoinDenom, amount1), true)
 	s.nextBlock()
 
-	s.farm(pool.Id, farmerAcc, sdk.NewCoin(pool.PoolCoinDenom, amount2), true)
+	s.farm(pool.Id, farmerAddr, sdk.NewCoin(pool.PoolCoinDenom, amount2), true)
 	s.nextBlock()
 
-	s.farm(pool.Id, farmerAcc, sdk.NewCoin(pool.PoolCoinDenom, amount3), true)
+	s.farm(pool.Id, farmerAddr, sdk.NewCoin(pool.PoolCoinDenom, amount3), true)
 	s.nextBlock()
 
-	queuedFarmings := s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAcc)
+	queuedFarmings := s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAddr)
 	s.Require().Len(queuedFarmings, 3)
 
 	// Cancel exceeding amount
 	unfarmingCoin := sdk.NewInt64Coin(pool.PoolCoinDenom, 1_500_000_000)
 	err := s.keeper.CancelQueuedFarming(s.ctx, &types.MsgCancelQueuedFarming{
 		PoolId:        pool.Id,
-		Farmer:        farmerAcc.String(),
+		Farmer:        farmerAddr.String(),
 		UnfarmingCoin: unfarmingCoin,
 	})
 	s.Require().ErrorIs(err, sdkerrors.ErrInsufficientFunds)
@@ -240,10 +240,10 @@ func (s *KeeperTestSuite) TestUnfarm_All() {
 	pool, found := s.app.LiquidityKeeper.GetPool(s.ctx, 1)
 	s.Require().True(found)
 
-	farmerAcc := s.addr(1)
+	farmerAddr := s.addr(1)
 	amount1 := sdk.NewInt(100_000_000)
 
-	s.farm(pool.Id, farmerAcc, sdk.NewCoin(pool.PoolCoinDenom, amount1), true)
+	s.farm(pool.Id, farmerAddr, sdk.NewCoin(pool.PoolCoinDenom, amount1), true)
 	s.nextBlock()
 	s.advanceEpochDays()
 
@@ -252,16 +252,16 @@ func (s *KeeperTestSuite) TestUnfarm_All() {
 	s.Require().True(found)
 	s.Require().Equal(amount1, totalStakings.Amount)
 
-	queuedFarmings := s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAcc)
+	queuedFarmings := s.keeper.GetQueuedFarmingsByFarmer(s.ctx, farmerAddr)
 	s.Require().Len(queuedFarmings, 0)
 
 	// Check minted LFCoin
 	lfCoinDenom := types.LiquidFarmCoinDenom(pool.Id)
-	lfCoinBalance := s.getBalance(farmerAcc, lfCoinDenom)
+	lfCoinBalance := s.getBalance(farmerAddr, lfCoinDenom)
 	s.Require().Equal(sdk.NewCoin(lfCoinDenom, amount1), lfCoinBalance)
 
 	// Unfarm all amounts
-	err := s.keeper.Unfarm(s.ctx, types.NewMsgUnfarm(pool.Id, farmerAcc.String(), lfCoinBalance))
+	_, err := s.keeper.Unfarm(s.ctx, pool.Id, farmerAddr, lfCoinBalance)
 	s.Require().NoError(err)
 
 	// Verify
@@ -270,4 +270,8 @@ func (s *KeeperTestSuite) TestUnfarm_All() {
 
 	supply := s.app.BankKeeper.GetSupply(s.ctx, lfCoinDenom)
 	s.Require().Equal(sdk.ZeroInt(), supply.Amount)
+}
+
+func (s *KeeperTestSuite) TestUnfarmAndWithdraw() {
+	// TODO: not implemented yet
 }

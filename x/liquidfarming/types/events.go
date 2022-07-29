@@ -4,6 +4,7 @@ package types
 const (
 	EventTypeFarm                = "farm"
 	EventTypeUnfarm              = "unfarm"
+	EventTypeUnfarmAndWithdraw   = "unfarm_and_withdraw"
 	EventTypeCancelQueuedFarming = "cancel_queued_farming"
 	EventTypePlaceBid            = "place_bid"
 	EventTypeRefundBid           = "refund_bid"
