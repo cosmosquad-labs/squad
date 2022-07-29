@@ -1,0 +1,49 @@
+syntax = "proto3";
+package squad.liquidfarming.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "squad/liquidfarming/v1beta1/liquidfarming.proto";
+import "squad/liquidfarming/v1beta1/params.proto";
+
+option go_package                      = "github.com/cosmosquad-labs/squad/x/liquidfarming/types";
+
+// GenesisState defines the liquidfarming module's genesis state.
+message GenesisState {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  Params params = 1 [(gogoproto.nullable) = false];
+
+  repeated QueuedFarmingRecord queued_farming_records = 2 [(gogoproto.nullable) = false]; 
+
+  repeated RewardsAuction rewards_auctions = 3 [(gogoproto.nullable) = false]; 
+
+  repeated Bid bids = 4 [(gogoproto.nullable) = false]; 
+  
+  repeated WinningBidRecord winning_bid_records = 5 [(gogoproto.nullable) = false]; 
+}
+
+message QueuedFarmingRecord {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  google.protobuf.Timestamp end_time = 1
+      [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+
+  string farming_coin_denom = 2; 
+
+  string farmer = 3;
+
+  QueuedFarming queued_farming = 4 [(gogoproto.nullable) = false]; 
+}
+
+
+message WinningBidRecord {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 auction_id = 1;
+
+  Bid winning_bid = 2 [(gogoproto.nullable) = false];
+}

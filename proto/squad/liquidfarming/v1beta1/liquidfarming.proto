@@ -1,0 +1,79 @@
+syntax = "proto3";
+package squad.liquidfarming.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package                      = "github.com/cosmosquad-labs/squad/x/liquidfarming/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// QueuedFarming defines queued farming that is waiting in a queue 
+// to be excuted at every epoch to mint LFCoin.
+message QueuedFarming {
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 pool_id = 1;
+
+  string amount = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+}
+
+// RewardsAuction defines rewards auction that is created by the module account
+// at an end block for every epoch.
+message RewardsAuction {
+  // id specifies the id for the auction
+  uint64 id = 1;
+
+  // pool_id specifies the pool id
+  uint64 pool_id = 2;
+
+  string bidding_coin_denom = 3;
+
+  string paying_reserve_address = 4;
+  
+  google.protobuf.Timestamp start_time = 5
+      [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+
+  google.protobuf.Timestamp end_time = 6
+      [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+
+  AuctionStatus status = 7;
+
+  string winner = 8;
+
+  repeated cosmos.base.v1beta1.Coin rewards = 9 [
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.nullable)     = false
+  ];
+}
+
+// Bid defines ...
+message Bid {
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 pool_id = 1;
+
+  string bidder = 2;
+
+  cosmos.base.v1beta1.Coin amount = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"
+  ];
+}
+
+// AuctionStatus enumerates the valid status of an auction.
+enum AuctionStatus {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  // AUCTION_STATUS_UNSPECIFIED defines the default auction status
+  AUCTION_STATUS_UNSPECIFIED = 0
+      [ (gogoproto.enumvalue_customname) = "AuctionStatusNil" ];
+  // AUCTION_STATUS_STARTED defines the started auction status
+  AUCTION_STATUS_STARTED = 1
+      [ (gogoproto.enumvalue_customname) = "AuctionStatusStarted" ];
+  // AUCTION_STATUS_FINISHED defines the finished auction status
+  AUCTION_STATUS_FINISHED = 2
+      [ (gogoproto.enumvalue_customname) = "AuctionStatusFinished" ];
+}
+

@@ -18,3 +18,4 @@ A primary use case of the farming module is to provide incentives for liquidity 
 6. **[Events](06_events.md)**
 7. **[Parameters](07_params.md)**
 8. **[Proposal](08_proposal.md)**
+9. **[Hooks](09_hooks.md)**

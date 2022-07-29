@@ -26,3 +26,13 @@ type AccountKeeper interface {
 	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
 	GetModuleAddress(name string) sdk.AccAddress
 }
+
+// Event hooks
+// These can be utilized to communicate between a farming keeper and other keepers from other modules.
+// The other keepers must implement this interface, which then the farming keeper can call.
+
+// FarmingHooks event hooks for the farming object (noalias)
+type FarmingHooks interface {
+	AfterStaked(ctx sdk.Context, farmer sdk.AccAddress, stakingCoinDenom string, stakingAmt sdk.Int) // Must be called when transitioning from queued to staked state
+	AfterAllocateRewards(ctx sdk.Context)                                                            // Must be called when farming rewards are allocated
+}

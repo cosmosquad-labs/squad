@@ -1,0 +1,165 @@
+syntax = "proto3";
+package squad.liquidfarming.v1beta1;
+
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "squad/liquidfarming/v1beta1/liquidfarming.proto";
+import "squad/liquidfarming/v1beta1/params.proto";
+
+option go_package = "github.com/cosmosquad-labs/squad/x/liquidfarming/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Params returns parameters of the module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/squad/liquidfarming/v1beta1/params";
+  }
+
+  rpc LiquidFarms(QueryLiquidFarmsRequest) returns (QueryLiquidFarmsResponse) {
+    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/liquidfarms";
+  }
+
+  rpc LiquidFarm(QueryLiquidFarmRequest) returns (QueryLiquidFarmResponse) {
+    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/liquidfarms/{pool_id}";
+  }
+
+  rpc QueuedFarmings(QueryQueuedFarmingsRequest) returns (QueryQueuedFarmingsResponse) {
+    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/pools/{pool_id}/queued_farmings";
+  }
+
+  rpc QueuedFarmingsByFarmer(QueryQueuedFarmingsByFarmerRequest) returns (QueryQueuedFarmingsByFarmerResponse) {
+    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/pools/{pool_id}/queued_farmings/farmer/{farmer_address}";
+  }
+
+  rpc RewardsAuctions(QueryRewardsAuctionsRequest) returns (QueryRewardsAuctionsResponse) {
+    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/pools/{pool_id}/rewards_auctions";
+  }
+
+  rpc RewardsAuction(QueryRewardsAuctionRequest) returns (QueryRewardsAuctionResponse) {
+    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/pools/{pool_id}/rewards_auctions/{auction_id}";
+  }
+
+  rpc Bids(QueryBidsRequest) returns (QueryBidsResponse) {
+    option (google.api.http).get = "/sqaud/liquidfarming/v1beta1/pools/{pool_id}/bids";
+  }
+}
+
+// QueryLiquidFarmsRequest is the request type for the Query/LiquidFarms RPC method.
+message QueryLiquidFarmsRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+// QueryLiquidFarmsResponse is response type for the Query/LiquidFarms RPC method.
+message QueryLiquidFarmsResponse {
+  repeated LiquidFarmResponse liquid_farms = 1 [ (gogoproto.nullable) = false ];
+}
+
+// QueryLiquidFarmRequest is the request type for the Query/LiquidFarm RPC method.
+message QueryLiquidFarmRequest {
+  uint64 pool_id = 1;
+}
+
+// QueryLiquidFarmResponse is response type for the Query/LiquidFarm RPC method.
+message QueryLiquidFarmResponse {
+  LiquidFarmResponse liquid_farm = 1 [ (gogoproto.nullable) = false ];
+}
+
+// QueryParamsRequest is request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryQueuedFarmingsRequest is request type for the Query/QueuedFarmings RPC method.
+message QueryQueuedFarmingsRequest {
+  uint64 pool_id = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryQueuedFarmingsResponse is response type for the Query/QueuedFarmings RPC method.
+message QueryQueuedFarmingsResponse {
+  repeated QueuedFarming queued_farmings = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryQueuedFarmingsByFarmerRequest is request type for the Query/QueuedFarmingsByFarmer RPC method.
+message QueryQueuedFarmingsByFarmerRequest {
+  uint64 pool_id = 1;
+  string farmer_address = 2;
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
+}
+
+// QueryQueuedFarmingsByFarmerResponse is response type for the Query/QueuedFarmingsByFarmer RPC method.
+message QueryQueuedFarmingsByFarmerResponse {
+  repeated QueuedFarming queued_farmings = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryRewardsAuctionsRequest is request type for the Query/RewardsAuctions RPC method.
+message QueryRewardsAuctionsRequest {
+  uint64 pool_id = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryRewardsAuctionsResponse is response type for the Query/RewardsAuctions RPC method.
+message QueryRewardsAuctionsResponse {
+  repeated RewardsAuction reward_auctions = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+
+// QueryRewardsAuctionRequest is request type for the Query/RewardsAuction RPC method.
+message QueryRewardsAuctionRequest {
+  uint64 pool_id = 1;
+  uint64 auction_id = 2;
+}
+
+// QueryRewardsAuctionResponse is response type for the Query/RewardsAuction RPC method.
+message QueryRewardsAuctionResponse {
+  RewardsAuction reward_auction = 1 [ (gogoproto.nullable) = false ];
+}
+
+// QueryBidsRequest is request type for the Query/Bids RPC method.
+message QueryBidsRequest {
+  uint64 pool_id = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryBidsResponse is response type for the Query/Bids RPC method.
+message QueryBidsResponse {
+  repeated Bid bids = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+//
+// Custom response messages
+//
+
+// LiquidFarmResponse is response type for the Query/LiquidFarm RPC method.
+message LiquidFarmResponse {
+	uint64 pool_id = 1;
+	
+  string liquid_farm_reserve_address = 2;
+
+  string LFCoinDenom = 3 [(gogoproto.customname) = "LFCoinDenom"];
+  
+  string minimum_farm_amount = 4
+      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+
+  string minimum_bid_amount = 5
+      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+
+  cosmos.base.v1beta1.Coin staked_coin = 6 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"
+  ];
+	
+  cosmos.base.v1beta1.Coin queued_coin = 7 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"
+  ];
+}

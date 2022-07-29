@@ -532,6 +532,9 @@ func (k Keeper) ProcessQueuedCoins(ctx sdk.Context, currTime time.Time) {
 
 		k.DeleteQueuedStaking(ctx, endTime, stakingCoinDenom, farmerAcc)
 
+		// Call hook right after staking is set
+		k.AfterStaked(ctx, farmerAcc, stakingCoinDenom, queuedStaking.Amount)
+
 		return false
 	})
 
